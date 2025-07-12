@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: tuk
+
+springdoc:
+  swagger-ui:
+    path: /tuk-docs
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

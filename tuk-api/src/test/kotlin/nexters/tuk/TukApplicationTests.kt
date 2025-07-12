@@ -1,10 +1,10 @@
-package nexters.tuk_server
+package nexters.tuk
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class TukServerApplicationTests {
+class TukApplicationTests {
 
 	@Test
 	fun contextLoads() {
