@@ -1,14 +1,38 @@
 spring:
   application:
-    name: tuk
+    name: tuk-api
+  datasource:
+    url: jdbc:mysql://localhost:3306/tuk_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: tuk_user
+    password: tuk_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
 
 springdoc:
   swagger-ui:
     path: /tuk-docs
-
 
 management:
   endpoints:
     web:
       exposure:
         include: health
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local, test
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod

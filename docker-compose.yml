@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.0.39
+    container_name: tuk-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tuk_db
+      MYSQL_USER: tuk_user
+      MYSQL_PASSWORD: tuk_pw
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: tuk-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
