@@ -1,4 +1,4 @@
-package nexters.tuk.`interface`.dev
+package nexters.tuk.ui.dev
 
 import nexters.tuk.contract.ApiResponse
 import org.springframework.web.bind.annotation.GetMapping

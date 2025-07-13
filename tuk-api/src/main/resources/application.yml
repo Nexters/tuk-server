@@ -1,10 +1,12 @@
 spring:
   application:
     name: tuk-api
+  profiles:
+    active: local
   datasource:
-    url: jdbc:mysql://localhost:3306/tuk_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: tuk_user
-    password: tuk_password
+    url: jdbc:mysql://localhost:3306/tuk_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -25,6 +27,17 @@ management:
       exposure:
         include: health
 
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token:
+    expires-in-days: 1
+  refresh-token:
+    expires-in-days: 30
+
 ---
 spring:
   config:
@@ -36,3 +49,7 @@ spring:
   config:
     activate:
       on-profile: prod
+
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
