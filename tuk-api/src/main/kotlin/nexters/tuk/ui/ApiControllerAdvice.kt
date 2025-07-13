@@ -1,0 +1,92 @@
+package nexters.tuk.ui
+
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.exc.InvalidFormatException
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import nexters.tuk.contract.ApiResponse
+import nexters.tuk.contract.BaseException
+import nexters.tuk.contract.ErrorType
+import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.server.MissingRequestValueException
+import org.springframework.web.server.ServerWebInputException
+import org.springframework.web.servlet.resource.NoResourceFoundException
+
+@RestControllerAdvice
+class ApiControllerAdvice {
+    private val log = LoggerFactory.getLogger(ApiControllerAdvice::class.java)
+
+    @ExceptionHandler
+    fun handle(e: BaseException): ResponseEntity<ApiResponse<*>> {
+        log.warn("BaseException : {}", e.message, e)
+        return failureResponse(errorType = e.errorType, errorMessage = e.message)
+    }
+
+    @ExceptionHandler
+    fun handle(e: MissingRequestValueException): ResponseEntity<ApiResponse<*>> {
+        val name = e.methodParameter?.parameter?.name
+        val type = e.methodParameter?.parameter?.type?.simpleName
+        val message = "필수 요청 파라미터 '$name' (타입: $type)가 누락되었습니다."
+        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = message)
+    }
+
+    @ExceptionHandler
+    fun handleBadRequest(e: ServerWebInputException): ResponseEntity<ApiResponse<*>> {
+        val errorMessage = when (val rootCause = e.rootCause) {
+            is InvalidFormatException -> {
+                val fieldName = rootCause.path.joinToString(".") { it.fieldName ?: "?" }
+
+                val valueIndicationMessage = when {
+                    rootCause.targetType.isEnum -> {
+                        val enumClass = rootCause.targetType
+                        val enumValues = enumClass.enumConstants.joinToString(", ") { it.toString() }
+                        "사용 가능한 값 : [$enumValues]"
+                    }
+
+                    else -> ""
+                }
+
+                val expectedType = rootCause.targetType.simpleName
+                val value = rootCause.value
+
+                "필드 '$fieldName'의 값 '$value'이(가) 예상 타입($expectedType)과 일치하지 않습니다. $valueIndicationMessage"
+            }
+
+            is MismatchedInputException -> {
+                val fieldPath = rootCause.path.joinToString(".") { it.fieldName ?: "?" }
+                "필수 필드 '$fieldPath'이(가) 누락되었습니다."
+            }
+
+            is JsonMappingException -> {
+                val fieldPath = rootCause.path.joinToString(".") { it.fieldName ?: "?" }
+                "필드 '$fieldPath'에서 JSON 매핑 오류가 발생했습니다: ${rootCause.originalMessage}"
+            }
+
+            is IllegalArgumentException -> rootCause.message
+
+            else -> "요청 본문을 처리하는 중 오류가 발생했습니다. JSON 메세지 규격을 확인해주세요."
+        }
+
+        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = errorMessage)
+    }
+
+    @ExceptionHandler
+    fun handleNotFound(e: NoResourceFoundException): ResponseEntity<ApiResponse<*>> {
+        return failureResponse(errorType = ErrorType.NOT_FOUND)
+    }
+
+    @ExceptionHandler
+    fun handle(e: Throwable): ResponseEntity<ApiResponse<*>> {
+        log.error("Exception : {}", e.message, e)
+        val errorType = ErrorType.INTERNAL_ERROR
+        return failureResponse(errorType = errorType)
+    }
+
+    private fun failureResponse(errorType: ErrorType, errorMessage: String? = null): ResponseEntity<ApiResponse<*>> =
+        ResponseEntity(
+            ApiResponse.fail(errorType = errorType, errorMessage = errorMessage ?: errorType.message),
+            errorType.status,
+        )
+}
