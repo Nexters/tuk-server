@@ -1,6 +1,6 @@
 package nexters.tuk.application.auth
 
-import nexters.tuk.application.auth.dto.AuthCommand
+import nexters.tuk.application.auth.dto.request.AuthCommand
 import org.springframework.stereotype.Component
 
 @Component

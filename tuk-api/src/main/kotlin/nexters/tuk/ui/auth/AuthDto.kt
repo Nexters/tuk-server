@@ -1,6 +1,6 @@
 package nexters.tuk.ui.auth
 
-import nexters.tuk.application.auth.dto.AuthCommand
+import nexters.tuk.application.auth.dto.request.AuthCommand
 
 class AuthDto {
     class Request {

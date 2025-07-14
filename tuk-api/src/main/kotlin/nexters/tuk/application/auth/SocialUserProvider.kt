@@ -4,8 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
-import nexters.tuk.application.auth.dto.AuthCommand
-import nexters.tuk.application.auth.dto.SocialUserInfo
+import nexters.tuk.application.auth.dto.request.AuthCommand
 import nexters.tuk.application.member.SocialType
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType

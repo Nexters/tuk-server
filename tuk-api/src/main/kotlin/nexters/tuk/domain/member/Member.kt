@@ -3,7 +3,7 @@ package nexters.tuk.domain.member
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import nexters.tuk.application.member.SocialType
-import nexters.tuk.application.member.dto.MemberCommand
+import nexters.tuk.application.member.dto.request.MemberCommand
 import nexters.tuk.domain.BaseEntity
 
 @Entity

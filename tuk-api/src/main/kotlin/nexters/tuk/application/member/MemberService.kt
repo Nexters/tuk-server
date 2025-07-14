@@ -1,7 +1,8 @@
 package nexters.tuk.application.member
 
-import nexters.tuk.application.member.dto.MemberCommand
-import nexters.tuk.application.member.dto.MemberResponse
+import jakarta.transaction.Transactional
+import nexters.tuk.application.member.dto.request.MemberCommand
+import nexters.tuk.application.member.dto.response.MemberResponse
 import nexters.tuk.domain.member.Member
 import nexters.tuk.domain.member.MemberRepository
 import org.springframework.stereotype.Service
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service
 class MemberService(
     private val memberRepository: MemberRepository,
 ) {
+    @Transactional
     fun signUp(command: MemberCommand.SignUp): MemberResponse.SignUp {
         val member = memberRepository.save(Member.signUp(command))
 

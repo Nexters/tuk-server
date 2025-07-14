@@ -1,4 +1,4 @@
-package nexters.tuk.application.auth.dto
+package nexters.tuk.application.auth.dto.response
 
 class AuthResponse {
     data class Login(
