@@ -1,23 +1,29 @@
 package nexters.tuk.domain
 
 import jakarta.persistence.*
-import java.time.ZonedDateTime
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.time.LocalDateTime
 
+@EntityListeners(AuditingEntityListener::class)
 @MappedSuperclass
 abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    lateinit var createdAt: ZonedDateTime
+    lateinit var createdAt: LocalDateTime
         private set
 
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    lateinit var updatedAt: ZonedDateTime
+    lateinit var updatedAt: LocalDateTime
         private set
 
     @Column(name = "deleted_at")
-    var deletedAt: ZonedDateTime? = null
+    var deletedAt: LocalDateTime? = null
         private set
 }

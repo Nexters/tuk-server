@@ -10,7 +10,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
@@ -38,22 +38,24 @@ oauth:
 jwt:
   secret: ${JWT_SECRET}
   access-token:
-    expires-in-days: 1
-  refresh-token:
     expires-in-days: 30
+  refresh-token:
+    expires-in-days: 90
 
 ---
 spring:
   config:
     activate:
-      on-profile: local, test
+      on-profile: local
 
 ---
 spring:
   config:
     activate:
       on-profile: prod
-
+  jpa:
+    hibernate:
+      ddl-auto: validate
 oauth:
   google:
     client-id: ${GOOGLE_CLIENT_ID}
@@ -61,3 +63,15 @@ oauth:
     client-id: ${APPLE_CLIENT_ID}
     jwk-url: https://appleid.apple.com/auth/keys
     base-url: https://appleid.apple.com
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+oauth:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:test}
+
+jwt:
+  secret: ${JWT_SECRET:myVeryLongSecretKeyThatIsAtLeast32CharactersLongForJWT}
