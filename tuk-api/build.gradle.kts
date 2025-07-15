@@ -22,6 +22,8 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:${properties["jjwtVersion"]}")
     implementation("io.jsonwebtoken:jjwt-impl:${properties["jjwtVersion"]}")
     implementation("io.jsonwebtoken:jjwt-jackson:${properties["jjwtVersion"]}")
+
+    implementation("com.nimbusds:nimbus-jose-jwt:${properties["nimbusJwtVersion"]}")
 }
 
 tasks.withType<Test> {

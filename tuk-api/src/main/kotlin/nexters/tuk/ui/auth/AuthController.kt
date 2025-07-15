@@ -21,4 +21,13 @@ class AuthController(
 
         return ApiResponse.ok(response)
     }
+
+    @PostMapping("/login/apple")
+    override fun appleLogin(
+        @RequestBody request: AuthDto.Request.AppleLogin
+    ): ApiResponse<AuthResponse.Login> {
+        val response = authService.socialLogin(request.toCommand())
+
+        return ApiResponse.ok(response)
+    }
 }
