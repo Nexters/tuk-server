@@ -20,7 +20,10 @@ class AuthDto {
         }
 
         data class AppleLogin(
+            @Schema(description = "Apple ID Token")
             val idToken: String,
+            @Schema(description = "유저 디바이스 정보")
+            val deviceInfo: DeviceInfo,
         ) {
             fun toCommand(): AuthCommand.SocialLogin.Apple {
                 return AuthCommand.SocialLogin.Apple(
