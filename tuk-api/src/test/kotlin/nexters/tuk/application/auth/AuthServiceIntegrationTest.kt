@@ -30,8 +30,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    @DisplayName("소셜 로그인 성공시 유저 정보를 정상적으로 저장한다.")
-    fun test_socialLogin() {
+    fun `소셜 로그인 성공시 유저 정보를 정상적으로 저장한다`() {
         // given
         val command = AuthCommand.SocialLogin.Google(
             idToken = "ABC",
@@ -49,12 +48,12 @@ class AuthServiceIntegrationTest @Autowired constructor(
         val actual = authService.socialLogin(command)
 
         // then
-        memberRepository.findByEmail("test@test.com")!!.let {
+        memberRepository.findByEmail("test@test.com")!!.let { member ->
             assertAll(
                 { assertThat(actual).isNotNull },
-                { assertThat(it.socialType).isEqualTo(SocialType.GOOGLE) },
-                { assertThat(it.email).isEqualTo("test@test.com") },
-                { assertThat(it.socialId).isEqualTo("1") }
+                { assertThat(member.socialType).isEqualTo(SocialType.GOOGLE) },
+                { assertThat(member.email).isEqualTo("test@test.com") },
+                { assertThat(member.socialId).isEqualTo("1") }
             )
         }
     }
