@@ -1,7 +1,7 @@
 package nexters.tuk.ui.auth
 
 import nexters.tuk.application.auth.AuthService
-import nexters.tuk.application.auth.dto.AuthResponse
+import nexters.tuk.application.auth.dto.response.AuthResponse
 import nexters.tuk.contract.ApiResponse
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody

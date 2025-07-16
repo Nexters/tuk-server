@@ -17,8 +17,6 @@ class JwtProvider(
     @Value("\${jwt.access-token.expires-in-days}") private val accessExpiresInDays: Long,
     @Value("\${jwt.refresh-token.expires-in-days}") private val refreshExpiresInDays: Long,
 ) {
-    private val log = LoggerFactory.getLogger(JwtProvider::class.java)
-
     private enum class TokenType { ACCESS, REFRESH }
 
     private val secretKey: SecretKey by lazy {

@@ -13,10 +13,10 @@ class JwtRedisRepository(
     override fun saveRefreshToken(memberId: Long, jwt: Jwt) {
         val valueOps = redisTemplate.opsForValue()
         val key = REFRESH_TOKEN_KEY_PREFIX + memberId
-        valueOps.set(key, jwt.refreshToken, Duration.ofMillis(jwt.refreshExpiresIn))
+        valueOps.set(key, jwt.refreshToken, Duration.ofDays(jwt.refreshExpiresIn))
     }
 
     companion object {
-        private const val REFRESH_TOKEN_KEY_PREFIX = "refresh_token:"
+        private const val REFRESH_TOKEN_KEY_PREFIX = "refresh_token:member:"
     }
 }

@@ -1,9 +1,9 @@
 package nexters.tuk.application.auth
 
-import nexters.tuk.application.auth.dto.AuthCommand
-import nexters.tuk.application.auth.dto.AuthResponse
+import nexters.tuk.application.auth.dto.request.AuthCommand
+import nexters.tuk.application.auth.dto.response.AuthResponse
 import nexters.tuk.application.member.MemberService
-import nexters.tuk.application.member.dto.MemberCommand
+import nexters.tuk.application.member.dto.request.MemberCommand
 import nexters.tuk.domain.auth.JwtRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

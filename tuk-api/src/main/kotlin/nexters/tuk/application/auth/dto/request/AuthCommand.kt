@@ -1,4 +1,4 @@
-package nexters.tuk.application.auth.dto
+package nexters.tuk.application.auth.dto.request
 
 class AuthCommand {
     sealed class SocialLogin {
