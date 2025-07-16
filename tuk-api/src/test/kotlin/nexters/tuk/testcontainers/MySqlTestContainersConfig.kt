@@ -9,7 +9,7 @@ class MySqlTestContainersConfig {
     companion object {
         private val mySqlContainer: MySQLContainer<*> = MySQLContainer(DockerImageName.parse("mysql:8.0"))
             .apply {
-                withDatabaseName("display")
+                withDatabaseName("tuk_db")
                 withUsername("test")
                 withPassword("test")
                 withExposedPorts(3306)
