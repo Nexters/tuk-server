@@ -87,6 +87,8 @@ spring:
 oauth:
   google:
     client-id: ${GOOGLE_CLIENT_ID:test}
+  apple:
+    client-id: ${APPLE_CLIENT_ID:test}
 
 jwt:
   secret: ${JWT_SECRET:myVeryLongSecretKeyThatIsAtLeast32CharactersLongForJWT}
