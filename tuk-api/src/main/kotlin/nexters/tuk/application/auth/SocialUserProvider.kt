@@ -49,4 +49,20 @@ sealed interface SocialUserProvider {
             }
         }
     }
+
+    @Component
+    class Apple(private val appleIdTokenVerifier: AppleIdTokenVerifier) : SocialUserProvider {
+        override val socialType = SocialType.APPLE
+
+        override fun getSocialUser(command: AuthCommand.SocialLogin): SocialUserInfo {
+            check(command is AuthCommand.SocialLogin.Apple) { "$command is not supported For Apple" }
+            val claim = appleIdTokenVerifier.verifyAndGetClaim(command.idToken)
+
+            return SocialUserInfo(
+                socialType = SocialType.APPLE,
+                socialId = claim.subject,
+                email = claim.email
+            )
+        }
+    }
 }

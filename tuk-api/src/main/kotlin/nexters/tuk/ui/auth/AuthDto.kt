@@ -15,5 +15,15 @@ class AuthDto {
                 )
             }
         }
+
+        data class AppleLogin(
+            val idToken: String,
+        ) {
+            fun toCommand(): AuthCommand.SocialLogin.Apple {
+                return AuthCommand.SocialLogin.Apple(
+                    idToken = idToken,
+                )
+            }
+        }
     }
 }

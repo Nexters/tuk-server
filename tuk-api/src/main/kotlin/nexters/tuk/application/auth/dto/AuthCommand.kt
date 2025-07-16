@@ -6,5 +6,9 @@ class AuthCommand {
             val idToken: String,
             val deviceId: String,
         ) : SocialLogin()
+
+        data class Apple(
+            val idToken: String,
+        ) : SocialLogin()
     }
 }
