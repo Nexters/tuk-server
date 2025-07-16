@@ -13,10 +13,8 @@ class RedisTestContainersConfig {
 
         init {
             System.setProperty("spring.data.redis.database", "0")
-            System.setProperty("spring.data.redis.master.host", redisContainer.host)
-            System.setProperty("spring.data.redis.master.port", redisContainer.firstMappedPort.toString())
-            System.setProperty("spring.data.redis.replicas[0].host", redisContainer.host)
-            System.setProperty("spring.data.redis.replicas[0].port", redisContainer.firstMappedPort.toString())
+            System.setProperty("spring.data.redis.host", redisContainer.host)
+            System.setProperty("spring.data.redis.port", redisContainer.firstMappedPort.toString())
         }
     }
 }
