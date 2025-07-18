@@ -9,6 +9,8 @@ dependencies {
     // quartz
     implementation("org.springframework.boot:spring-boot-starter-quartz:${project.properties["quartzVersion"]}")
 
+    // firebase
+    implementation("com.google.firebase:firebase-admin:${project.properties["firebaseVersion"]}")  // FCM Admin SDK
 
     // mysql
     runtimeOnly("com.mysql:mysql-connector-j:${properties["mysqlVersion"]}")

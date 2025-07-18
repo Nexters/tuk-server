@@ -40,3 +40,4 @@ out/
 .kotlin
 
 *.env
+firebase-adminsdk.json
