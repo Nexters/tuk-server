@@ -1,4 +1,4 @@
-package com.junrain.tukbatch
+package nexters.tuk
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
