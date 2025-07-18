@@ -1,6 +1,5 @@
 package nexters.tuk.application.scheduler
 
-import nexters.tuk.application.scheduler.dto.NotificationCommand
 import org.quartz.*
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -11,13 +10,13 @@ import java.util.*
 class MeetingScheduler(
     private val scheduler: Scheduler,
 ) {
-    fun scheduleNotification(command: NotificationCommand.Reservation) {
-        val jobKey = JobKey(command.meetingId.toString(), "notification-job-group")
-        val triggerKey = TriggerKey(command.meetingId.toString(), "notification-trigger-group")
+    fun scheduleNotification(meetingId: Long, notificationTime: LocalDateTime) {
+        val jobKey = JobKey(meetingId.toString(), "notification-job-group")
+        val triggerKey = TriggerKey(meetingId.toString(), "notification-trigger-group")
 
         val jobDataMap = JobDataMap(
             mapOf(
-                "meetingId" to command.meetingId
+                "meetingId" to meetingId
             )
         )
 
@@ -30,7 +29,7 @@ class MeetingScheduler(
 
         val trigger = TriggerBuilder.newTrigger()
             .withIdentity(triggerKey)
-            .startAt(command.notificationTime.toDate())
+            .startAt(notificationTime.toDate())
             .withSchedule(SimpleScheduleBuilder.simpleSchedule().withRepeatCount(0))
             .forJob(jobKey)
             .build()
