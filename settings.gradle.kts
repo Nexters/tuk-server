@@ -1,3 +1,3 @@
 rootProject.name = "tuk-server"
 
-include("tuk-api")
+include("tuk-api", "tuk-batch")
