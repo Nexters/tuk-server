@@ -1,6 +1,10 @@
 package nexters.tuk.application.member
 
+import org.springframework.stereotype.Service
 
-interface MemberService {
-    fun findTokensByMeetingId(meetingId: Long): List<String>
+@Service
+class MemberService {
+    fun findTokensByMeetingId(meetingId: Long): List<String> {
+        TODO("Not yet implemented")
+    }
 }

@@ -7,26 +7,29 @@ import java.time.ZoneId
 import java.util.*
 
 @Component
-class MeetingScheduler(
+class TukNotificationScheduler(
     private val scheduler: Scheduler,
 ) {
-    fun scheduleNotification(meetingId: Long, notificationTime: LocalDateTime) {
+    fun scheduleNotification(meetingId: Long, durationDays: Long) {
         val jobKey = JobKey(meetingId.toString(), "notification-job-group")
         val triggerKey = TriggerKey(meetingId.toString(), "notification-trigger-group")
 
+
         val jobDataMap = JobDataMap(
             mapOf(
-                "meetingId" to meetingId
+                "meetingId" to meetingId,
+                "durationDays" to durationDays
             )
         )
 
-        val jobDetail = JobBuilder.newJob(SendMeetingNotificationJob::class.java)
+        val jobDetail = JobBuilder.newJob(TukNotificationJob::class.java)
             .withIdentity(jobKey)
             .usingJobData(jobDataMap)
             .storeDurably()
             .requestRecovery(true)
             .build()
 
+        val notificationTime = LocalDateTime.now().plusDays(durationDays)
         val trigger = TriggerBuilder.newTrigger()
             .withIdentity(triggerKey)
             .startAt(notificationTime.toDate())
@@ -42,5 +45,3 @@ class MeetingScheduler(
         return Date.from(instant)
     }
 }
-
-
