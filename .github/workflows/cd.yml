@@ -67,15 +67,16 @@ jobs:
             echo "${{ secrets.NCP_SECRET_KEY }}" | sudo docker login ${{ secrets.NCP_CONTAINER_REGISTRY_API }} -u ${{ secrets.NCP_ACCESS_KEY }} --password-stdin
             
             # Run with environment variables
-            sudo MYSQL_USERNAME="${{ secrets.MYSQL_USERNAME }}" \
-                 MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
-                 MYSQL_ROOT_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
-                 APPLE_CLIENT_ID="${{ secrets.APPLE_CLIENT_ID }}" \
-                 GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-                 GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-                 NCP_CONTAINER_REGISTRY_API="${{ secrets.NCP_CONTAINER_REGISTRY_API }}" \
-                 JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-                 IMAGE_TAG="${{ github.sha }}" \
+            sudo env \
+                 MYSQL_USERNAME='${{ secrets.MYSQL_USERNAME }}' \
+                 MYSQL_PASSWORD='${{ secrets.MYSQL_PASSWORD }}' \
+                 MYSQL_ROOT_PASSWORD='${{ secrets.MYSQL_PASSWORD }}' \
+                 APPLE_CLIENT_ID='${{ secrets.APPLE_CLIENT_ID }}' \
+                 GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
+                 GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
+                 NCP_CONTAINER_REGISTRY_API='${{ secrets.NCP_CONTAINER_REGISTRY_API }}' \
+                 JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+                 IMAGE_TAG='${{ github.sha }}' \
                  docker-compose up -d
             
             sudo docker image prune -f
