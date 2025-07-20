@@ -1,16 +1,22 @@
 package nexters.tuk.domain.member
 
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 import nexters.tuk.application.member.SocialType
 import nexters.tuk.application.member.dto.request.MemberCommand
 import nexters.tuk.domain.BaseEntity
 
+/**
+ * FIXME: member 임시 테이블
+ */
 @Entity
 @Table(name = "member")
 class Member private constructor(
     val name: String?,
     val email: String,
+    @Enumerated(EnumType.STRING)
     val socialType: SocialType,
     val socialId: String,
 ) : BaseEntity() {
