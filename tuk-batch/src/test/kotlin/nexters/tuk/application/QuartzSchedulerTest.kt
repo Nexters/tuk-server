@@ -1,10 +1,11 @@
 package nexters.tuk.application
 
+import com.ninjasquad.springmockk.MockkBean
 import io.mockk.spyk
 import io.mockk.verify
-import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.scheduler.MeetingScheduler
 import nexters.tuk.application.scheduler.SendMeetingNotificationJob
+import nexters.tuk.config.FcmConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +26,7 @@ class QuartzSchedulerTest @Autowired constructor(
     private val scheduler: Scheduler,
     private val meetingScheduler: MeetingScheduler,
     private val realJob: SendMeetingNotificationJob,
+    @MockkBean private val fcmConfig: FcmConfig
 ) {
 
     private lateinit var spyJob: SendMeetingNotificationJob
