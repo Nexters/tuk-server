@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/cd-pipeline
 
 jobs:
   build-and-push:
@@ -28,21 +29,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build with Gradle
+      - name: Build and Push with Jib (API)
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
-          arguments: clean bootJar
+          arguments: clean :tuk-api:jib -Djib.to.image=${{ secrets.NCP_CONTAINER_REGISTRY_API }}/tuk-api -Djib.to.auth.username=${{ secrets.NCP_ACCESS_KEY }} -Djib.to.auth.password=${{ secrets.NCP_SECRET_KEY }}
+        env:
+          JIB_TO_IMAGE: ${{ secrets.NCP_CONTAINER_REGISTRY_API }}/tuk-api
+          JIB_TO_AUTH_USERNAME: ${{ secrets.NCP_ACCESS_KEY }}
+          JIB_TO_AUTH_PASSWORD: ${{ secrets.NCP_SECRET_KEY }}
 
-      - name: Set up Docker Build
-        uses: docker/setup-buildx-action@v2
-
-      - name: Docker build and push to NCP container registry
+      - name: Copy docker files to server
         run: |
-          sudo docker build --build-arg DEPENDENCY=build/dependency -t ${{ secrets.NCP_CONTAINER_REGISTRY_API }}/goalpanzi-api --platform linux/amd64 .
-          sudo docker login ${{ secrets.NCP_CONTAINER_REGISTRY_API }} -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }}
-          sudo docker push ${{ secrets.NCP_CONTAINER_REGISTRY_API }}/goalpanzi-api
-
-          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker-compose.yml ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}
+          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker/docker-compose.prod.yml ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml
+          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker/init.sql ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}
         shell: bash
 
   deploy-to-server:
@@ -73,9 +72,5 @@ jobs:
             export REDIS_HOST=${{ secrets.REDIS_HOST }}
 
             sudo docker rm -f $(docker ps -qa)
-
-            sudo docker login ${{ secrets.NCP_CONTAINER_REGISTRY_API }} -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }}
-            sudo docker pull ${{ secrets.NCP_CONTAINER_REGISTRY_API }}/goalpanzi-api
-
             docker-compose -f ${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml up -d
             docker image prune -f
