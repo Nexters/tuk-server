@@ -38,10 +38,11 @@ jobs:
           JIB_TO_AUTH_USERNAME: ${{ secrets.NCP_ACCESS_KEY }}
           JIB_TO_AUTH_PASSWORD: ${{ secrets.NCP_SECRET_KEY }}
 
-      - name: Copy docker files to server
+      - name: Create directory and copy docker files to server
         run: |
+          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }} "mkdir -p ${{ secrets.DOCKER_COMPOSE_PATH }}"
           sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker/docker-compose.prod.yml ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml
-          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker/init.sql ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}
+          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker/init.sql ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/
         shell: bash
 
   deploy-to-server:
