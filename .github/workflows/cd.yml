@@ -32,9 +32,10 @@ jobs:
       - name: Build and Push with Jib (API)
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
-          arguments: clean :tuk-api:jib -Djib.to.image=${{ secrets.NCP_CONTAINER_REGISTRY_API }}/tuk-api -Djib.to.auth.username=${{ secrets.NCP_ACCESS_KEY }} -Djib.to.auth.password=${{ secrets.NCP_SECRET_KEY }}
+          arguments: clean :tuk-api:jib -Djib.to.image=${{ secrets.NCP_CONTAINER_REGISTRY_API }}/tuk-api -Djib.to.tags=${{ github.sha }} -Djib.to.auth.username=${{ secrets.NCP_ACCESS_KEY }} -Djib.to.auth.password=${{ secrets.NCP_SECRET_KEY }}
         env:
           JIB_TO_IMAGE: ${{ secrets.NCP_CONTAINER_REGISTRY_API }}/tuk-api
+          JIB_TO_TAGS: ${{ github.sha }}
           JIB_TO_AUTH_USERNAME: ${{ secrets.NCP_ACCESS_KEY }}
           JIB_TO_AUTH_PASSWORD: ${{ secrets.NCP_SECRET_KEY }}
 
@@ -59,19 +60,22 @@ jobs:
           username: ${{ secrets.API_SERVER_USERNAME }}
           password: ${{ secrets.API_SERVER_PASSWORD }}
           script: |
-            export DB_HOSTNAME=${{ secrets.DB_HOSTNAME }}
-            export DB_PORT=${{ secrets.DB_PORT }}
-            export DB_DATABASE=${{ secrets.DB_DATABASE }}
-            export DB_USERNAME=${{ secrets.DB_USERNAME }}
-            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            export APPLE_CLIENT_ID=${{ secrets.APPLE_CLIENT_ID }}
-            export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            export NCP_CONTAINER_REGISTRY_API=${{ secrets.NCP_CONTAINER_REGISTRY_API }}
-            export NCP_CONTAINER_REGISTRY_BATCH=${{ secrets.NCP_CONTAINER_REGISTRY_BATCH }}
-            export JWT_SECRET=${{ secrets.JWT_SECRET }}
-            export REDIS_HOST=${{ secrets.REDIS_HOST }}
-
-            sudo docker rm -f $(docker ps -qa)
-            docker-compose -f ${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml up -d
-            docker image prune -f
+            cd ${{ secrets.DOCKER_COMPOSE_PATH }}
+            sudo docker rm -f $(sudo docker ps -qa) 2>/dev/null || true
+            
+            # Login to NCP Container Registry
+            echo "${{ secrets.NCP_SECRET_KEY }}" | sudo docker login ${{ secrets.NCP_CONTAINER_REGISTRY_API }} -u ${{ secrets.NCP_ACCESS_KEY }} --password-stdin
+            
+            # Run with environment variables
+            sudo MYSQL_USERNAME="${{ secrets.MYSQL_USERNAME }}" \
+                 MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
+                 MYSQL_ROOT_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
+                 APPLE_CLIENT_ID="${{ secrets.APPLE_CLIENT_ID }}" \
+                 GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+                 GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+                 NCP_CONTAINER_REGISTRY_API="${{ secrets.NCP_CONTAINER_REGISTRY_API }}" \
+                 JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+                 IMAGE_TAG="${{ github.sha }}" \
+                 docker-compose up -d
+            
+            sudo docker image prune -f

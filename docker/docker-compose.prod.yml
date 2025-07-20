@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   api:
     container_name: tuk-api
-    image: ${NCP_CONTAINER_REGISTRY_API}/tuk-api:latest
+    image: ${NCP_CONTAINER_REGISTRY_API}/tuk-api:${IMAGE_TAG}
     restart: always
     ports:
       - "8080:8080"
