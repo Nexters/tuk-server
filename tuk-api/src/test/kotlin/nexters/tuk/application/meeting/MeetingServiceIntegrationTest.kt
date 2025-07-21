@@ -1,8 +1,13 @@
 package nexters.tuk.application.meeting
 
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
 import nexters.tuk.application.meeting.dto.request.MeetingCommand
+import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.member.SocialType
 import nexters.tuk.application.member.dto.request.MemberCommand
+import nexters.tuk.domain.meeting.Meeting
+import nexters.tuk.domain.meeting.MeetingMember
 import nexters.tuk.domain.meeting.MeetingMemberRepository
 import nexters.tuk.domain.meeting.MeetingRepository
 import nexters.tuk.domain.member.Member
@@ -12,6 +17,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDate
@@ -22,10 +28,12 @@ class MeetingServiceIntegrationTest @Autowired constructor(
     private val meetingRepository: MeetingRepository,
     private val memberRepository: MemberRepository,
     private val meetingMemberRepository: MeetingMemberRepository,
+    @MockkBean private val memberService: MemberService,
 ) : MySqlTestContainersConfig() {
 
     @AfterEach
     fun tearDown() {
+        meetingMemberRepository.deleteAll()
         meetingRepository.deleteAll()
         memberRepository.deleteAll()
     }
@@ -33,15 +41,15 @@ class MeetingServiceIntegrationTest @Autowired constructor(
     @Test
     fun `모임 생성시 모임과 관련된 정보들이 정상적으로 저장된다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
+        val member = Member.signUp(
+            MemberCommand.SignUp(
+                socialId = "1",
+                socialType = SocialType.GOOGLE,
+                email = "test@test.com",
             )
         )
+        memberRepository.save(member)
+        every { memberService.findById(any()) } returns member
 
         val command = MeetingCommand.Generate(
             memberId = member.id,
@@ -68,5 +76,249 @@ class MeetingServiceIntegrationTest @Autowired constructor(
             { assertThat(meetingMember).isNotNull() },
             { assertThat(meetingMember!!.isHost).isTrue() }
         )
+    }
+
+    @Test
+    fun `유저의 모임 목록을 정상적으로 조회한다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val meeting1 = meetingRepository.save(
+            Meeting.generate(
+                member,
+                MeetingCommand.Generate(member.id, "meeting1", 0, 7, emptyList())
+            )
+        )
+        val meeting2 = meetingRepository.save(
+            Meeting.generate(
+                member,
+                MeetingCommand.Generate(member.id, "meeting2", 0, 7, emptyList())
+            )
+        )
+
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meeting1, member))
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meeting2, member))
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+
+        // when
+        val result = meetingService.getMemberMeetings(command)
+
+        // then
+        assertThat(result.meetingOverviews).hasSize(2)
+        assertThat(result.hasNext).isFalse()
+    }
+
+    @Test
+    fun `유저에게 모임이 없는 경우 빈 목록을 반환한다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+
+        // when
+        val result = meetingService.getMemberMeetings(command)
+
+        // then
+        assertThat(result.meetingOverviews).isEmpty()
+        assertThat(result.hasNext).isFalse()
+    }
+
+    @Test
+    fun `유저의 모임 목록 조회시 페이지네이션이 정상적으로 동작한다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val meetings = (1..20).map {
+            meetingRepository.save(
+                Meeting.generate(
+                    member,
+                    MeetingCommand.Generate(member.id, "meeting$it", 0, 7, emptyList())
+                )
+            )
+        }
+        meetings.forEach {
+            meetingMemberRepository.save(MeetingMember.registerHostMember(it, member))
+        }
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+
+        // when
+        val result = meetingService.getMemberMeetings(command)
+
+        // then
+        assertThat(result.meetingOverviews).hasSize(10)
+        assertThat(result.hasNext).isTrue()
+    }
+
+    @Test
+    fun `다른 유저의 모임은 조회되지 않는다`() {
+        // given
+        val member1 = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test1@test.com",
+                )
+            )
+        )
+        val member2 = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "2",
+                    socialType = SocialType.GOOGLE,
+                    email = "test2@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member1.id) } returns member1
+
+        val meeting1 = meetingRepository.save(
+            Meeting.generate(
+                member1,
+                MeetingCommand.Generate(member1.id, "meeting1", 0, 7, emptyList())
+            )
+        )
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meeting1, member1))
+
+        val meeting2 = meetingRepository.save(
+            Meeting.generate(
+                member2,
+                MeetingCommand.Generate(member2.id, "meeting2", 0, 7, emptyList())
+            )
+        )
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meeting2, member2))
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = member1.id, page = 0, size = 10)
+
+        // when
+        val result = meetingService.getMemberMeetings(command)
+
+        // then
+        assertThat(result.meetingOverviews).hasSize(1)
+        assertThat(result.meetingOverviews.first().meetingName).isEqualTo("meeting1")
+    }
+
+    @Test
+    fun `모임 이름 내림차순으로 정렬되어 조회된다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val meetingA = meetingRepository.save(
+            Meeting.generate(
+                member,
+                MeetingCommand.Generate(member.id, "A_meeting", 0, 7, emptyList())
+            )
+        )
+        val meetingB = meetingRepository.save(
+            Meeting.generate(
+                member,
+                MeetingCommand.Generate(member.id, "B_meeting", 0, 7, emptyList())
+            )
+        )
+        val meetingC = meetingRepository.save(
+            Meeting.generate(
+                member,
+                MeetingCommand.Generate(member.id, "C_meeting", 0, 7, emptyList())
+            )
+        )
+
+        meetingMemberRepository.saveAll(
+            listOf(
+                MeetingMember.registerHostMember(meetingA, member),
+                MeetingMember.registerHostMember(meetingC, member),
+                MeetingMember.registerHostMember(meetingB, member),
+            )
+        )
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+
+        // when
+        val result = meetingService.getMemberMeetings(command)
+
+        // then
+        assertThat(result.meetingOverviews.map { it.meetingName }).containsExactly(
+            "A_meeting",
+            "B_meeting",
+            "C_meeting",
+        )
+    }
+
+    @Test
+    fun `존재하지 않는 유저로 조회시 빈 목록을 반환한다`() {
+        // given
+        every { memberService.findById(any()) } throws RuntimeException("Member not found")
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = 999L, page = 0, size = 10)
+
+        // when, then
+        assertThrows<RuntimeException> {
+            meetingService.getMemberMeetings(command)
+        }
+    }
+
+    @Test
+    fun `지난 모임 날짜로부터 몇달이 지났는지 정확하게 계산한다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val meeting = meetingRepository.save(
+            Meeting.generate(member, MeetingCommand.Generate(member.id, "meeting", 60, 7, emptyList()))
+        )
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meeting, member))
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+
+        // when
+        val result = meetingService.getMemberMeetings(command)
+
+        // then
+        assertThat(result.meetingOverviews.first().monthsSinceLastMeeting).isEqualTo(2)
     }
 }

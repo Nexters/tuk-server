@@ -9,4 +9,10 @@ class MeetingCommand {
         val meetingIntervalDays: Long,
         val tags: List<String>,
     )
+
+    data class GetMemberMeetings(
+        val memberId: Long,
+        val size: Int,
+        val page: Int,
+    )
 }

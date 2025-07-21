@@ -7,8 +7,11 @@ import nexters.tuk.domain.meeting.Meeting
 import nexters.tuk.domain.meeting.MeetingMember
 import nexters.tuk.domain.meeting.MeetingMemberRepository
 import nexters.tuk.domain.meeting.MeetingRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @Service
 class MeetingService(
@@ -30,5 +33,36 @@ class MeetingService(
         return MeetingResponse.Generate(
             meetingId = savedMeeting.id
         )
+    }
+
+    @Transactional(readOnly = true)
+    fun getMemberMeetings(command: MeetingCommand.GetMemberMeetings): MeetingResponse.MeetingOverviews {
+        val member = memberService.findById(command.memberId)
+        val pageable = PageRequest.of(command.page, command.size)
+
+        val meetingMemberSlice = meetingMemberRepository
+            .findAllByMemberOrderByMeetingName(member, pageable)
+
+        val meetingIds = meetingMemberSlice.content.map { it.id }
+        val meetings = meetingRepository.findAllById(meetingIds).toList()
+
+        val meetingOverviews = meetings.map { meeting ->
+            MeetingResponse.MeetingOverviews.MeetingOverview(
+                meetingName = meeting.name,
+                monthsSinceLastMeeting = meeting.lastMeetingDate.monthsAgo()
+            )
+        }
+
+        return MeetingResponse.MeetingOverviews(
+            hasNext = meetingMemberSlice.hasNext(),
+            currentPage = command.page,
+            size = meetings.size,
+            meetingOverviews = meetingOverviews
+        )
+    }
+
+    private fun LocalDate.monthsAgo(): Int {
+        val daysBetween = ChronoUnit.DAYS.between(this, LocalDate.now())
+        return (daysBetween / 30).toInt()
     }
 }
