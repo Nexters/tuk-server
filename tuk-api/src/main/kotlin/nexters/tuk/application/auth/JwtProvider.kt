@@ -1,9 +1,10 @@
 package nexters.tuk.application.auth
 
-import io.jsonwebtoken.*
+import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import org.slf4j.LoggerFactory
+import nexters.tuk.contract.BaseException
+import nexters.tuk.contract.ErrorType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -53,6 +54,18 @@ class JwtProvider(
             TokenType.ACCESS -> accessExpiresInDays
             TokenType.REFRESH -> refreshExpiresInDays
         }
+    }
+
+    fun validateAndGetMemberId(token: String?): Long {
+        val claims = runCatching {
+            Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+        }.getOrElse { throw BaseException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다.") }
+
+        return claims["memberId"].toString().toLong()
     }
 }
 
