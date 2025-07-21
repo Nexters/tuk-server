@@ -8,5 +8,6 @@ interface AuthSpec {
     @Operation(summary = "구글 로그인")
     fun googleLogin(request: AuthDto.Request.GoogleLogin): ApiResponse<AuthResponse.Login>
 
+    @Operation(summary = "애플 로그인")
     fun appleLogin(request: AuthDto.Request.AppleLogin) : ApiResponse<AuthResponse.Login>
 }
