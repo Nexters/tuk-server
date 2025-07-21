@@ -9,11 +9,7 @@ class MeetingResponse {
     )
 
     data class MeetingOverviews(
-        @Schema(description = "다음 페이지 존재 여부")
-        val hasNext: Boolean,
-        @Schema(description = "현재 페이지")
-        val currentPage: Int,
-        @Schema(description = "페이지당 데이터 수")
+        @Schema(description = "총 데이터 수")
         val size: Int,
         @Schema(description = "사용자 모임 데이터 리스트")
         val meetingOverviews: List<MeetingOverview>,

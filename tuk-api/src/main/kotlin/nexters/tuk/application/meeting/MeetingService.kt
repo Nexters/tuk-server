@@ -7,7 +7,6 @@ import nexters.tuk.domain.meeting.Meeting
 import nexters.tuk.domain.meeting.MeetingMember
 import nexters.tuk.domain.meeting.MeetingMemberRepository
 import nexters.tuk.domain.meeting.MeetingRepository
-import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -38,26 +37,20 @@ class MeetingService(
     @Transactional(readOnly = true)
     fun getMemberMeetings(command: MeetingCommand.GetMemberMeetings): MeetingResponse.MeetingOverviews {
         val member = memberService.findById(command.memberId)
-        val pageable = PageRequest.of(command.page, command.size)
 
-        val meetingMemberSlice = meetingMemberRepository
-            .findAllByMemberOrderByMeetingName(member, pageable)
-
-        val meetingIds = meetingMemberSlice.content.map { it.id }
-        val meetings = meetingRepository.findAllById(meetingIds).toList()
-
-        val meetingOverviews = meetings.map { meeting ->
-            MeetingResponse.MeetingOverviews.MeetingOverview(
-                meetingName = meeting.name,
-                monthsSinceLastMeeting = meeting.lastMeetingDate.monthsAgo()
-            )
-        }
+        val meetingMember = meetingMemberRepository.findAllByMemberOrderByMeetingName(member)
+        val overViews = meetingMember
+            .map { it.meeting }
+            .map {
+                MeetingResponse.MeetingOverviews.MeetingOverview(
+                    it.name,
+                    it.lastMeetingDate.monthsAgo()
+                )
+            }
 
         return MeetingResponse.MeetingOverviews(
-            hasNext = meetingMemberSlice.hasNext(),
-            currentPage = command.page,
-            size = meetings.size,
-            meetingOverviews = meetingOverviews
+            size = overViews.size,
+            meetingOverviews = overViews
         )
     }
 

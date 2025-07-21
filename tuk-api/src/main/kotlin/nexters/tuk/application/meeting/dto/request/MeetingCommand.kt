@@ -12,7 +12,5 @@ class MeetingCommand {
 
     data class GetMemberMeetings(
         val memberId: Long,
-        val size: Int,
-        val page: Int,
     )
 }

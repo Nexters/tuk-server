@@ -27,11 +27,9 @@ class MeetingController(
     @GetMapping
     override fun getMemberMeetings(
         @Authenticated memberId: Long,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
     ): ApiResponse<MeetingResponse.MeetingOverviews> {
 
-        val command = MeetingCommand.GetMemberMeetings(memberId, page, size)
+        val command = MeetingCommand.GetMemberMeetings(memberId)
         val response = meetingService.getMemberMeetings(command)
 
         return ApiResponse.ok(response)

@@ -108,14 +108,13 @@ class MeetingServiceIntegrationTest @Autowired constructor(
         meetingMemberRepository.save(MeetingMember.registerHostMember(meeting1, member))
         meetingMemberRepository.save(MeetingMember.registerHostMember(meeting2, member))
 
-        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id)
 
         // when
         val result = meetingService.getMemberMeetings(command)
 
         // then
         assertThat(result.meetingOverviews).hasSize(2)
-        assertThat(result.hasNext).isFalse()
     }
 
     @Test
@@ -132,50 +131,13 @@ class MeetingServiceIntegrationTest @Autowired constructor(
         )
         every { memberService.findById(member.id) } returns member
 
-        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id)
 
         // when
         val result = meetingService.getMemberMeetings(command)
 
         // then
         assertThat(result.meetingOverviews).isEmpty()
-        assertThat(result.hasNext).isFalse()
-    }
-
-    @Test
-    fun `유저의 모임 목록 조회시 페이지네이션이 정상적으로 동작한다`() {
-        // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
-
-        val meetings = (1..20).map {
-            meetingRepository.save(
-                Meeting.generate(
-                    member,
-                    MeetingCommand.Generate(member.id, "meeting$it", 0, 7, emptyList())
-                )
-            )
-        }
-        meetings.forEach {
-            meetingMemberRepository.save(MeetingMember.registerHostMember(it, member))
-        }
-
-        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
-
-        // when
-        val result = meetingService.getMemberMeetings(command)
-
-        // then
-        assertThat(result.meetingOverviews).hasSize(10)
-        assertThat(result.hasNext).isTrue()
     }
 
     @Test
@@ -217,7 +179,7 @@ class MeetingServiceIntegrationTest @Autowired constructor(
         )
         meetingMemberRepository.save(MeetingMember.registerHostMember(meeting2, member2))
 
-        val command = MeetingCommand.GetMemberMeetings(memberId = member1.id, page = 0, size = 10)
+        val command = MeetingCommand.GetMemberMeetings(memberId = member1.id)
 
         // when
         val result = meetingService.getMemberMeetings(command)
@@ -228,7 +190,7 @@ class MeetingServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    fun `모임 이름 내림차순으로 정렬되어 조회된다`() {
+    fun `모임 이름 오름차순으로 정렬되어 조회된다`() {
         // given
         val member = memberRepository.save(
             Member.signUp(
@@ -260,15 +222,11 @@ class MeetingServiceIntegrationTest @Autowired constructor(
             )
         )
 
-        meetingMemberRepository.saveAll(
-            listOf(
-                MeetingMember.registerHostMember(meetingA, member),
-                MeetingMember.registerHostMember(meetingC, member),
-                MeetingMember.registerHostMember(meetingB, member),
-            )
-        )
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meetingA, member))
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meetingB, member))
+        meetingMemberRepository.save(MeetingMember.registerHostMember(meetingC, member))
 
-        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id)
 
         // when
         val result = meetingService.getMemberMeetings(command)
@@ -277,16 +235,16 @@ class MeetingServiceIntegrationTest @Autowired constructor(
         assertThat(result.meetingOverviews.map { it.meetingName }).containsExactly(
             "A_meeting",
             "B_meeting",
-            "C_meeting",
+            "C_meeting"
         )
     }
 
     @Test
-    fun `존재하지 않는 유저로 조회시 빈 목록을 반환한다`() {
+    fun `존재하지 않는 유저로 조회시 예외가 발생한다`() {
         // given
         every { memberService.findById(any()) } throws RuntimeException("Member not found")
 
-        val command = MeetingCommand.GetMemberMeetings(memberId = 999L, page = 0, size = 10)
+        val command = MeetingCommand.GetMemberMeetings(memberId = 999L)
 
         // when, then
         assertThrows<RuntimeException> {
@@ -295,7 +253,7 @@ class MeetingServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    fun `지난 모임 날짜로부터 몇달이 지났는지 정확하게 계산한다`() {
+    fun `200개의 모임 데이터가 순서대로 잘 저장되었는지 확인한다`() {
         // given
         val member = memberRepository.save(
             Member.signUp(
@@ -308,17 +266,23 @@ class MeetingServiceIntegrationTest @Autowired constructor(
         )
         every { memberService.findById(member.id) } returns member
 
-        val meeting = meetingRepository.save(
-            Meeting.generate(member, MeetingCommand.Generate(member.id, "meeting", 60, 7, emptyList()))
-        )
-        meetingMemberRepository.save(MeetingMember.registerHostMember(meeting, member))
+        val meetings = (1..200).map {
+            val meetingName = "meeting" + String.format("%03d", it)
+            val meeting = Meeting.generate(member, MeetingCommand.Generate(member.id, meetingName, 0, 7, emptyList()))
+            meetingRepository.save(meeting)
+        }.shuffled()
 
-        val command = MeetingCommand.GetMemberMeetings(memberId = member.id, page = 0, size = 10)
+        meetings.forEach {
+            meetingMemberRepository.save(MeetingMember.registerHostMember(it, member))
+        }
+
+        val command = MeetingCommand.GetMemberMeetings(memberId = member.id)
 
         // when
         val result = meetingService.getMemberMeetings(command)
 
         // then
-        assertThat(result.meetingOverviews.first().monthsSinceLastMeeting).isEqualTo(2)
+        assertThat(result.meetingOverviews).hasSize(200)
+        assertThat(result.meetingOverviews.map { it.meetingName }).isSorted()
     }
 }
