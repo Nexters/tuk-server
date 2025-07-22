@@ -1,27 +1,27 @@
-package nexters.tuk.ui.meeting
+package nexters.tuk.ui.gathering
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import nexters.tuk.application.meeting.dto.response.MeetingResponse
+import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.contract.ApiResponse
 
 
-interface MeetingSpec {
+interface GatheringSpec {
     @Operation(
         summary = "모임 생성",
         security = [SecurityRequirement(name = "Authorization")]
     )
-    fun generateMeeting(
+    fun generateGathering(
         @Parameter(hidden = true) memberId: Long,
-        request: MeetingDto.Request.Generate
-    ): ApiResponse<MeetingResponse.Generate>
+        request: GatheringDto.Request.Generate
+    ): ApiResponse<GatheringResponse.Generate>
 
     @Operation(
         summary = "사용자 모임 조회",
         security = [SecurityRequirement(name = "Authorization")]
     )
-    fun getMemberMeetings(
+    fun getMemberGathering(
         @Parameter(hidden = true) memberId: Long,
-    ): ApiResponse<MeetingResponse.MeetingOverviews>
+    ): ApiResponse<GatheringResponse.GatheringOverviews>
 }

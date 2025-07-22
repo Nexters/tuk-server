@@ -1,4 +1,4 @@
-package nexters.tuk.domain.meeting
+package nexters.tuk.domain.gathering
 
 import jakarta.persistence.*
 import nexters.tuk.domain.BaseEntity
@@ -6,15 +6,15 @@ import nexters.tuk.domain.member.Member
 
 @Entity
 @Table(
-    name = "meeting_member",
+    name = "gathering_member",
     indexes = [
-        Index(name = "idx_meeting_member", columnList = "meeting_id, member_id")
+        Index(name = "idx_gathering_member", columnList = "gathering_id, member_id")
     ]
 )
-class MeetingMember private constructor(
+class GatheringMember private constructor(
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "meeting_id", nullable = false, updatable = false)
-    val meeting: Meeting,
+    @JoinColumn(name = "gathering_id", nullable = false, updatable = false)
+    val gathering: Gathering,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false, updatable = false)
@@ -24,8 +24,8 @@ class MeetingMember private constructor(
     val isHost: Boolean = false,
 ) : BaseEntity() {
     companion object {
-        fun registerHostMember(meeting: Meeting, member: Member): MeetingMember {
-            return MeetingMember(meeting, member, true)
+        fun registerHostMember(gathering: Gathering, member: Member): GatheringMember {
+            return GatheringMember(gathering, member, true)
         }
     }
 }
