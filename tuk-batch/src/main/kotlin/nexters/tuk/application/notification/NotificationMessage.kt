@@ -1,14 +1,14 @@
 package nexters.tuk.application.notification
 
-interface MessageGenerator {
+interface NotificationMessage {
     fun getTitle(): String
     fun getBody(): String
 }
 
-class TukMessageGenerator(
+class TukNotificationMessage(
     private val meetingId: Long,
     private val days: Long,
-) : MessageGenerator {
+) : NotificationMessage {
 
     override fun getTitle(): String {
         TODO("Not yet implemented")
@@ -19,10 +19,10 @@ class TukMessageGenerator(
     }
 }
 
-class InvitationMessageGenerator(
+class InvitationNotificationMessage(
     private val meetingId: Long,
     private val purpose: String,
-) : MessageGenerator {
+) : NotificationMessage {
 
     override fun getTitle(): String {
         TODO("Not yet implemented")

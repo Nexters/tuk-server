@@ -1,18 +1,24 @@
 package nexters.tuk.infrastructure
 
 import com.google.firebase.messaging.*
+import nexters.tuk.application.notification.NotificationMessage
+import nexters.tuk.application.notification.NotificationSender
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class FcmClient {
+class FcmClient() : NotificationSender {
     private val logger = LoggerFactory.getLogger(FcmClient::class.java)
 
-    fun sendMulticast(tokens: List<String>, title: String, body: String, data: Map<String, String>? = null) {
+    override fun notifyMembers(
+        tokens: List<String>,
+        meesage: NotificationMessage,
+        data: Map<String, String>?
+    ) {
         val notification = Notification
             .builder()
-            .setTitle(title)
-            .setBody(body)
+            .setTitle(meesage.getTitle())
+            .setBody(meesage.getBody())
             .build()
 
         val multicastMessage = MulticastMessage.builder()
