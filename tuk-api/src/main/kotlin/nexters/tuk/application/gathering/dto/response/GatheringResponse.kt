@@ -21,4 +21,24 @@ class GatheringResponse {
             val monthsSinceLastGathering: Int
         )
     }
+
+    data class GatheringDetail(
+        @Schema(description = "모임명")
+        val gatheringName: String,
+        @Schema(description = "첫 번째 모임부터 현재까지 지난 일수")
+        val daysSinceFirstGathering: Int,
+        @Schema(description = "마지막 모임부터 현재까지 지난 개월수")
+        val monthsSinceLastGathering: Int,
+        @Schema(description = "보낸 초대장 수")
+        val sentInvitationCount: Int,
+        @Schema(description = "받은 초대장 수")
+        val receivedInvitationCount: Int,
+        @Schema(description = "모임원")
+        val members: List<MemberSummary>
+    ){
+        data class MemberSummary(
+            @Schema(description = "사용자 명")
+            val memberName: String,
+        )
+    }
 }

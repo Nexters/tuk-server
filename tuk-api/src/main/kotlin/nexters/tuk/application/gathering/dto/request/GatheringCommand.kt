@@ -9,8 +9,4 @@ class GatheringCommand {
         val gatheringIntervalDays: Long,
         val tags: List<String>,
     )
-
-    data class GetMemberGathering(
-        val memberId: Long,
-    )
 }

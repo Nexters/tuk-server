@@ -3,6 +3,7 @@ package nexters.tuk.application.gathering
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
+import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.member.SocialType
 import nexters.tuk.application.member.dto.request.MemberCommand
@@ -33,9 +34,9 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
     @AfterEach
     fun tearDown() {
-        gatheringMemberRepository.deleteAll()
-        gatheringRepository.deleteAll()
-        memberRepository.deleteAll()
+        gatheringMemberRepository.deleteAllInBatch()
+        gatheringRepository.deleteAllInBatch()
+        memberRepository.deleteAllInBatch()
     }
 
     @Test
@@ -108,7 +109,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering1, member))
         gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering2, member))
 
-        val command = GatheringCommand.GetMemberGathering(memberId = member.id)
+        val command = GatheringQuery.MemberGathering(memberId = member.id)
 
         // when
         val result = gatheringService.getMemberGatherings(command)
@@ -131,7 +132,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
         every { memberService.findById(member.id) } returns member
 
-        val command = GatheringCommand.GetMemberGathering(memberId = member.id)
+        val command = GatheringQuery.MemberGathering(memberId = member.id)
 
         // when
         val result = gatheringService.getMemberGatherings(command)
@@ -179,10 +180,10 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
         gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering2, member2))
 
-        val command = GatheringCommand.GetMemberGathering(memberId = member1.id)
+        val query = GatheringQuery.MemberGathering(memberId = member1.id)
 
         // when
-        val result = gatheringService.getMemberGatherings(command)
+        val result = gatheringService.getMemberGatherings(query)
 
         // then
         assertThat(result.gatheringOverviews).hasSize(1)
@@ -226,10 +227,10 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerHostMember(gatheringB, member))
         gatheringMemberRepository.save(GatheringMember.registerHostMember(gatheringC, member))
 
-        val command = GatheringCommand.GetMemberGathering(memberId = member.id)
+        val query = GatheringQuery.MemberGathering(memberId = member.id)
 
         // when
-        val result = gatheringService.getMemberGatherings(command)
+        val result = gatheringService.getMemberGatherings(query)
 
         // then
         assertThat(result.gatheringOverviews.map { it.gatheringName }).containsExactly(
@@ -244,11 +245,11 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         // given
         every { memberService.findById(any()) } throws RuntimeException("Member not found")
 
-        val command = GatheringCommand.GetMemberGathering(memberId = 999L)
+        val query = GatheringQuery.MemberGathering(memberId = 999L)
 
         // when, then
         assertThrows<RuntimeException> {
-            gatheringService.getMemberGatherings(command)
+            gatheringService.getMemberGatherings(query)
         }
     }
 
@@ -268,7 +269,8 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         val gatherings = (1..200).map {
             val gatheringName = "gathering" + String.format("%03d", it)
-            val gathering = Gathering.generate(member, GatheringCommand.Generate(member.id, gatheringName, 0, 7, emptyList()))
+            val gathering =
+                Gathering.generate(member, GatheringCommand.Generate(member.id, gatheringName, 0, 7, emptyList()))
             gatheringRepository.save(gathering)
         }.shuffled()
 
@@ -276,13 +278,227 @@ class GatheringServiceIntegrationTest @Autowired constructor(
             gatheringMemberRepository.save(GatheringMember.registerHostMember(it, member))
         }
 
-        val command = GatheringCommand.GetMemberGathering(memberId = member.id)
+        val query = GatheringQuery.MemberGathering(memberId = member.id)
 
         // when
-        val result = gatheringService.getMemberGatherings(command)
+        val result = gatheringService.getMemberGatherings(query)
 
         // then
         assertThat(result.gatheringOverviews).hasSize(200)
         assertThat(result.gatheringOverviews.map { it.gatheringName }).isSorted()
+    }
+
+    @Test
+    fun `삭제된 모임은 조회되지 않는다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val gathering1 = gatheringRepository.save(
+            Gathering.generate(
+                member,
+                GatheringCommand.Generate(member.id, "gathering1", 0, 7, emptyList())
+            )
+        )
+        val gathering2 = gatheringRepository.save(
+            Gathering.generate(
+                member,
+                GatheringCommand.Generate(member.id, "gathering2", 0, 7, emptyList())
+            )
+        )
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering1, member))
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering2, member))
+
+        gatheringRepository.delete(gathering2)
+
+        val query = GatheringQuery.MemberGathering(memberId = member.id)
+
+        // when
+        val result = gatheringService.getMemberGatherings(query)
+
+        // then
+        assertThat(result.gatheringOverviews).hasSize(1)
+        assertThat(result.gatheringOverviews.first().gatheringName).isEqualTo("gathering1")
+    }
+
+    @Test
+    fun `모임 상세 정보를 정상적으로 조회한다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val gathering = gatheringRepository.save(
+            Gathering.generate(
+                member,
+                GatheringCommand.Generate(member.id, "test gathering", 10, 7, emptyList())
+            )
+        )
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member))
+
+        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member.id)
+
+        // when
+        val result = gatheringService.getGatheringDetail(query)
+
+        // then
+        assertAll(
+            { assertThat(result.gatheringName).isEqualTo("test gathering") },
+            { assertThat(result.daysSinceFirstGathering).isEqualTo(10) },
+            { assertThat(result.monthsSinceLastGathering).isEqualTo(0) },
+            { assertThat(result.sentInvitationCount).isEqualTo(0) },
+            { assertThat(result.receivedInvitationCount).isEqualTo(0) },
+            { assertThat(result.members).hasSize(1) }
+        )
+    }
+
+    @Test
+    fun `모임에 속한 멤버들의 정보를 정상적으로 조회한다`() {
+        // given
+        val host = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "host@test.com",
+                )
+            )
+        )
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "2",
+                    socialType = SocialType.GOOGLE,
+                    email = "member@test.com",
+                )
+            )
+        )
+        every { memberService.findById(host.id) } returns host
+        every { memberService.findById(member.id) } returns member
+
+        val gathering = gatheringRepository.save(
+            Gathering.generate(
+                host,
+                GatheringCommand.Generate(host.id, "test gathering", 10, 7, emptyList())
+            )
+        )
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, host))
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member))
+
+        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = host.id)
+
+        // when
+        val result = gatheringService.getGatheringDetail(query)
+
+        // then
+        assertThat(result.members).hasSize(2)
+    }
+
+    @Test
+    fun `존재하지 않는 모임 ID로 조회 시 예외가 발생한다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val query = GatheringQuery.GatheringDetail(gatheringId = 999L, memberId = member.id)
+
+        // when, then
+        assertThrows<RuntimeException> {
+            gatheringService.getGatheringDetail(query)
+        }
+    }
+
+    @Test
+    fun `모임에 속하지 않은 멤버가 조회 시 예외가 발생한다`() {
+        // given
+        val member1 = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test1@test.com",
+                )
+            )
+        )
+        val member2 = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "2",
+                    socialType = SocialType.GOOGLE,
+                    email = "test2@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member1.id) } returns member1
+        every { memberService.findById(member2.id) } returns member2
+
+        val gathering = gatheringRepository.save(
+            Gathering.generate(
+                member1,
+                GatheringCommand.Generate(member1.id, "test gathering", 10, 7, emptyList())
+            )
+        )
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member1))
+
+        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member2.id)
+
+        // when, then
+        assertThrows<RuntimeException> {
+            gatheringService.getGatheringDetail(query)
+        }
+    }
+
+    @Test
+    fun `삭제된 모임 ID로 상세 조회 시 예외가 발생한다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberCommand.SignUp(
+                    socialId = "1",
+                    socialType = SocialType.GOOGLE,
+                    email = "test@test.com",
+                )
+            )
+        )
+        every { memberService.findById(member.id) } returns member
+
+        val gathering = gatheringRepository.save(
+            Gathering.generate(
+                member,
+                GatheringCommand.Generate(member.id, "test gathering", 10, 7, emptyList())
+            )
+        )
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member))
+        gatheringRepository.delete(gathering)
+
+        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member.id)
+
+        // when, then
+        assertThrows<RuntimeException> {
+            gatheringService.getGatheringDetail(query)
+        }
     }
 }
