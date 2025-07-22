@@ -4,9 +4,9 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
-import nexters.tuk.application.meeting.dto.request.MeetingCommand
+import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.application.member.MemberService
-import nexters.tuk.application.scheduler.MeetingNotificationScheduler
+import nexters.tuk.application.scheduler.GatheringNotificationScheduler
 import nexters.tuk.config.FcmConfig
 import nexters.tuk.infrastructure.FcmClient
 import nexters.tuk.job.TukNotificationJob
@@ -30,7 +30,7 @@ import java.time.temporal.ChronoUnit
 @ActiveProfiles("test")
 class QuartzSchedulerTest @Autowired constructor(
     private val scheduler: Scheduler,
-    private val meetingNotificationScheduler: MeetingNotificationScheduler,
+    private val gatheringNotificationScheduler: GatheringNotificationScheduler,
     private val realTukNotificationJob: TukNotificationJob,
     @MockkBean private val memberService: MemberService,
     @MockkBean private val fcmClient: FcmClient,
@@ -51,16 +51,16 @@ class QuartzSchedulerTest @Autowired constructor(
     }
 
     @Test
-    fun `새로운 미팅 ID로 알림을 등록하면 Job과 Trigger가 생성된다`() {
+    fun `새로운 모임 ID로 알림을 등록하면 Job과 Trigger가 생성된다`() {
         // given
-        val meetingId = 1L
+        val gatheringId = 1L
         val intervalDays = 1L
-        val command = MeetingCommand.Notification.Tuk(meetingId, intervalDays)
-        val expectedJobKey = JobKey(meetingId.toString(), "notification-job-group")
-        val expectedTriggerKey = TriggerKey(meetingId.toString(), "notification-trigger-group")
+        val command = GatheringCommand.Notification.Tuk(gatheringId, intervalDays)
+        val expectedJobKey = JobKey(gatheringId.toString(), "notification-job-group")
+        val expectedTriggerKey = TriggerKey(gatheringId.toString(), "notification-trigger-group")
 
         // when
-        meetingNotificationScheduler.scheduleTukNotification(command)
+        gatheringNotificationScheduler.scheduleTukNotification(command)
 
         // then
         val jobDetail = scheduler.getJobDetail(expectedJobKey)
@@ -73,23 +73,23 @@ class QuartzSchedulerTest @Autowired constructor(
     }
 
     @Test
-    fun `동일한 미팅 ID로 재등록 시 기존 Trigger가 새 정보로 교체된다`() {
+    fun `동일한 모임 ID로 재등록 시 기존 Trigger가 새 정보로 교체된다`() {
         // given
-        val meetingId = 2L
+        val gatheringId = 2L
         val initialIntervalDays = 1L
         val updatedIntervalDays = 2L
-        val initialCommand = MeetingCommand.Notification.Tuk(meetingId, initialIntervalDays)
-        val updatedCommand = MeetingCommand.Notification.Tuk(meetingId, updatedIntervalDays)
+        val initialCommand = GatheringCommand.Notification.Tuk(gatheringId, initialIntervalDays)
+        val updatedCommand = GatheringCommand.Notification.Tuk(gatheringId, updatedIntervalDays)
 
         // when
-        meetingNotificationScheduler.scheduleTukNotification(initialCommand)
-        meetingNotificationScheduler.scheduleTukNotification(updatedCommand)
+        gatheringNotificationScheduler.scheduleTukNotification(initialCommand)
+        gatheringNotificationScheduler.scheduleTukNotification(updatedCommand)
 
         // then
-        val jobKey = JobKey(meetingId.toString(), "notification-job-group")
+        val jobKey = JobKey(gatheringId.toString(), "notification-job-group")
         val jobDetail = scheduler.getJobDetail(jobKey)
         assertThat(jobDetail).isNotNull
-        assertThat(jobDetail.jobDataMap["meetingId"]).isEqualTo(meetingId)
+        assertThat(jobDetail.jobDataMap["gatheringId"]).isEqualTo(gatheringId)
         assertThat(jobDetail.jobDataMap["intervalDays"]).isEqualTo(updatedIntervalDays)
 
         val triggers = scheduler.getTriggersOfJob(jobKey)
@@ -105,14 +105,14 @@ class QuartzSchedulerTest @Autowired constructor(
     }
 
     @Test
-    fun `여러 미팅 ID로 등록 시 각 스케줄이 독립적으로 존재한다`() {
+    fun `여러 모임 ID로 등록 시 각 스케줄이 독립적으로 존재한다`() {
         // given
-        val command1 = MeetingCommand.Notification.Tuk(10L, 1L)
-        val command2 = MeetingCommand.Notification.Tuk(20L, 2L)
+        val command1 = GatheringCommand.Notification.Tuk(10L, 1L)
+        val command2 = GatheringCommand.Notification.Tuk(20L, 2L)
 
         // when
-        meetingNotificationScheduler.scheduleTukNotification(command1)
-        meetingNotificationScheduler.scheduleTukNotification(command2)
+        gatheringNotificationScheduler.scheduleTukNotification(command1)
+        gatheringNotificationScheduler.scheduleTukNotification(command2)
 
         // then
         val jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals("notification-job-group"))
@@ -127,16 +127,16 @@ class QuartzSchedulerTest @Autowired constructor(
     @Test
     fun `스케줄된 Job이 지정된 시간에 실행되어 알림을 전송한다`() {
         // given
-        val meetingId = 3L
+        val gatheringId = 3L
         val intervalDays = 0L // 즉시 실행되도록 0일 후로 설정
-        val command = MeetingCommand.Notification.Tuk(meetingId, intervalDays)
+        val command = GatheringCommand.Notification.Tuk(gatheringId, intervalDays)
         val tokens = listOf("token1", "token2")
 
-        every { memberService.findTokensByMeetingId(meetingId) } returns tokens
+        every { memberService.findTokensByGatheringId(gatheringId) } returns tokens
         every { fcmClient.notifyMembers(any(), any(), any()) } returns Unit
 
         // when
-        meetingNotificationScheduler.scheduleTukNotification(command)
+        gatheringNotificationScheduler.scheduleTukNotification(command)
 
         // then
         verify(timeout = 5000) {

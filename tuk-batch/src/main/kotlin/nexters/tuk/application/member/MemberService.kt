@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class MemberService {
-    fun findTokensByMeetingId(meetingId: Long): List<String> {
+    fun findTokensByGatheringId(gatheringId: Long): List<String> {
         TODO("Not yet implemented")
     }
 }

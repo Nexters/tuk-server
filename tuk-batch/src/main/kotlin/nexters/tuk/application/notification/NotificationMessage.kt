@@ -6,7 +6,7 @@ interface NotificationMessage {
 }
 
 class TukNotificationMessage(
-    private val meetingId: Long,
+    private val gatheringId: Long,
     private val days: Long,
 ) : NotificationMessage {
 
@@ -20,7 +20,7 @@ class TukNotificationMessage(
 }
 
 class InvitationNotificationMessage(
-    private val meetingId: Long,
+    private val gatheringId: Long,
     private val purpose: String,
 ) : NotificationMessage {
 

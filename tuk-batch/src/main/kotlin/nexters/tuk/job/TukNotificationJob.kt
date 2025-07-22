@@ -1,21 +1,21 @@
 package nexters.tuk.job
 
-import nexters.tuk.application.meeting.dto.request.MeetingCommand
-import nexters.tuk.application.notification.MeetingNotifier
+import nexters.tuk.application.gathering.dto.request.GatheringCommand
+import nexters.tuk.application.notification.GatheringNotifier
 import org.quartz.Job
 import org.quartz.JobExecutionContext
 import org.springframework.stereotype.Component
 
 @Component
 class TukNotificationJob(
-    private val meetingNotifier: MeetingNotifier
+    private val gatheringNotifier: GatheringNotifier
 ) : Job {
     override fun execute(context: JobExecutionContext) {
         val jobDataMap = context.mergedJobDataMap
-        val meetingId = jobDataMap["meetingId"] as Long
+        val gatheringId = jobDataMap["gatheringId"] as Long
         val intervalDays = jobDataMap["intervalDays"] as Long
 
-        val command = MeetingCommand.Notification.Tuk(meetingId, intervalDays)
-        meetingNotifier.sendTukNotification(command)
+        val command = GatheringCommand.Notification.Tuk(gatheringId, intervalDays)
+        gatheringNotifier.sendTukNotification(command)
     }
 }
