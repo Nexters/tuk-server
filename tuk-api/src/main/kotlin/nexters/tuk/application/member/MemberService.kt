@@ -29,6 +29,6 @@ class MemberService(
     @Transactional(readOnly = true)
     fun findById(id: Long): Member {
         return memberRepository.findById(id)
-            .orElseThrow { throw BaseException(ErrorType.NOT_FOUND, "Member를 찾지 못했습니다.") }
+            .orElseThrow { throw BaseException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다.") }
     }
 }

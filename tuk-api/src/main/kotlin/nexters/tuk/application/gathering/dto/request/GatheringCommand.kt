@@ -9,4 +9,9 @@ class GatheringCommand {
         val gatheringIntervalDays: Long,
         val tags: List<String>,
     )
+
+    data class AcceptInvitation(
+        val memberId: Long,
+        val gatheringId: Long,
+    )
 }

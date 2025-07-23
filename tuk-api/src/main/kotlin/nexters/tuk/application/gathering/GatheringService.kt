@@ -86,4 +86,16 @@ class GatheringService(
         return gatheringMemberService.getGatheringMembers(this)
             .map { GatheringResponse.GatheringDetail.MemberSummary(it.id, it.name ?: "이름 없음") }
     }
+
+    @Transactional
+    fun acceptInvitations(command: GatheringCommand.AcceptInvitation): GatheringResponse.JoinGathering {
+        val member = memberService.findById(command.memberId)
+        val gathering = gatheringRepository.findById(command.gatheringId)
+            .orElseThrow { BaseException(ErrorType.NOT_FOUND, "모임을 찾을 수 없습니다.") }
+            .also {
+                gatheringMemberService.registerMember(it, member)
+            }
+
+        return GatheringResponse.JoinGathering(gathering.id)
+    }
 }

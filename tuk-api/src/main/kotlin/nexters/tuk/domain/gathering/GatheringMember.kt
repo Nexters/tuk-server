@@ -27,5 +27,9 @@ class GatheringMember private constructor(
         fun registerHostMember(gathering: Gathering, member: Member): GatheringMember {
             return GatheringMember(gathering, member, true)
         }
+
+        fun registerMember(gathering: Gathering, member: Member): GatheringMember {
+            return GatheringMember(gathering, member, false)
+        }
     }
 }

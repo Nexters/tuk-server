@@ -35,7 +35,22 @@ class GatheringMemberService(
 
     @Transactional(readOnly = true)
     fun verifyGatheringAccess(gathering: Gathering, member: Member) {
-        gatheringMemberRepository.findByGatheringAndMember(gathering, member)
-            ?: throw BaseException(ErrorType.BAD_REQUEST, "사용자가 접근할 수 없는 모임입니다.")
+        if (gathering.hasMember(member).not())
+            throw BaseException(ErrorType.BAD_REQUEST, "사용자가 접근할 수 없는 모임입니다.")
+    }
+
+    private fun Gathering.hasMember(member: Member): Boolean {
+        return gatheringMemberRepository.findByGatheringAndMember(this, member) != null
+    }
+
+    @Transactional
+    fun registerMember(gathering: Gathering, member: Member): Gathering {
+        if (gathering.hasMember(member))
+            throw BaseException(ErrorType.BAD_REQUEST, "이미 가입된 사용자입니다.")
+
+        val gatheringMember = GatheringMember.registerMember(gathering, member)
+            .also { gatheringMemberRepository.save(it) }
+
+        return gatheringMember.gathering
     }
 }

@@ -39,7 +39,7 @@ class GatheringResponse {
         val receivedInvitationCount: Int,
         @Schema(description = "모임원")
         val members: List<MemberSummary>
-    ){
+    ) {
         data class MemberSummary(
             @Schema(description = "사용자 id")
             val memberId: Long,
@@ -47,4 +47,8 @@ class GatheringResponse {
             val memberName: String,
         )
     }
+
+    data class JoinGathering(
+        @Schema(description = "모임 id") val gatheringId: Long,
+    )
 }

@@ -8,6 +8,8 @@ import nexters.tuk.application.invitation.InvitationService
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.member.SocialType
 import nexters.tuk.application.member.dto.request.MemberCommand
+import nexters.tuk.contract.BaseException
+import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.gathering.Gathering
 import nexters.tuk.domain.gathering.GatheringMember
 import nexters.tuk.domain.gathering.GatheringMemberRepository
@@ -518,8 +520,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.gatheringOverviews).hasSize(2)
         assertThat(result.gatheringOverviews.map { it.gatheringName }).containsExactly(
-            "member1_another_gathering",
-            "member1_gathering"
+            "member1_another_gathering", "member1_gathering"
         )
     }
 
@@ -555,26 +556,17 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         val dailyResult = gatheringService.generateGathering(
             TestData.gatheringGenerateCommand(
-                member.id,
-                "daily",
-                daysSinceLastGathering = 30,
-                gatheringIntervalDays = 1
+                member.id, "daily", daysSinceLastGathering = 30, gatheringIntervalDays = 1
             )
         )
         val weeklyResult = gatheringService.generateGathering(
             TestData.gatheringGenerateCommand(
-                member.id,
-                "weekly",
-                daysSinceLastGathering = 14,
-                gatheringIntervalDays = 7
+                member.id, "weekly", daysSinceLastGathering = 14, gatheringIntervalDays = 7
             )
         )
         val monthlyResult = gatheringService.generateGathering(
             TestData.gatheringGenerateCommand(
-                member.id,
-                "monthly",
-                daysSinceLastGathering = 60,
-                gatheringIntervalDays = 30
+                member.id, "monthly", daysSinceLastGathering = 60, gatheringIntervalDays = 30
             )
         )
 
@@ -659,7 +651,6 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
 
         val gathering = gatheringRepository.findById(gatheringResult.gatheringId).orElse(null)
-        // 추가 멤버들 등록
         members.forEach { member ->
             registerGatheringMember(gathering, member)
         }
@@ -671,5 +662,55 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.members).hasSize(4) // 호스트 + 3명의 멤버
+    }
+
+    @Test
+    fun `초대 수락시 멤버가 모임에 정상적으로 가입된다`() {
+        // given
+        val member = createMemberWithMocks()
+        val gathering = createGathering(member, "모임A")
+
+        val command = GatheringCommand.AcceptInvitation(memberId = member.id, gatheringId = gathering.id)
+
+        // when
+        val result = gatheringService.acceptInvitations(command)
+
+        // then
+        val gatheringMember = gatheringMemberRepository.findByGatheringAndMember(gathering, member)
+        assertThat(gatheringMember).isNotNull
+        assertThat(result.gatheringId).isEqualTo(gathering.id)
+    }
+
+    @Test
+    fun `존재하지 않는 모임 ID로 초대 수락시 NOT_FOUND 예외가 발생한다`() {
+        // given
+        val member = createMemberWithMocks()
+        val invalidGatheringId = 999999L
+        val command = GatheringCommand.AcceptInvitation(memberId = member.id, gatheringId = invalidGatheringId)
+
+        // when & then
+        val exception = assertThrows<BaseException> {
+            gatheringService.acceptInvitations(command)
+        }
+        assertThat(exception.errorType).isEqualTo(ErrorType.NOT_FOUND)
+        assertThat(exception.message).contains("모임을 찾을 수 없습니다.")
+    }
+
+    @Test
+    fun `이미 가입된 멤버가 초대 수락시 예외가 발생한다`() {
+        // given
+        val member = createMemberWithMocks()
+        val gathering = createGathering(member)
+
+        registerGatheringMember(gathering, member)
+
+        val command = GatheringCommand.AcceptInvitation(memberId = member.id, gatheringId = gathering.id)
+
+        // when & then
+        val exception = assertThrows<BaseException> {
+            gatheringService.acceptInvitations(command)
+        }
+        assertThat(exception.errorType).isEqualTo(ErrorType.BAD_REQUEST)
+        assertThat(exception.message).contains("이미 가입된 사용자입니다.")
     }
 }

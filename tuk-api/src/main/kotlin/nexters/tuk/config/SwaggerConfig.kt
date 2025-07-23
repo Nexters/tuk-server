@@ -13,4 +13,7 @@ import org.springframework.context.annotation.Configuration
 )
 @Configuration
 class SwaggerConfig {
+    companion object {
+        const val SECURITY_SCHEME_NAME = "Authorization"
+    }
 }

@@ -1,6 +1,7 @@
 package nexters.tuk.ui.gathering
 
 import nexters.tuk.application.gathering.GatheringService
+import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.config.Authenticated
@@ -37,12 +38,24 @@ class GatheringController(
 
     @GetMapping("/{gatheringId}/members")
     override fun getGatheringDetail(
-        memberId: Long,
+        @Authenticated memberId: Long,
         @PathVariable("gatheringId") gatheringId: Long
     ): ApiResponse<GatheringResponse.GatheringDetail> {
 
         val query = GatheringQuery.GatheringDetail(memberId, gatheringId)
         val response = gatheringService.getGatheringDetail(query)
+
+        return ApiResponse.ok(response)
+    }
+
+    @PostMapping("/{gatheringId}/members")
+    override fun joinGathering(
+        @Authenticated memberId: Long,
+        @PathVariable("gatheringId") gatheringId: Long
+    ): ApiResponse<GatheringResponse.JoinGathering> {
+
+        val command = GatheringCommand.AcceptInvitation(memberId, gatheringId)
+        val response = gatheringService.acceptInvitations(command)
 
         return ApiResponse.ok(response)
     }
