@@ -16,10 +16,9 @@ interface GatheringMemberRepository : JpaRepository<GatheringMember, Long> {
         WHERE gathering_member.member = :member 
           AND gathering_member.deletedAt IS NULL 
           AND gathering.deletedAt IS NULL
-        ORDER BY gathering.name
         """
     )
-    fun findAllByMemberOrderByGatheringName(
+    fun findAllByMember(
         @Param("member") member: Member,
     ): List<GatheringMember>
 

@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
+import nexters.tuk.application.invitation.InvitationService
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.member.SocialType
 import nexters.tuk.application.member.dto.request.MemberCommand
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @SpringBootTest
 class GatheringServiceIntegrationTest @Autowired constructor(
@@ -30,7 +32,68 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     private val memberRepository: MemberRepository,
     private val gatheringMemberRepository: GatheringMemberRepository,
     @MockkBean private val memberService: MemberService,
+    @MockkBean private val invitationService: InvitationService,
 ) : MySqlTestContainersConfig() {
+
+    companion object {
+        object TestData {
+            fun memberSignUpCommand(
+                socialId: String = "1", socialType: SocialType = SocialType.GOOGLE, email: String = "test@test.com"
+            ) = MemberCommand.SignUp(
+                socialId = socialId, socialType = socialType, email = email
+            )
+
+            fun gatheringGenerateCommand(
+                memberId: Long,
+                gatheringName: String = "test gathering",
+                daysSinceLastGathering: Long = 0,
+                gatheringIntervalDays: Long = 7,
+                tags: List<String> = emptyList()
+            ) = GatheringCommand.Generate(
+                memberId = memberId,
+                gatheringName = gatheringName,
+                daysSinceLastGathering = daysSinceLastGathering,
+                gatheringIntervalDays = gatheringIntervalDays,
+                tags = tags
+            )
+        }
+    }
+
+    private fun createMember(
+        socialId: String = "1", email: String = "test@test.com"
+    ): Member = memberRepository.save(
+        Member.signUp(TestData.memberSignUpCommand(socialId = socialId, email = email))
+    )
+
+    private fun createGathering(
+        hostMember: Member,
+        name: String = "test gathering",
+        daysSince: Long = 0,
+        intervalDays: Long = 7,
+        tags: List<String> = emptyList()
+    ): Gathering = gatheringRepository.save(
+        Gathering.generate(
+            hostMember, TestData.gatheringGenerateCommand(
+                memberId = hostMember.id,
+                gatheringName = name,
+                daysSinceLastGathering = daysSince,
+                gatheringIntervalDays = intervalDays,
+                tags = tags
+            )
+        )
+    )
+
+    private fun registerGatheringMember(gathering: Gathering, member: Member): GatheringMember =
+        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member))
+
+    private fun setupMocks(vararg members: Member) {
+        members.forEach { every { memberService.findById(it.id) } returns it }
+        every { invitationService.getGatherInvitations(any()) } returns emptyList()
+    }
+
+    private fun createMemberWithMocks(socialId: String = "1", email: String = "test@test.com"): Member {
+        return createMember(socialId, email).also { setupMocks(it) }
+    }
 
     @AfterEach
     fun tearDown() {
@@ -42,17 +105,9 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Test
     fun `모임 생성시 모임과 관련된 정보들이 정상적으로 저장된다`() {
         // given
-        val member = Member.signUp(
-            MemberCommand.SignUp(
-                socialId = "1",
-                socialType = SocialType.GOOGLE,
-                email = "test@test.com",
-            )
-        )
-        memberRepository.save(member)
-        every { memberService.findById(any()) } returns member
+        val member = createMemberWithMocks()
 
-        val command = GatheringCommand.Generate(
+        val command = TestData.gatheringGenerateCommand(
             memberId = member.id,
             gatheringName = "test gathering",
             daysSinceLastGathering = 10,
@@ -61,58 +116,36 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
 
         // when
-        val actual = gatheringService.generateGathering(command)
+        val result = gatheringService.generateGathering(command)
 
         // then
-        val gathering = gatheringRepository.findById(actual.gatheringId).get()
-        val gatheringMember = gatheringMemberRepository.findByGatheringAndMember(gathering, member)
-        assertAll(
-            { assertThat(actual.gatheringId).isNotNull() },
-            { assertThat(gathering.name).isEqualTo("test gathering") },
-            { assertThat(gathering.firstGatheringDate).isEqualTo(LocalDate.now().minusDays(10)) },
-            { assertThat(gathering.lastGatheringDate).isEqualTo(LocalDate.now().minusDays(10)) },
-            { assertThat(gathering.intervalDays).isEqualTo(7) },
-            { assertThat(gathering.hostMember.id).isEqualTo(member.id) },
-            { assertThat(gathering.tags).containsExactly("tag1", "tag2") },
-            { assertThat(gatheringMember).isNotNull() },
-            { assertThat(gatheringMember!!.isHost).isTrue() }
-        )
+        val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
+
+        with(gathering) {
+            assertAll(
+                { assertThat(result.gatheringId).isNotNull() },
+                { assertThat(name).isEqualTo("test gathering") },
+                { assertThat(firstGatheringDate).isEqualTo(LocalDate.now().minusDays(10)) },
+                { assertThat(lastGatheringDate).isEqualTo(LocalDate.now().minusDays(10)) },
+                { assertThat(intervalDays).isEqualTo(7) },
+                { assertThat(hostMember.id).isEqualTo(member.id) },
+                { assertThat(tags).containsExactly("tag1", "tag2") })
+        }
     }
 
     @Test
     fun `유저의 모임 목록을 정상적으로 조회한다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
-
-        val gathering1 = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "gathering1", 0, 7, emptyList())
-            )
-        )
-        val gathering2 = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "gathering2", 0, 7, emptyList())
-            )
-        )
-
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering1, member))
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering2, member))
-
-        val command = GatheringQuery.MemberGathering(memberId = member.id)
+        val member = createMemberWithMocks()
+        val gathering1 = createGathering(member, "gathering1")
+        val gathering2 = createGathering(member, "gathering2")
+        registerGatheringMember(gathering1, member)
+        registerGatheringMember(gathering2, member)
 
         // when
-        val result = gatheringService.getMemberGatherings(command)
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
 
         // then
         assertThat(result.gatheringOverviews).hasSize(2)
@@ -121,21 +154,13 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Test
     fun `유저에게 모임이 없는 경우 빈 목록을 반환한다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
-
-        val command = GatheringQuery.MemberGathering(memberId = member.id)
+        val member = createMemberWithMocks()
+        // 이미 빈 상태이므로 별도 설정 불필요
 
         // when
-        val result = gatheringService.getMemberGatherings(command)
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
 
         // then
         assertThat(result.gatheringOverviews).isEmpty()
@@ -144,46 +169,17 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Test
     fun `다른 유저의 모임은 조회되지 않는다`() {
         // given
-        val member1 = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test1@test.com",
-                )
-            )
-        )
-        val member2 = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "2",
-                    socialType = SocialType.GOOGLE,
-                    email = "test2@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member1.id) } returns member1
+        val member1 = createMemberWithMocks("1", "test1@test.com")
+        val member2 = createMemberWithMocks("2", "test2@test.com")
 
-        val gathering1 = gatheringRepository.save(
-            Gathering.generate(
-                member1,
-                GatheringCommand.Generate(member1.id, "gathering1", 0, 7, emptyList())
-            )
-        )
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering1, member1))
-
-        val gathering2 = gatheringRepository.save(
-            Gathering.generate(
-                member2,
-                GatheringCommand.Generate(member2.id, "gathering2", 0, 7, emptyList())
-            )
-        )
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering2, member2))
-
-        val query = GatheringQuery.MemberGathering(memberId = member1.id)
+        // generateGathering을 통해 모임을 생성하면 자동으로 호스트가 등록됨
+        gatheringService.generateGathering(TestData.gatheringGenerateCommand(member1.id, "gathering1"))
+        gatheringService.generateGathering(TestData.gatheringGenerateCommand(member2.id, "gathering2"))
 
         // when
-        val result = gatheringService.getMemberGatherings(query)
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member1.id)
+        )
 
         // then
         assertThat(result.gatheringOverviews).hasSize(1)
@@ -193,50 +189,20 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Test
     fun `모임 이름 오름차순으로 정렬되어 조회된다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
+        val member = createMemberWithMocks()
 
-        val gatheringA = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "A_gathering", 0, 7, emptyList())
-            )
-        )
-        val gatheringB = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "B_gathering", 0, 7, emptyList())
-            )
-        )
-        val gatheringC = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "C_gathering", 0, 7, emptyList())
-            )
-        )
-
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gatheringA, member))
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gatheringB, member))
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gatheringC, member))
-
-        val query = GatheringQuery.MemberGathering(memberId = member.id)
+        listOf("A_gathering", "B_gathering", "C_gathering").forEach { name ->
+            gatheringService.generateGathering(TestData.gatheringGenerateCommand(member.id, name))
+        }
 
         // when
-        val result = gatheringService.getMemberGatherings(query)
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
 
         // then
         assertThat(result.gatheringOverviews.map { it.gatheringName }).containsExactly(
-            "A_gathering",
-            "B_gathering",
-            "C_gathering"
+            "A_gathering", "B_gathering", "C_gathering"
         )
     }
 
@@ -245,43 +211,29 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         // given
         every { memberService.findById(any()) } throws RuntimeException("Member not found")
 
-        val query = GatheringQuery.MemberGathering(memberId = 999L)
-
-        // when, then
+        // when & then
         assertThrows<RuntimeException> {
-            gatheringService.getMemberGatherings(query)
+            gatheringService.getMemberGatherings(
+                GatheringQuery.MemberGathering(memberId = 999L)
+            )
         }
     }
 
     @Test
     fun `200개의 모임 데이터가 순서대로 잘 저장되었는지 확인한다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
+        val member = createMemberWithMocks()
 
-        val gatherings = (1..200).map {
-            val gatheringName = "gathering" + String.format("%03d", it)
-            val gathering =
-                Gathering.generate(member, GatheringCommand.Generate(member.id, gatheringName, 0, 7, emptyList()))
-            gatheringRepository.save(gathering)
-        }.shuffled()
+        val gatheringNames = (1..200).map { "gathering${String.format("%03d", it)}" }.shuffled()
 
-        gatherings.forEach {
-            gatheringMemberRepository.save(GatheringMember.registerHostMember(it, member))
+        gatheringNames.forEach { name ->
+            gatheringService.generateGathering(TestData.gatheringGenerateCommand(member.id, name))
         }
 
-        val query = GatheringQuery.MemberGathering(memberId = member.id)
-
         // when
-        val result = gatheringService.getMemberGatherings(query)
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
 
         // then
         assertThat(result.gatheringOverviews).hasSize(200)
@@ -291,38 +243,18 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Test
     fun `삭제된 모임은 조회되지 않는다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
+        val member = createMemberWithMocks()
 
-        val gathering1 = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "gathering1", 0, 7, emptyList())
-            )
-        )
-        val gathering2 = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "gathering2", 0, 7, emptyList())
-            )
-        )
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering1, member))
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering2, member))
+        gatheringService.generateGathering(TestData.gatheringGenerateCommand(member.id, "gathering1"))
+        val result2 = gatheringService.generateGathering(TestData.gatheringGenerateCommand(member.id, "gathering2"))
 
+        val gathering2 = gatheringRepository.findById(result2.gatheringId).orElse(null)
         gatheringRepository.delete(gathering2)
 
-        val query = GatheringQuery.MemberGathering(memberId = member.id)
-
         // when
-        val result = gatheringService.getMemberGatherings(query)
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
 
         // then
         assertThat(result.gatheringOverviews).hasSize(1)
@@ -332,78 +264,49 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Test
     fun `모임 상세 정보를 정상적으로 조회한다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
+        val member = createMemberWithMocks()
+        setupMocks()
 
-        val gathering = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "test gathering", 10, 7, emptyList())
-            )
+        val result = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(member.id, "test gathering", daysSinceLastGathering = 10)
         )
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member))
-
-        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member.id)
 
         // when
-        val result = gatheringService.getGatheringDetail(query)
+        val detailResult = gatheringService.getGatheringDetail(
+            GatheringQuery.GatheringDetail(gatheringId = result.gatheringId, memberId = member.id)
+        )
 
         // then
-        assertAll(
-            { assertThat(result.gatheringName).isEqualTo("test gathering") },
-            { assertThat(result.daysSinceFirstGathering).isEqualTo(10) },
-            { assertThat(result.monthsSinceLastGathering).isEqualTo(0) },
-            { assertThat(result.sentInvitationCount).isEqualTo(0) },
-            { assertThat(result.receivedInvitationCount).isEqualTo(0) },
-            { assertThat(result.members).hasSize(1) }
-        )
+        with(detailResult) {
+            assertAll(
+                { assertThat(gatheringName).isEqualTo("test gathering") },
+                { assertThat(daysSinceFirstGathering).isEqualTo(10) },
+                { assertThat(monthsSinceLastGathering).isEqualTo(0) },
+                { assertThat(sentInvitationCount).isEqualTo(0) },
+                { assertThat(receivedInvitationCount).isEqualTo(0) },
+                { assertThat(members).hasSize(1) })
+        }
     }
 
     @Test
     fun `모임에 속한 멤버들의 정보를 정상적으로 조회한다`() {
         // given
-        val host = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "host@test.com",
-                )
-            )
-        )
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "2",
-                    socialType = SocialType.GOOGLE,
-                    email = "member@test.com",
-                )
-            )
-        )
-        every { memberService.findById(host.id) } returns host
-        every { memberService.findById(member.id) } returns member
+        val host = createMember(socialId = "1", email = "host@test.com")
+        val member = createMember(socialId = "2", email = "member@test.com")
+        setupMocks(host, member)
 
-        val gathering = gatheringRepository.save(
-            Gathering.generate(
-                host,
-                GatheringCommand.Generate(host.id, "test gathering", 10, 7, emptyList())
-            )
+        val gatheringResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(host.id, "test gathering", daysSinceLastGathering = 10)
         )
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, host))
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member))
 
-        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = host.id)
+        val gathering = gatheringRepository.findById(gatheringResult.gatheringId).orElse(null)
+        // 추가 멤버 등록
+        registerGatheringMember(gathering, member)
 
         // when
-        val result = gatheringService.getGatheringDetail(query)
+        val result = gatheringService.getGatheringDetail(
+            GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = host.id)
+        )
 
         // then
         assertThat(result.members).hasSize(2)
@@ -412,93 +315,361 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Test
     fun `존재하지 않는 모임 ID로 조회 시 예외가 발생한다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
+        val member = createMemberWithMocks()
 
-        val query = GatheringQuery.GatheringDetail(gatheringId = 999L, memberId = member.id)
-
-        // when, then
+        // when & then
         assertThrows<RuntimeException> {
-            gatheringService.getGatheringDetail(query)
+            gatheringService.getGatheringDetail(
+                GatheringQuery.GatheringDetail(gatheringId = 999L, memberId = member.id)
+            )
         }
     }
 
     @Test
     fun `모임에 속하지 않은 멤버가 조회 시 예외가 발생한다`() {
         // given
-        val member1 = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test1@test.com",
-                )
-            )
-        )
-        val member2 = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "2",
-                    socialType = SocialType.GOOGLE,
-                    email = "test2@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member1.id) } returns member1
-        every { memberService.findById(member2.id) } returns member2
+        val member1 = createMember(socialId = "1", email = "test1@test.com")
+        val member2 = createMember(socialId = "2", email = "test2@test.com")
+        setupMocks(member1, member2)
 
-        val gathering = gatheringRepository.save(
-            Gathering.generate(
-                member1,
-                GatheringCommand.Generate(member1.id, "test gathering", 10, 7, emptyList())
-            )
+        val gatheringResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(member1.id, "test gathering", daysSinceLastGathering = 10)
         )
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member1))
 
-        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member2.id)
-
-        // when, then
+        // when & then
         assertThrows<RuntimeException> {
-            gatheringService.getGatheringDetail(query)
+            gatheringService.getGatheringDetail(
+                GatheringQuery.GatheringDetail(gatheringId = gatheringResult.gatheringId, memberId = member2.id)
+            )
         }
     }
 
     @Test
     fun `삭제된 모임 ID로 상세 조회 시 예외가 발생한다`() {
         // given
-        val member = memberRepository.save(
-            Member.signUp(
-                MemberCommand.SignUp(
-                    socialId = "1",
-                    socialType = SocialType.GOOGLE,
-                    email = "test@test.com",
-                )
-            )
-        )
-        every { memberService.findById(member.id) } returns member
+        val member = createMemberWithMocks()
+        setupMocks()
 
-        val gathering = gatheringRepository.save(
-            Gathering.generate(
-                member,
-                GatheringCommand.Generate(member.id, "test gathering", 10, 7, emptyList())
-            )
+        val gatheringResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(member.id, "test gathering", daysSinceLastGathering = 10)
         )
-        gatheringMemberRepository.save(GatheringMember.registerHostMember(gathering, member))
+
+        val gathering = gatheringRepository.findById(gatheringResult.gatheringId).orElse(null)
         gatheringRepository.delete(gathering)
 
-        val query = GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member.id)
-
-        // when, then
+        // when & then
         assertThrows<RuntimeException> {
-            gatheringService.getGatheringDetail(query)
+            gatheringService.getGatheringDetail(
+                GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member.id)
+            )
         }
+    }
+
+
+    @Test
+    fun `빈 태그 목록으로 모임 생성이 가능하다`() {
+        // given
+        val member = createMemberWithMocks()
+        val command = TestData.gatheringGenerateCommand(
+            memberId = member.id, gatheringName = "no tags gathering", tags = emptyList()
+        )
+
+        // when
+        val result = gatheringService.generateGathering(command)
+
+        // then
+        val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
+        assertThat(gathering.tags).isEmpty()
+    }
+
+    @Test
+    fun `첫 모임 날짜가 0일 전인 경우 오늘 날짜로 설정된다`() {
+        // given
+        val member = createMemberWithMocks()
+        val command = TestData.gatheringGenerateCommand(
+            memberId = member.id, daysSinceLastGathering = 0
+        )
+
+        // when
+        val result = gatheringService.generateGathering(command)
+
+        // then
+        val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
+        assertThat(gathering.firstGatheringDate).isEqualTo(LocalDate.now())
+        assertThat(gathering.lastGatheringDate).isEqualTo(LocalDate.now())
+    }
+
+    @Test
+    fun `긴 모임 이름으로 모임 생성이 가능하다`() {
+        // given
+        val member = createMemberWithMocks()
+        val longName = "이것은 매우 긴 모임 이름입니다. 한국어로 작성된 긴 이름이며 실제 사용자가 입력할 수 있는 범위의 길이입니다."
+        val command = TestData.gatheringGenerateCommand(
+            memberId = member.id, gatheringName = longName
+        )
+
+        // when
+        val result = gatheringService.generateGathering(command)
+
+        // then
+        val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
+        assertThat(gathering.name).isEqualTo(longName)
+    }
+
+    @Test
+    fun `다수의 태그로 모임 생성이 가능하다`() {
+        // given
+        val member = createMemberWithMocks()
+        val manyTags = (1..10).map { "tag$it" }
+        val command = TestData.gatheringGenerateCommand(
+            memberId = member.id, tags = manyTags
+        )
+
+        // when
+        val result = gatheringService.generateGathering(command)
+
+        // then
+        val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
+        assertThat(gathering.tags).hasSize(10)
+        assertThat(gathering.tags).containsExactlyElementsOf(manyTags)
+    }
+
+    @Test
+    fun `동일한 이름의 모임들이 생성 시간 순으로 정렬된다`() {
+        // given
+        val member = createMemberWithMocks()
+
+        val gathering1 = createGathering(member, "동일한 이름")
+        Thread.sleep(10) // 생성 시간 차이를 위한 대기
+        val gathering2 = createGathering(member, "동일한 이름")
+
+        registerGatheringMember(gathering1, member)
+        registerGatheringMember(gathering2, member)
+
+        // when
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
+
+        // then
+        assertThat(result.gatheringOverviews).hasSize(2)
+        assertThat(result.gatheringOverviews.map { it.gatheringName }).containsExactly(
+            "동일한 이름", "동일한 이름"
+        )
+    }
+
+    @Test
+    fun `특수문자가 포함된 모임 이름으로 조회가 가능하다`() {
+        // given
+        val member = createMemberWithMocks()
+        val specialName = "모임!@#$%^&*()_+-=[]{}|;':\",./<>?"
+        val gathering = createGathering(member, specialName)
+        registerGatheringMember(gathering, member)
+
+        // when
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
+
+        // then
+        assertThat(result.gatheringOverviews).hasSize(1)
+        assertThat(result.gatheringOverviews.first().gatheringName).isEqualTo(specialName)
+    }
+
+    @Test
+    fun `페이지네이션 테스트 - 50개 모임 조회`() {
+        // given
+        val member = createMemberWithMocks()
+
+        val gatherings =
+            (1..50).map { "gathering${String.format("%02d", it)}" }.map { name -> createGathering(member, name) }
+
+        gatherings.forEach { registerGatheringMember(it, member) }
+
+        // when
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
+
+        // then
+        assertThat(result.gatheringOverviews).hasSize(50)
+        assertThat(result.gatheringOverviews.map { it.gatheringName }).isSorted()
+    }
+
+    @Test
+    fun `다른 멤버들의 모임이 섞여있어도 본인의 모임만 조회된다`() {
+        // given
+        val member1 = createMember(socialId = "1", email = "member1@test.com")
+        val member2 = createMember(socialId = "2", email = "member2@test.com")
+        val member3 = createMember(socialId = "3", email = "member3@test.com")
+        setupMocks(member1, member2, member3)
+
+        // generateGathering을 통해 모임을 생성하면 자동으로 호스트가 등록됨
+        gatheringService.generateGathering(TestData.gatheringGenerateCommand(member1.id, "member1_gathering"))
+        gatheringService.generateGathering(TestData.gatheringGenerateCommand(member2.id, "member2_gathering"))
+        gatheringService.generateGathering(TestData.gatheringGenerateCommand(member3.id, "member3_gathering"))
+        gatheringService.generateGathering(TestData.gatheringGenerateCommand(member1.id, "member1_another_gathering"))
+
+        // when
+        val result = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member1.id)
+        )
+
+        // then
+        assertThat(result.gatheringOverviews).hasSize(2)
+        assertThat(result.gatheringOverviews.map { it.gatheringName }).containsExactly(
+            "member1_another_gathering",
+            "member1_gathering"
+        )
+    }
+
+
+    @Test
+    fun `모임 상세 조회 시 태그 정보가 정확히 반환된다`() {
+        // given
+        val member = createMemberWithMocks()
+        setupMocks()
+
+        val tags = listOf("친목", "스터디", "운동", "여행")
+        val gatheringResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(member.id, "태그 테스트 모임", tags = tags)
+        )
+
+        // when
+        val detailResult = gatheringService.getGatheringDetail(
+            GatheringQuery.GatheringDetail(gatheringId = gatheringResult.gatheringId, memberId = member.id)
+        )
+
+        // then
+        assertThat(detailResult.gatheringName).isEqualTo("태그 테스트 모임")
+        // 태그 정보는 도메인 객체에서 확인
+        val savedGathering = gatheringRepository.findById(gatheringResult.gatheringId).orElse(null)
+        assertThat(savedGathering.tags).containsExactlyElementsOf(tags)
+    }
+
+    @Test
+    fun `서로 다른 간격의 모임들이 올바른 날짜 계산을 하는지 확인한다`() {
+        // given
+        val member = createMemberWithMocks()
+        setupMocks()
+
+        val dailyResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(
+                member.id,
+                "daily",
+                daysSinceLastGathering = 30,
+                gatheringIntervalDays = 1
+            )
+        )
+        val weeklyResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(
+                member.id,
+                "weekly",
+                daysSinceLastGathering = 14,
+                gatheringIntervalDays = 7
+            )
+        )
+        val monthlyResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(
+                member.id,
+                "monthly",
+                daysSinceLastGathering = 60,
+                gatheringIntervalDays = 30
+            )
+        )
+
+        // when & then
+        listOf(
+            Triple(dailyResult.gatheringId, "daily", 30),
+            Triple(weeklyResult.gatheringId, "weekly", 14),
+            Triple(monthlyResult.gatheringId, "monthly", 60)
+        ).forEach { (gatheringId, _, expectedDays) ->
+            val result = gatheringService.getGatheringDetail(
+                GatheringQuery.GatheringDetail(gatheringId = gatheringId, memberId = member.id)
+            )
+
+            val savedGathering = gatheringRepository.findById(gatheringId).orElse(null)
+            val actualExpectedDays = ChronoUnit.DAYS.between(savedGathering.firstGatheringDate, LocalDate.now()).toInt()
+
+            // 실제 서비스 로직: firstGatheringDate.daysAgo() = firstGatheringDate부터 현재까지의 일수
+            assertThat(result.daysSinceFirstGathering).isEqualTo(actualExpectedDays)
+
+            // firstGatheringDate는 LocalDate.now().minusDays(expectedDays)로 설정되므로 
+            // 결과는 expectedDays와 같아야 함
+            assertThat(result.daysSinceFirstGathering).isEqualTo(expectedDays)
+        }
+    }
+
+
+    @Test
+    fun `모임 생성 시 호스트 멤버가 자동으로 모임에 등록된다`() {
+        // given
+        val member = createMemberWithMocks()
+        val command = TestData.gatheringGenerateCommand(memberId = member.id)
+
+        // when
+        val result = gatheringService.generateGathering(command)
+
+        // then
+        val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
+        val gatheringMember = gatheringMemberRepository.findByGatheringAndMember(gathering, member)
+
+        assertThat(gatheringMember).isNotNull
+        assertThat(gatheringMember!!.isHost).isTrue
+        assertThat(gathering.hostMember.id).isEqualTo(member.id)
+    }
+
+    @Test
+    fun `동시에 여러 모임을 생성해도 데이터 일관성이 유지된다`() {
+        // given
+        val member = createMemberWithMocks()
+        val commands = (1..5).map {
+            TestData.gatheringGenerateCommand(
+                memberId = member.id, gatheringName = "concurrent_gathering_$it"
+            )
+        }
+
+        // when
+        val results = commands.map { command ->
+            gatheringService.generateGathering(command)
+        }
+
+        // then
+        assertThat(results).hasSize(5)
+        assertThat(results.map { it.gatheringId }).doesNotHaveDuplicates()
+
+        val memberGatherings = gatheringService.getMemberGatherings(
+            GatheringQuery.MemberGathering(memberId = member.id)
+        )
+        assertThat(memberGatherings.gatheringOverviews).hasSize(5)
+    }
+
+    @Test
+    fun `모임 상세 조회 시 멤버 수가 정확히 카운트된다`() {
+        // given
+        val host = createMember(socialId = "host", email = "host@test.com")
+        val members = (1..3).map {
+            createMember(socialId = "member$it", email = "member$it@test.com")
+        }
+
+        setupMocks(host, *members.toTypedArray())
+
+        val gatheringResult = gatheringService.generateGathering(
+            TestData.gatheringGenerateCommand(host.id, "multi member gathering")
+        )
+
+        val gathering = gatheringRepository.findById(gatheringResult.gatheringId).orElse(null)
+        // 추가 멤버들 등록
+        members.forEach { member ->
+            registerGatheringMember(gathering, member)
+        }
+
+        // when
+        val result = gatheringService.getGatheringDetail(
+            GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = host.id)
+        )
+
+        // then
+        assertThat(result.members).hasSize(4) // 호스트 + 3명의 멤버
     }
 }

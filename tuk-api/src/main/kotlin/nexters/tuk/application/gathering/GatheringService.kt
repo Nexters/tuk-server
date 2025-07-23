@@ -8,10 +8,7 @@ import nexters.tuk.application.member.MemberService
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.gathering.Gathering
-import nexters.tuk.domain.gathering.GatheringMember
-import nexters.tuk.domain.gathering.GatheringMemberRepository
 import nexters.tuk.domain.gathering.GatheringRepository
-import nexters.tuk.domain.member.Member
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -20,23 +17,20 @@ import java.time.temporal.ChronoUnit
 @Service
 class GatheringService(
     private val gatheringRepository: GatheringRepository,
-    private val gatheringMemberRepository: GatheringMemberRepository,
     private val memberService: MemberService,
+    private val gatheringMemberService: GatheringMemberService,
     private val invitationService: InvitationService,
 ) {
     @Transactional
     fun generateGathering(command: GatheringCommand.Generate): GatheringResponse.Generate {
-        val member = memberService.findById(command.memberId)
+        val hostMember = memberService.findById(command.memberId)
+        val gathering = Gathering.generate(hostMember, command).also { gatheringRepository.save(it) }
 
-        val gathering = Gathering.generate(member, command)
-        val savedGathering = gatheringRepository.save(gathering)
-
-        val gatheringMember = GatheringMember.registerHostMember(savedGathering, member)
-        gatheringMemberRepository.save(gatheringMember)
+        gatheringMemberService.initializeHost(gathering, hostMember)
 
         // TODO 알림 등록하기
         return GatheringResponse.Generate(
-            gatheringId = savedGathering.id
+            gatheringId = gathering.id
         )
     }
 
@@ -44,14 +38,13 @@ class GatheringService(
     fun getMemberGatherings(query: GatheringQuery.MemberGathering): GatheringResponse.GatheringOverviews {
         val member = memberService.findById(query.memberId)
 
-        val gatheringMember = gatheringMemberRepository.findAllByMemberOrderByGatheringName(member)
-        val overViews = gatheringMember.map { it.gathering }
-            .filterNotNull()
+        val gatherings = gatheringMemberService.getMemberGatherings(member)
+        val overViews = gatherings
             .map {
-            GatheringResponse.GatheringOverviews.GatheringOverview(
-                it.name, it.lastGatheringDate.monthsAgo()
-            )
-        }
+                GatheringResponse.GatheringOverviews.GatheringOverview(
+                    it.id, it.name, it.lastGatheringDate.monthsAgo()
+                )
+            }.sortedBy { it.gatheringName }
 
         return GatheringResponse.GatheringOverviews(
             size = overViews.size, gatheringOverviews = overViews
@@ -59,11 +52,7 @@ class GatheringService(
     }
 
     private fun LocalDate.monthsAgo(): Int {
-        return this.daysAgo() / 30
-    }
-
-    private fun LocalDate.daysAgo(): Int {
-        return ChronoUnit.DAYS.between(this, LocalDate.now()).toInt()
+        return until(LocalDate.now(), ChronoUnit.MONTHS).toInt()
     }
 
     @Transactional(readOnly = true)
@@ -72,13 +61,14 @@ class GatheringService(
             .orElseThrow { BaseException(ErrorType.NOT_FOUND, "모임을 찾을 수 없습니다.") }
         val member = memberService.findById(query.memberId)
 
-        validateMemberAccess(gathering, member)
+        gatheringMemberService.verifyGatheringAccess(gathering, member)
 
         val gatheringInvitation = invitationService.getGatherInvitations(gathering)
         val sentInvitationCount = gatheringInvitation.count { it.host == member }
         val receivedInvitationCount = gatheringInvitation.size - sentInvitationCount
 
         return GatheringResponse.GatheringDetail(
+            gatheringId = gathering.id,
             gatheringName = gathering.name,
             daysSinceFirstGathering = gathering.firstGatheringDate.daysAgo(),
             monthsSinceLastGathering = gathering.lastGatheringDate.monthsAgo(),
@@ -88,13 +78,12 @@ class GatheringService(
         )
     }
 
-    private fun validateMemberAccess(gathering: Gathering, member: Member) {
-        gatheringMemberRepository.findByGatheringAndMember(gathering, member)
-            ?: throw BaseException(ErrorType.BAD_REQUEST, "접근할 수 없는 모임입니다.")
+    private fun LocalDate.daysAgo(): Int {
+        return until(LocalDate.now(), ChronoUnit.DAYS).toInt()
     }
 
     private fun Gathering.buildMemberSummaries(): List<GatheringResponse.GatheringDetail.MemberSummary> {
-        return gatheringMemberRepository.findAllByGathering(this)
-            .map { GatheringResponse.GatheringDetail.MemberSummary(it.member.name ?: "이름 없음") }
+        return gatheringMemberService.getGatheringMembers(this)
+            .map { GatheringResponse.GatheringDetail.MemberSummary(it.id, it.name ?: "이름 없음") }
     }
 }

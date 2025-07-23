@@ -15,6 +15,8 @@ class GatheringResponse {
         val gatheringOverviews: List<GatheringOverview>,
     ) {
         data class GatheringOverview(
+            @Schema(description = "모임 id")
+            val gatheringId: Long,
             @Schema(description = "모임명")
             val gatheringName: String,
             @Schema(description = "현재부터 마지막 모임까지 개월수")
@@ -23,6 +25,8 @@ class GatheringResponse {
     }
 
     data class GatheringDetail(
+        @Schema(description = "모임 id")
+        val gatheringId: Long,
         @Schema(description = "모임명")
         val gatheringName: String,
         @Schema(description = "첫 번째 모임부터 현재까지 지난 일수")
@@ -37,6 +41,8 @@ class GatheringResponse {
         val members: List<MemberSummary>
     ){
         data class MemberSummary(
+            @Schema(description = "사용자 id")
+            val memberId: Long,
             @Schema(description = "사용자 명")
             val memberName: String,
         )
