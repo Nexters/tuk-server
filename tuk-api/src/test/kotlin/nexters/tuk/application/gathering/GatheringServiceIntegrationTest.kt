@@ -131,7 +131,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
                 { assertThat(lastGatheringDate).isEqualTo(LocalDate.now().minusDays(10)) },
                 { assertThat(intervalDays).isEqualTo(7) },
                 { assertThat(hostMember.id).isEqualTo(member.id) },
-                { assertThat(tags).containsExactly("tag1", "tag2") })
+                { assertThat(tags).containsExactlyInAnyOrder("tag1", "tag2") })
         }
     }
 
@@ -433,7 +433,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         // then
         val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
         assertThat(gathering.tags).hasSize(10)
-        assertThat(gathering.tags).containsExactlyElementsOf(manyTags)
+        assertThat(gathering.tags).containsExactlyInAnyOrderElementsOf(manyTags)
     }
 
     @Test
@@ -545,7 +545,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         assertThat(detailResult.gatheringName).isEqualTo("태그 테스트 모임")
         // 태그 정보는 도메인 객체에서 확인
         val savedGathering = gatheringRepository.findById(gatheringResult.gatheringId).orElse(null)
-        assertThat(savedGathering.tags).containsExactlyElementsOf(tags)
+        assertThat(savedGathering.tags).containsExactlyInAnyOrderElementsOf(tags)
     }
 
     @Test

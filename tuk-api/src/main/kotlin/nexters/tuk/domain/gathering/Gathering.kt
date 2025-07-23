@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.domain.BaseEntity
 import nexters.tuk.domain.member.Member
-import nexters.tuk.infrastructure.jpa.StringListConverter
+import nexters.tuk.infrastructure.jpa.StringSetConverter
 import java.time.LocalDate
 
 @Entity
@@ -26,9 +26,9 @@ class Gathering private constructor(
     @JoinColumn(name = "host_member_id", nullable = false, updatable = false)
     val hostMember: Member,
 
-    @Convert(converter = StringListConverter::class)
+    @Convert(converter = StringSetConverter::class)
     @Column(name = "tags", columnDefinition = "json")
-    val tags: List<String> = listOf()
+    val tags: Set<String> = setOf()
 
 ) : BaseEntity() {
     companion object {
@@ -39,7 +39,7 @@ class Gathering private constructor(
                 firstGatheringDate = LocalDate.now().minusDays(command.daysSinceLastGathering),
                 lastGatheringDate = LocalDate.now().minusDays(command.daysSinceLastGathering),
                 intervalDays = command.gatheringIntervalDays,
-                tags = command.tags,
+                tags = command.tags.toSet(),
             )
         }
     }
