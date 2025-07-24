@@ -12,11 +12,23 @@ class MemberService(
     private val memberRepository: MemberRepository,
 ) {
 
+    @Transactional(readOnly = true)
+    fun login(command: MemberCommand.Login): MemberResponse.Login? {
+        val member = memberRepository.findBySocialTypeAndSocialId(command.socialType, command.socialId) ?: return null
+
+        return MemberResponse.Login(
+            memberId = member.id,
+            email = member.email,
+            socialType = member.socialType,
+            socialId = member.socialId,
+        )
+    }
+
     @Transactional
-    fun signUp(command: MemberCommand.SignUp): MemberResponse.SignUp {
+    fun signUp(command: MemberCommand.SignUp): MemberResponse.Login {
         val member = memberRepository.save(Member.signUp(command))
 
-        return MemberResponse.SignUp(
+        return MemberResponse.Login(
             memberId = member.id,
             email = member.email,
             socialType = member.socialType,

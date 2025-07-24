@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import nexters.tuk.application.member.SocialType
 
 class MemberResponse {
-    data class SignUp(
+    data class Login(
         val memberId: Long,
         val email: String,
         val socialType: SocialType,

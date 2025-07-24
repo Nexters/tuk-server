@@ -10,13 +10,20 @@ import java.time.Duration
 class JwtRedisRepository(
     private val redisTemplate: RedisTemplate<String, String>,
 ) : JwtRepository {
+    companion object {
+        private const val REFRESH_TOKEN_KEY_PREFIX = "refresh_token:member:"
+    }
+
     override fun saveRefreshToken(memberId: Long, jwt: Jwt) {
         val valueOps = redisTemplate.opsForValue()
         val key = REFRESH_TOKEN_KEY_PREFIX + memberId
         valueOps.set(key, jwt.refreshToken, Duration.ofDays(jwt.refreshExpiresIn))
     }
 
-    companion object {
-        private const val REFRESH_TOKEN_KEY_PREFIX = "refresh_token:member:"
+    override fun findRefreshTokenById(memberId: Long): String? {
+        val valueOps = redisTemplate.opsForValue()
+        val key = REFRESH_TOKEN_KEY_PREFIX + memberId
+
+        return valueOps[key]
     }
 }

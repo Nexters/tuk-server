@@ -29,7 +29,7 @@ class AccessTokenResolver(
     ): Any {
         val request = webRequest.getNativeRequest(HttpServletRequest::class.java)
         val token = extractToken(request) ?: throw BaseException(ErrorType.UNAUTHORIZED, "AccessToken이 존재하지 않습니다.")
-        return jwtTokenProvider.validateAndGetMemberId(token)
+        return jwtTokenProvider.validateAccessTokenAndGetMemberId(token)
     }
 
     private fun extractToken(request: HttpServletRequest?): String? {

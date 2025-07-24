@@ -92,3 +92,7 @@ oauth:
 
 jwt:
   secret: ${JWT_SECRET:myVeryLongSecretKeyThatIsAtLeast32CharactersLongForJWT}
+  access-token:
+    expires-in-days: 30
+  refresh-token:
+    expires-in-days: 90
