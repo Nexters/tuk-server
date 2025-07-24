@@ -1,6 +1,6 @@
 package nexters.tuk.ui.gathering
 
-import nexters.tuk.application.gathering.GatheringFacade
+import nexters.tuk.application.gathering.GatheringService
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringFacadeResponse
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("api/v1/gatherings")
 class GatheringController(
-    private val gatheringFacade: GatheringFacade,
+    private val gatheringService: GatheringService,
 ) : GatheringSpec {
 
     @PostMapping
@@ -20,7 +20,7 @@ class GatheringController(
         @RequestBody request: GatheringDto.Request.Generate
     ): ApiResponse<GatheringFacadeResponse.Generate> {
 
-        val response = gatheringFacade.generateGathering(request.toCommand(memberId))
+        val response = gatheringService.generateGathering(request.toCommand(memberId))
 
         return ApiResponse.ok(response)
     }
@@ -31,7 +31,7 @@ class GatheringController(
     ): ApiResponse<GatheringFacadeResponse.GatheringOverviews> {
 
         val query = GatheringQuery.MemberGathering(memberId)
-        val response = gatheringFacade.getMemberGatherings(query)
+        val response = gatheringService.getMemberGatherings(query)
 
         return ApiResponse.ok(response)
     }
@@ -43,7 +43,7 @@ class GatheringController(
     ): ApiResponse<GatheringFacadeResponse.GatheringDetail> {
 
         val query = GatheringQuery.GatheringDetail(memberId, gatheringId)
-        val response = gatheringFacade.getGatheringDetail(query)
+        val response = gatheringService.getGatheringDetail(query)
 
         return ApiResponse.ok(response)
     }
@@ -55,7 +55,7 @@ class GatheringController(
     ): ApiResponse<GatheringFacadeResponse.JoinGathering> {
 
         val command = GatheringCommand.JoinGathering(memberId, gatheringId)
-        val response = gatheringFacade.joinGathering(command)
+        val response = gatheringService.joinGathering(command)
 
         return ApiResponse.ok(response)
     }
