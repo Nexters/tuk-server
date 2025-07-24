@@ -1,9 +1,11 @@
 package nexters.tuk.domain.gathering
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.domain.BaseEntity
-import nexters.tuk.domain.member.Member
 import nexters.tuk.infrastructure.jpa.StringSetConverter
 import java.time.LocalDate
 
@@ -22,9 +24,8 @@ class Gathering private constructor(
     @Column(name = "interval_days", nullable = false)
     val intervalDays: Long,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "host_member_id", nullable = false, updatable = false)
-    val hostMember: Member,
+    @Column(name = "member_id", nullable = false, updatable = false)
+    val hostId: Long,
 
     @Convert(converter = StringSetConverter::class)
     @Column(name = "tags", columnDefinition = "json")
@@ -32,9 +33,9 @@ class Gathering private constructor(
 
 ) : BaseEntity() {
     companion object {
-        fun generate(member: Member, command: GatheringCommand.Generate): Gathering {
+        fun generate(command: GatheringCommand.Generate): Gathering {
             return Gathering(
-                hostMember = member,
+                hostId = command.memberId,
                 name = command.gatheringName,
                 firstGatheringDate = LocalDate.now().minusDays(command.daysSinceLastGathering),
                 lastGatheringDate = LocalDate.now().minusDays(command.daysSinceLastGathering),
@@ -42,6 +43,10 @@ class Gathering private constructor(
                 tags = command.tags.toSet(),
             )
         }
+    }
+
+    fun isHost(memberId: Long): Boolean {
+        return hostId == memberId
     }
 }
 

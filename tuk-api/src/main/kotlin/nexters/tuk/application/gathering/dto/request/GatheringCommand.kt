@@ -10,7 +10,7 @@ class GatheringCommand {
         val tags: List<String>,
     )
 
-    data class AcceptInvitation(
+    data class JoinGathering(
         val memberId: Long,
         val gatheringId: Long,
     )

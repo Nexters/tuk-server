@@ -2,8 +2,6 @@ package nexters.tuk.application.member
 
 import nexters.tuk.application.member.dto.request.MemberCommand
 import nexters.tuk.application.member.dto.response.MemberResponse
-import nexters.tuk.contract.BaseException
-import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.member.Member
 import nexters.tuk.domain.member.MemberRepository
 import org.springframework.stereotype.Service
@@ -27,8 +25,11 @@ class MemberService(
     }
 
     @Transactional(readOnly = true)
-    fun findById(id: Long): Member {
-        return memberRepository.findById(id)
-            .orElseThrow { throw BaseException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다.") }
+    fun getMemberOverview(memberIds: List<Long>): List<MemberResponse.MemberOverview> {
+        val members = memberRepository.findAllById(memberIds).toList()
+
+        return members.map {
+            MemberResponse.MemberOverview(it.id, it.name ?: "이름 없음")
+        }
     }
 }

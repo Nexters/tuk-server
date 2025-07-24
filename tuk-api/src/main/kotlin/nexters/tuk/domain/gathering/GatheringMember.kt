@@ -2,7 +2,6 @@ package nexters.tuk.domain.gathering
 
 import jakarta.persistence.*
 import nexters.tuk.domain.BaseEntity
-import nexters.tuk.domain.member.Member
 
 @Entity
 @Table(
@@ -16,20 +15,16 @@ class GatheringMember private constructor(
     @JoinColumn(name = "gathering_id", nullable = false, updatable = false)
     val gathering: Gathering,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false, updatable = false)
-    val member: Member,
+    @Column(name = "member_id", nullable = false, updatable = false)
+    val memberId: Long,
 
-    @Column(name = "is_host", nullable = false, updatable = false)
-    val isHost: Boolean = false,
-) : BaseEntity() {
+    @Column(name = "is_host", nullable = false)
+    val isHost: Boolean,
+
+    ) : BaseEntity() {
     companion object {
-        fun registerHostMember(gathering: Gathering, member: Member): GatheringMember {
-            return GatheringMember(gathering, member, true)
-        }
-
-        fun registerMember(gathering: Gathering, member: Member): GatheringMember {
-            return GatheringMember(gathering, member, false)
+        fun registerMember(gathering: Gathering, memberId: Long): GatheringMember {
+            return GatheringMember(gathering, memberId, gathering.isHost(memberId))
         }
     }
 }

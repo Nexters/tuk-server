@@ -1,56 +1,68 @@
 package nexters.tuk.application.gathering
 
+import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
-import nexters.tuk.domain.gathering.Gathering
-import nexters.tuk.domain.gathering.GatheringMember
-import nexters.tuk.domain.gathering.GatheringMemberRepository
-import nexters.tuk.domain.member.Member
+import nexters.tuk.domain.gathering.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @Service
 class GatheringMemberService(
-    private val gatheringMemberRepository: GatheringMemberRepository,
+    private val gatheringRepository: GatheringRepository,
+    private val gatheringMemberRepository: GatheringMemberRepository
 ) {
-    @Transactional(readOnly = true)
-    fun getGatheringMembers(gathering: Gathering): List<Member> {
-        val gatheringMembers = gatheringMemberRepository.findAllByGathering(gathering)
-
-        return gatheringMembers.map { it.member }
-    }
-
-    @Transactional(readOnly = true)
-    fun getMemberGatherings(member: Member): List<Gathering> {
-        val gatheringMembers = gatheringMemberRepository.findAllByMember(member)
-
-        return gatheringMembers.map { it.gathering }
-    }
-
     @Transactional
-    fun initializeHost(gathering: Gathering, member: Member): GatheringMember {
-        val gatheringMember = GatheringMember.registerHostMember(gathering, member)
-        return gatheringMemberRepository.save(gatheringMember)
+    fun registerMember(gatheringId: Long, memberId: Long): Long {
+        val gathering = gatheringRepository.findByIdOrThrow(gatheringId)
+        if (gathering.hasMember(memberId)) {
+            throw BaseException(ErrorType.BAD_REQUEST, "이미 가입된 사용자입니다.")
+        }
+
+        val gatheringMember = GatheringMember.registerMember(gathering, memberId)
+            .also { gatheringMemberRepository.save(it) }
+
+        return gatheringMember.id
+    }
+
+    private fun Gathering.hasMember(memberId: Long): Boolean {
+        return gatheringMemberRepository.findByGatheringAndMemberId(this, memberId) != null
     }
 
     @Transactional(readOnly = true)
-    fun verifyGatheringAccess(gathering: Gathering, member: Member) {
-        if (gathering.hasMember(member).not())
+    fun getMemberGatherings(memberId: Long): List<GatheringResponse.GatheringOverview> {
+        val gatheringMembers = gatheringMemberRepository.findAllByMemberId(memberId)
+
+        return gatheringMembers
+            .map { it.gathering }
+            .map {
+                GatheringResponse.GatheringOverview(
+                    it.id,
+                    it.name,
+                    it.lastGatheringDate.monthsAgo()
+                )
+            }.sortedBy { it.name }
+    }
+
+    private fun LocalDate.monthsAgo(): Int {
+        return until(LocalDate.now(), ChronoUnit.MONTHS).toInt()
+    }
+
+    @Transactional(readOnly = true)
+    fun verifyGatheringAccess(gatheringId: Long, memberId: Long) {
+        val gathering = gatheringRepository.findByIdOrThrow(gatheringId)
+
+        if (gathering.hasMember(memberId).not())
             throw BaseException(ErrorType.BAD_REQUEST, "사용자가 접근할 수 없는 모임입니다.")
     }
 
-    private fun Gathering.hasMember(member: Member): Boolean {
-        return gatheringMemberRepository.findByGatheringAndMember(this, member) != null
-    }
+    @Transactional(readOnly = true)
+    fun getGatheringMemberIds(gatheringId: Long): List<Long> {
+        val gathering = gatheringRepository.findByIdOrThrow(gatheringId)
+        val gatheringMembers = gatheringMemberRepository.findAllByGathering(gathering)
 
-    @Transactional
-    fun registerMember(gathering: Gathering, member: Member): Gathering {
-        if (gathering.hasMember(member))
-            throw BaseException(ErrorType.BAD_REQUEST, "이미 가입된 사용자입니다.")
-
-        val gatheringMember = GatheringMember.registerMember(gathering, member)
-            .also { gatheringMemberRepository.save(it) }
-
-        return gatheringMember.gathering
+        return gatheringMembers.map { it.memberId }
     }
 }

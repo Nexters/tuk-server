@@ -4,5 +4,5 @@ import nexters.tuk.domain.gathering.Gathering
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface InvitationRepository: JpaRepository<Invitation, Long> {
-    fun findByGathering(gathering: Gathering): MutableList<Invitation>
+    fun findByGathering(gathering: Gathering): List<Invitation>
 }
