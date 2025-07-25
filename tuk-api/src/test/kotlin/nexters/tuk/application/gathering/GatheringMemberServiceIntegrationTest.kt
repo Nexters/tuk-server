@@ -1,13 +1,12 @@
 package nexters.tuk.application.gathering
 
-import nexters.tuk.fixtures.GatheringFixtureHelper
-import nexters.tuk.fixtures.MemberFixtureHelper
 import nexters.tuk.contract.BaseException
 import nexters.tuk.domain.gathering.GatheringMember
 import nexters.tuk.domain.gathering.GatheringMemberRepository
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.member.MemberRepository
-import nexters.tuk.testcontainers.MySqlTestContainersConfig
+import nexters.tuk.fixtures.GatheringFixtureHelper
+import nexters.tuk.fixtures.MemberFixtureHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -21,7 +20,7 @@ class GatheringMemberServiceIntegrationTest @Autowired constructor(
     private val gatheringRepository: GatheringRepository,
     private val memberRepository: MemberRepository,
     private val gatheringMemberRepository: GatheringMemberRepository,
-) : MySqlTestContainersConfig() {
+) {
 
     private val memberFixture = MemberFixtureHelper(memberRepository)
     private val gatheringFixture = GatheringFixtureHelper(gatheringRepository, gatheringMemberRepository)
