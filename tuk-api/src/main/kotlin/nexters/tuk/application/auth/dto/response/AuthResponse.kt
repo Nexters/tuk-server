@@ -6,4 +6,9 @@ class AuthResponse {
         val accessToken: String,
         val refreshToken: String,
     )
+
+    data class Refresh(
+        val accessToken: String,
+        val refreshToken: String,
+    )
 }

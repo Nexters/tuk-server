@@ -11,4 +11,8 @@ class AuthCommand {
             val idToken: String,
         ) : SocialLogin()
     }
+
+    data class Refresh(
+        val refreshToken: String
+    )
 }

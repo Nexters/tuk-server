@@ -1,12 +1,14 @@
 package nexters.tuk.domain
 
 import jakarta.persistence.*
+import org.hibernate.annotations.SoftDelete
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 
 @EntityListeners(AuditingEntityListener::class)
+@SoftDelete
 @MappedSuperclass
 abstract class BaseEntity {
     @Id
@@ -26,4 +28,8 @@ abstract class BaseEntity {
     @Column(name = "deleted_at")
     var deletedAt: LocalDateTime? = null
         private set
+
+    fun delete() {
+        deletedAt = LocalDateTime.now()
+    }
 }

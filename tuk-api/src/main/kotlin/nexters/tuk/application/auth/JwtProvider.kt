@@ -1,9 +1,10 @@
 package nexters.tuk.application.auth
 
-import io.jsonwebtoken.*
+import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import org.slf4j.LoggerFactory
+import nexters.tuk.contract.BaseException
+import nexters.tuk.contract.ErrorType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -42,6 +43,8 @@ class JwtProvider(
 
         return Jwts.builder()
             .subject(subject)
+            .claim("memberId", subject)
+            .claim("tokenType", tokenType.name)
             .issuedAt(Date.from(now))
             .expiration(Date.from(expiration))
             .signWith(secretKey, Jwts.SIG.HS256)
@@ -54,7 +57,32 @@ class JwtProvider(
             TokenType.REFRESH -> refreshExpiresInDays
         }
     }
+
+    fun validateAccessTokenAndGetMemberId(token: String?): Long {
+        val claims = parseToken(token)
+
+        val tokenType = claims["tokenType"].toString()
+        if (tokenType != TokenType.ACCESS.name) {
+            throw BaseException(ErrorType.UNAUTHORIZED, "잘못된 토큰입니다.")
+        }
+
+        return claims["memberId"].toString().toLong()
+    }
+
+    private fun parseToken(token: String?) = runCatching {
+        Jwts.parser()
+            .verifyWith(secretKey)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+    }.getOrElse { throw BaseException(ErrorType.UNAUTHORIZED, "인증에 실패했습니다.") }
+
+    fun validateTokenAndGetMemberId(token: String?): Long {
+        val claims = parseToken(token)
+        return claims["memberId"].toString().toLong()
+    }
 }
+
 
 data class Jwt(
     val accessToken: String,

@@ -43,5 +43,14 @@ class AuthDto {
             @Schema(description = "OS Version")
             val osVersion: String? = null,
         )
+
+        data class Refresh(
+            @Schema(description = "Refresh token")
+            val refreshToken: String,
+        ) {
+            fun toCommand(): AuthCommand.Refresh {
+                return AuthCommand.Refresh(refreshToken)
+            }
+        }
     }
 }
