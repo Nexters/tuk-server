@@ -7,8 +7,10 @@ import jakarta.persistence.Table
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.domain.BaseEntity
 import nexters.tuk.infrastructure.jpa.StringSetConverter
+import org.hibernate.annotations.SQLRestriction
 import java.time.LocalDate
 
+@SQLRestriction("deleted_at is NULL")
 @Entity
 @Table(name = "gathering")
 class Gathering private constructor(

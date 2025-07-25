@@ -2,7 +2,9 @@ package nexters.tuk.domain.gathering
 
 import jakarta.persistence.*
 import nexters.tuk.domain.BaseEntity
+import org.hibernate.annotations.SQLRestriction
 
+@SQLRestriction("deleted_at is NULL")
 @Entity
 @Table(
     name = "gathering_member",

@@ -26,8 +26,8 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 @SpringBootTest
-class GatheringServiceIntegrationTest @Autowired constructor(
-    private val gatheringService: GatheringService,
+class GatheringAppServiceIntegrationTest @Autowired constructor(
+    private val gatheringAppService: GatheringAppService,
     private val gatheringRepository: GatheringRepository,
     private val memberRepository: MemberRepository,
     private val gatheringMemberRepository: GatheringMemberRepository,
@@ -77,7 +77,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
 
         // when
-        val result = gatheringService.generateGathering(command)
+        val result = gatheringAppService.generateGathering(command)
 
         // then
         val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -104,7 +104,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         gatheringFixture.registerGatheringMember(gathering2, member)
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -119,7 +119,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         // 이미 빈 상태이므로 별도 설정 불필요
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -134,11 +134,11 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val member2 = createMemberWithMocks("2", "test2@test.com")
 
         // generateGathering을 통해 모임을 생성하면 자동으로 호스트가 등록됨
-        gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member1.id, "gathering1"))
-        gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member2.id, "gathering2"))
+        gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member1.id, "gathering1"))
+        gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member2.id, "gathering2"))
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member1.id)
         )
 
@@ -153,11 +153,11 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val member = createMemberWithMocks()
 
         listOf("A_gathering", "B_gathering", "C_gathering").forEach { name ->
-            gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, name))
+            gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, name))
         }
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -175,11 +175,11 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val gatheringNames = (1..200).map { "gathering${String.format("%03d", it)}" }.shuffled()
 
         gatheringNames.forEach { name ->
-            gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, name))
+            gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, name))
         }
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -193,15 +193,15 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         // given
         val member = createMemberWithMocks()
 
-        gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, "gathering1"))
+        gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, "gathering1"))
         val result2 =
-            gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, "gathering2"))
+            gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member.id, "gathering2"))
 
         val gathering2 = gatheringRepository.findById(result2.gatheringId).orElse(null)
         gatheringRepository.delete(gathering2)
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -216,12 +216,12 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val member = createMemberWithMocks()
         setupMocks()
 
-        val result = gatheringService.generateGathering(
+        val result = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(member.id, "test gathering", daysSinceLastGathering = 10)
         )
 
         // when
-        val detailResult = gatheringService.getGatheringDetail(
+        val detailResult = gatheringAppService.getGatheringDetail(
             GatheringQuery.GatheringDetail(gatheringId = result.gatheringId, memberId = member.id)
         )
 
@@ -244,7 +244,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val member = memberFixture.createMember(socialId = "2", email = "member@test.com")
         setupMocks(host, member)
 
-        val gatheringResult = gatheringService.generateGathering(
+        val gatheringResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(host.id, "test gathering", daysSinceLastGathering = 10)
         )
 
@@ -253,7 +253,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         gatheringFixture.registerGatheringMember(gathering, member)
 
         // when
-        val result = gatheringService.getGatheringDetail(
+        val result = gatheringAppService.getGatheringDetail(
             GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = host.id)
         )
 
@@ -268,7 +268,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when & then
         assertThrows<RuntimeException> {
-            gatheringService.getGatheringDetail(
+            gatheringAppService.getGatheringDetail(
                 GatheringQuery.GatheringDetail(gatheringId = 999L, memberId = member.id)
             )
         }
@@ -281,13 +281,13 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val member2 = memberFixture.createMember(socialId = "2", email = "test2@test.com")
         setupMocks(member1, member2)
 
-        val gatheringResult = gatheringService.generateGathering(
+        val gatheringResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(member1.id, "test gathering", daysSinceLastGathering = 10)
         )
 
         // when & then
         assertThrows<RuntimeException> {
-            gatheringService.getGatheringDetail(
+            gatheringAppService.getGatheringDetail(
                 GatheringQuery.GatheringDetail(gatheringId = gatheringResult.gatheringId, memberId = member2.id)
             )
         }
@@ -299,7 +299,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val member = createMemberWithMocks()
         setupMocks()
 
-        val gatheringResult = gatheringService.generateGathering(
+        val gatheringResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(member.id, "test gathering", daysSinceLastGathering = 10)
         )
 
@@ -308,7 +308,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when & then
         assertThrows<RuntimeException> {
-            gatheringService.getGatheringDetail(
+            gatheringAppService.getGatheringDetail(
                 GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = member.id)
             )
         }
@@ -324,7 +324,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
 
         // when
-        val result = gatheringService.generateGathering(command)
+        val result = gatheringAppService.generateGathering(command)
 
         // then
         val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -340,7 +340,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
 
         // when
-        val result = gatheringService.generateGathering(command)
+        val result = gatheringAppService.generateGathering(command)
 
         // then
         val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -358,7 +358,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
 
         // when
-        val result = gatheringService.generateGathering(command)
+        val result = gatheringAppService.generateGathering(command)
 
         // then
         val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -375,7 +375,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         )
 
         // when
-        val result = gatheringService.generateGathering(command)
+        val result = gatheringAppService.generateGathering(command)
 
         // then
         val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -396,7 +396,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         gatheringFixture.registerGatheringMember(gathering2, member)
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -416,7 +416,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         gatheringFixture.registerGatheringMember(gathering, member)
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -436,7 +436,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         gatherings.forEach { gathering -> gatheringFixture.registerGatheringMember(gathering, member) }
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
 
@@ -454,17 +454,17 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         setupMocks(member1, member2, member3)
 
         // generateGathering을 통해 모임을 생성하면 자동으로 호스트가 등록됨
-        gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member1.id, "member1_gathering"))
-        gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member2.id, "member2_gathering"))
-        gatheringService.generateGathering(GatheringFixture.gatheringGenerateCommand(member3.id, "member3_gathering"))
-        gatheringService.generateGathering(
+        gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member1.id, "member1_gathering"))
+        gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member2.id, "member2_gathering"))
+        gatheringAppService.generateGathering(GatheringFixture.gatheringGenerateCommand(member3.id, "member3_gathering"))
+        gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(
                 member1.id, "member1_another_gathering"
             )
         )
 
         // when
-        val result = gatheringService.getMemberGatherings(
+        val result = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member1.id)
         )
 
@@ -483,12 +483,12 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         setupMocks()
 
         val tags = listOf("친목", "스터디", "운동", "여행")
-        val gatheringResult = gatheringService.generateGathering(
+        val gatheringResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(member.id, "태그 테스트 모임", tags = tags)
         )
 
         // when
-        val detailResult = gatheringService.getGatheringDetail(
+        val detailResult = gatheringAppService.getGatheringDetail(
             GatheringQuery.GatheringDetail(gatheringId = gatheringResult.gatheringId, memberId = member.id)
         )
 
@@ -505,17 +505,17 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val member = createMemberWithMocks()
         setupMocks()
 
-        val dailyResult = gatheringService.generateGathering(
+        val dailyResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(
                 member.id, "daily", daysSinceLastGathering = 30, gatheringIntervalDays = 1
             )
         )
-        val weeklyResult = gatheringService.generateGathering(
+        val weeklyResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(
                 member.id, "weekly", daysSinceLastGathering = 14, gatheringIntervalDays = 7
             )
         )
-        val monthlyResult = gatheringService.generateGathering(
+        val monthlyResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(
                 member.id, "monthly", daysSinceLastGathering = 60, gatheringIntervalDays = 30
             )
@@ -527,7 +527,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
             Triple(weeklyResult.gatheringId, "weekly", 14),
             Triple(monthlyResult.gatheringId, "monthly", 60)
         ).forEach { (gatheringId: Long, _: String, expectedDays: Int) ->
-            val result = gatheringService.getGatheringDetail(
+            val result = gatheringAppService.getGatheringDetail(
                 GatheringQuery.GatheringDetail(gatheringId = gatheringId, memberId = member.id)
             )
 
@@ -551,7 +551,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val command = GatheringFixture.gatheringGenerateCommand(memberId = member.id)
 
         // when
-        val result = gatheringService.generateGathering(command)
+        val result = gatheringAppService.generateGathering(command)
 
         // then
         val gathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -574,14 +574,14 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when
         val results = commands.map { command: GatheringCommand.Generate ->
-            gatheringService.generateGathering(command)
+            gatheringAppService.generateGathering(command)
         }
 
         // then
         assertThat(results).hasSize(5)
         assertThat(results.map { result -> result.gatheringId }).doesNotHaveDuplicates()
 
-        val memberGatherings = gatheringService.getMemberGatherings(
+        val memberGatherings = gatheringAppService.getMemberGatherings(
             GatheringQuery.MemberGathering(memberId = member.id)
         )
         assertThat(memberGatherings.gatheringOverviews).hasSize(5)
@@ -597,7 +597,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         setupMocks(host, *members.toTypedArray())
 
-        val gatheringResult = gatheringService.generateGathering(
+        val gatheringResult = gatheringAppService.generateGathering(
             GatheringFixture.gatheringGenerateCommand(host.id, "multi member gathering")
         )
 
@@ -607,7 +607,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         }
 
         // when
-        val result = gatheringService.getGatheringDetail(
+        val result = gatheringAppService.getGatheringDetail(
             GatheringQuery.GatheringDetail(gatheringId = gathering.id, memberId = host.id)
         )
 
@@ -624,7 +624,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val command = GatheringCommand.JoinGathering(memberId = member.id, gatheringId = gathering.id)
 
         // when
-        val result = gatheringService.joinGathering(command)
+        val result = gatheringAppService.joinGathering(command)
 
         // then
         val gatheringMember = gatheringMemberRepository.findByGatheringAndMemberId(gathering, member.id)
@@ -641,7 +641,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when & then
         val exception = assertThrows<BaseException> {
-            gatheringService.joinGathering(command)
+            gatheringAppService.joinGathering(command)
         }
         assertThat(exception.errorType).isEqualTo(ErrorType.NOT_FOUND)
         assertThat(exception.message).contains("모임을 찾을 수 없습니다.")
@@ -659,7 +659,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when & then
         val exception = assertThrows<BaseException> {
-            gatheringService.joinGathering(command)
+            gatheringAppService.joinGathering(command)
         }
         assertThat(exception.errorType).isEqualTo(ErrorType.BAD_REQUEST)
         assertThat(exception.message).contains("이미 가입된 사용자입니다.")
