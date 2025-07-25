@@ -13,7 +13,10 @@ class MemberService(
 ) {
     @Transactional
     fun signUp(command: MemberCommand.SignUp): MemberResponse.SignUp {
-        val member = memberRepository.save(Member.signUp(command))
+        val member = memberRepository.findBySocialTypeAndEmail(
+            socialType = command.socialType,
+            email = command.email
+        ) ?: memberRepository.save(Member.signUp(command))
 
         return MemberResponse.SignUp(
             memberId = member.id,

@@ -7,10 +7,12 @@ import jakarta.persistence.Table
 import nexters.tuk.application.member.SocialType
 import nexters.tuk.application.member.dto.request.MemberCommand
 import nexters.tuk.domain.BaseEntity
+import org.hibernate.annotations.SQLRestriction
 
 /**
  * FIXME: member 임시 테이블
  */
+@SQLRestriction("deleted_at is NULL")
 @Entity
 @Table(name = "member")
 class Member private constructor(
