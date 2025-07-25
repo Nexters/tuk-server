@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: tuk-batch
+  profiles:
+    active: local
+  datasource:
+    url: jdbc:mysql://localhost:3306/tuk_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  data:
+    redis:
+      database: 0
+      host: localhost
+      port: 6379
+  app:
+    firebase-config-file: firebase-adminsdk.json
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/tuk_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      database: 0
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  app:
+    firebase-config-file: firebase-adminsdk.json
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test

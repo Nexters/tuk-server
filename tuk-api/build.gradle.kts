@@ -1,3 +1,34 @@
+plugins {
+    id("com.google.cloud.tools.jib")
+}
+
+jib {
+    from {
+        image = "eclipse-temurin:21-jre"
+    }
+    to {
+        image = System.getProperty("jib.to.image") ?: System.getenv("JIB_TO_IMAGE") ?: "tuk-api"
+        tags = setOf(
+            System.getProperty("jib.to.tags") ?: System.getenv("JIB_TO_TAGS") ?: "latest"
+        )
+        auth {
+            username = System.getProperty("jib.to.auth.username") ?: System.getenv("JIB_TO_AUTH_USERNAME")
+            password = System.getProperty("jib.to.auth.password") ?: System.getenv("JIB_TO_AUTH_PASSWORD")
+        }
+    }
+    container {
+        ports = listOf("8080")
+        mainClass = "nexters.tuk.TukApplicationKt"
+        jvmFlags = listOf(
+            "-XX:InitialRAMPercentage=25.0",
+            "-XX:MinRAMPercentage=25.0",
+            "-XX:MaxRAMPercentage=50.0",
+            "-XX:+UseG1GC",
+            "-Dspring.profiles.active=prod"
+        )
+    }
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -21,7 +52,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-jackson:${properties["jjwtVersion"]}")
 
     implementation("com.nimbusds:nimbus-jose-jwt:${properties["nimbusJwtVersion"]}")
-    
+
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
@@ -41,4 +72,8 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("spring.profiles.active", "test")
+}
+
+tasks.withType<Jar> {
+    archiveBaseName.set("tuk-api")
 }
