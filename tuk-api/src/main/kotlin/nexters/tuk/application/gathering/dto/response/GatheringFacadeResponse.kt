@@ -3,11 +3,13 @@ package nexters.tuk.application.gathering.dto.response
 import io.swagger.v3.oas.annotations.media.Schema
 
 class GatheringFacadeResponse {
+    @Schema(name = "GenerateResponse")
     data class Generate(
         @Schema(description = "생성된 모임 id")
         val gatheringId: Long
     )
 
+    @Schema(name = "GatheringOverviewsResponse")
     data class GatheringOverviews(
         @Schema(description = "총 데이터 수")
         val totalCount: Int,
@@ -24,6 +26,7 @@ class GatheringFacadeResponse {
         )
     }
 
+    @Schema(name = "GatheringDetailResponse")
     data class GatheringDetail(
         @Schema(description = "모임 id")
         val gatheringId: Long,
@@ -48,6 +51,7 @@ class GatheringFacadeResponse {
         )
     }
 
+    @Schema(name = "JoinGatheringResponse")
     data class JoinGathering(
         @Schema(description = "모임 id") val gatheringId: Long,
     )
