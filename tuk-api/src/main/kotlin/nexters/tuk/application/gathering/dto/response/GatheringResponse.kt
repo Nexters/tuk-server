@@ -48,9 +48,4 @@ class GatheringResponse {
             val memberName: String,
         )
     }
-
-    @Schema(name = "JoinGatheringResponse")
-    data class JoinGathering(
-        @Schema(description = "모임 id") val gatheringId: Long,
-    )
 }

@@ -187,4 +187,77 @@ class GatheringMemberServiceIntegrationTest @Autowired constructor(
         val allGatheringMembers = gatheringMemberRepository.findAllByGathering(gathering)
         assertThat(allGatheringMembers).hasSize(1) // 중복 생성이 방지되어 1개만 있어야 함
     }
+
+    @Test
+    fun `존재하지 않는 모임에 가입하려고 하면 예외가 발생한다`() {
+        // given
+        val member = memberFixture.createMember()
+        val nonExistentGatheringId = 999999L
+
+        // when & then
+        assertThrows<BaseException> {
+            gatheringMemberService.joinGathering(nonExistentGatheringId, member.id)
+        }
+    }
+
+    @Test
+    fun `일반 멤버가 모임에 정상적으로 가입한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "test gathering")
+
+        // when
+        val result = gatheringMemberService.joinGathering(gathering.id, member.id)
+
+        // then
+        assertThat(result).isNotNull()
+        assertThat(result.id).isGreaterThan(0)
+
+        // DB에 저장되었는지 확인
+        val saved = gatheringMemberRepository.findByGatheringAndMemberId(gathering, member.id)
+        assertThat(saved).isNotNull
+        assertThat(saved!!.isHost).isFalse // 호스트가 아닌 일반 멤버
+        assertThat(saved.memberId).isEqualTo(member.id)
+    }
+
+    @Test
+    fun `이미 가입된 멤버가 다시 가입하려고 하면 예외가 발생한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "test gathering")
+
+        // 먼저 멤버를 가입시킴
+        gatheringMemberService.joinGathering(gathering.id, member.id)
+
+        // when & then - 같은 멤버가 다시 가입 시도 (예외 발생해야 함)
+        val exception = assertThrows<BaseException> {
+            gatheringMemberService.joinGathering(gathering.id, member.id)
+        }
+
+        // 예외 메시지 확인
+        assertThat(exception.message).contains("이미 가입된 사용자입니다.")
+
+        // DB에 중복으로 저장되지 않았는지 확인
+        val allGatheringMembers = gatheringMemberRepository.findAllByMemberId(member.id)
+        assertThat(allGatheringMembers.filter { it.gathering.id == gathering.id }).hasSize(1)
+    }
+
+    @Test
+    fun `삭제된 모임에 가입하려고 하면 예외가 발생한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "test gathering")
+
+        // 모임을 삭제 (soft delete)
+        gathering.delete()
+        gatheringRepository.save(gathering)
+
+        // when & then
+        assertThrows<BaseException> {
+            gatheringMemberService.joinGathering(gathering.id, member.id)
+        }
+    }
 }
