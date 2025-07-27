@@ -1,18 +1,56 @@
 package nexters.tuk.application.gathering.dto.response
 
-class GatheringResponse {
-    data class Generate(val gatheringId: Long)
+import io.swagger.v3.oas.annotations.media.Schema
 
-    data class GatheringDetail(
-        val id: Long,
-        val name: String,
-        val daysSinceFirstGathering: Int,
-        val monthsSinceLastGathering: Int,
+class GatheringResponse {
+    @Schema(name = "GenerateResponse")
+    data class Generate(
+        @Schema(description = "생성된 모임 id")
+        val gatheringId: Long
     )
 
-    data class GatheringOverview(
-        val id: Long,
-        val name: String,
-        val monthsSinceLastGathering: Int,
+    @Schema(name = "GatheringOverviewsResponse")
+    data class GatheringOverviews(
+        @Schema(description = "총 데이터 수")
+        val totalCount: Int,
+        @Schema(description = "사용자 모임 데이터 리스트")
+        val gatheringOverviews: List<GatheringOverview>,
+    ) {
+        data class GatheringOverview(
+            @Schema(description = "모임 id")
+            val gatheringId: Long,
+            @Schema(description = "모임명")
+            val gatheringName: String,
+            @Schema(description = "마지막 알림부터 현재까지 지난 개월수")
+            val monthsSinceLastGathering: Int
+        )
+    }
+
+    @Schema(name = "GatheringDetailResponse")
+    data class GatheringDetail(
+        @Schema(description = "모임 id")
+        val gatheringId: Long,
+        @Schema(description = "모임명")
+        val gatheringName: String,
+        @Schema(description = "마지막 알림부터 현재까지 지난 개월수")
+        val monthsSinceLastNotification: Int,
+        @Schema(description = "보낸 초대장 수")
+        val sentInvitationCount: Int,
+        @Schema(description = "받은 초대장 수")
+        val receivedInvitationCount: Int,
+        @Schema(description = "모임원")
+        val members: List<MemberOverview>
+    ) {
+        data class MemberOverview(
+            @Schema(description = "사용자 id")
+            val memberId: Long,
+            @Schema(description = "사용자 명")
+            val memberName: String,
+        )
+    }
+
+    @Schema(name = "JoinGatheringResponse")
+    data class JoinGathering(
+        @Schema(description = "모임 id") val gatheringId: Long,
     )
 }

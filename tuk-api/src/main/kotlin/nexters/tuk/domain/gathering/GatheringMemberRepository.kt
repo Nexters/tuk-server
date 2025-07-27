@@ -10,8 +10,8 @@ interface GatheringMemberRepository : JpaRepository<GatheringMember, Long> {
     @Query(
         """
         SELECT gathering_member 
-        FROM GatheringMember AS gathering_member
-        JOIN FETCH gathering_member.gathering AS gathering
+        FROM GatheringMember gathering_member
+        JOIN FETCH gathering_member.gathering  gathering
         WHERE gathering_member.memberId = :memberId 
           AND gathering_member.deletedAt IS NULL 
           AND gathering.deletedAt IS NULL

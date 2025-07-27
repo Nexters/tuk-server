@@ -5,9 +5,8 @@ class GatheringCommand {
     data class Generate(
         val memberId: Long,
         val gatheringName: String,
-        val daysSinceLastGathering: Long,
         val gatheringIntervalDays: Long,
-        val tags: List<String>,
+        val tags: List<Long>,
     )
 
     data class JoinGathering(

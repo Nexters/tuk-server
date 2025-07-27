@@ -82,7 +82,7 @@ class GatheringMemberServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(host)
 
         // when
-        val result = gatheringMemberService.registerMember(gathering.id, host.id)
+        val result = gatheringMemberService.joinGathering(gathering.id, host.id)
 
         // then
         assertThat(result).isNotNull()
@@ -175,11 +175,11 @@ class GatheringMemberServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(host)
 
         // 먼저 호스트 관계를 생성
-        gatheringMemberService.registerMember(gathering.id, host.id)
+        gatheringMemberService.joinGathering(gathering.id, host.id)
 
         // when - 같은 호스트로 다시 등록 시도 (예외 발생해야 함)
         assertThrows<BaseException> {
-            gatheringMemberService.registerMember(gathering.id, host.id)
+            gatheringMemberService.joinGathering(gathering.id, host.id)
         }
 
         // then
