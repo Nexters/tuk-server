@@ -6,6 +6,6 @@ import nexters.tuk.contract.ApiResponse
 
 
 interface TagSpec {
-    @Operation(summary = "태그 조회")
+    @Operation(summary = "전체 태그 조회")
     fun getCategorizedTags(): ApiResponse<TagResponse.CategorizedTags>
 }
