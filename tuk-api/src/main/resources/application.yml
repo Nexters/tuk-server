@@ -21,6 +21,8 @@ spring:
       database: 0
       host: localhost
       port: 6379
+  app:
+    firebase-config-file: firebase-adminsdk.json
 
 springdoc:
   swagger-ui:

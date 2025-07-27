@@ -53,6 +53,9 @@ dependencies {
 
     implementation("com.nimbusds:nimbus-jose-jwt:${properties["nimbusJwtVersion"]}")
 
+    // firebase
+    implementation("com.google.firebase:firebase-admin:${properties["firebaseVersion"]}")
+
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

@@ -25,6 +25,12 @@ class ApiControllerAdvice {
     }
 
     @ExceptionHandler
+    fun handle(e: IllegalArgumentException): ResponseEntity<ApiResponse<*>> {
+        log.warn("BaseException : {}", e.message, e)
+        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = e.message)
+    }
+
+    @ExceptionHandler
     fun handle(e: MissingRequestValueException): ResponseEntity<ApiResponse<*>> {
         val name = e.methodParameter?.parameter?.name
         val type = e.methodParameter?.parameter?.type?.simpleName
