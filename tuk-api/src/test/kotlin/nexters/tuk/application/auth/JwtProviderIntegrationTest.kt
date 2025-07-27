@@ -9,10 +9,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
-@ActiveProfiles("test")
 class JwtProviderIntegrationTest @Autowired constructor(
     private val jwtProvider: JwtProvider,
     private val redisCleanUp: RedisCleanUp,
@@ -185,7 +183,7 @@ class JwtProviderIntegrationTest @Autowired constructor(
         assertThat(jwtProvider.validateAccessTokenAndGetMemberId(jwt1.accessToken)).isEqualTo(500L)
         assertThat(jwtProvider.validateAccessTokenAndGetMemberId(jwt2.accessToken)).isEqualTo(500L)
         assertThat(jwtProvider.validateAccessTokenAndGetMemberId(jwt3.accessToken)).isEqualTo(500L)
-        
+
         // 리프레시 토큰도 동일한 memberId를 가져야 함
         assertThat(jwtProvider.validateTokenAndGetMemberId(jwt1.refreshToken)).isEqualTo(500L)
         assertThat(jwtProvider.validateTokenAndGetMemberId(jwt2.refreshToken)).isEqualTo(500L)
