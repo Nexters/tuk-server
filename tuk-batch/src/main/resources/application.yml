@@ -23,7 +23,6 @@ spring:
       port: 6379
   app:
     firebase-config-file: firebase-adminsdk.json
-
 ---
 spring:
   config:
@@ -42,9 +41,6 @@ spring:
       database: 0
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-  app:
-    firebase-config-file: firebase-adminsdk.json
-
 ---
 spring:
   config:

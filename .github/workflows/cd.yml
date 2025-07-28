@@ -79,6 +79,7 @@ jobs:
                  NCP_CONTAINER_REGISTRY_API='${{ secrets.NCP_CONTAINER_REGISTRY_API }}' \
                  JWT_SECRET='${{ secrets.JWT_SECRET }}' \
                  IMAGE_TAG='${{ github.sha }}' \
+                 ENCODED_FIREBASE_ADMIN_SDK='${{ secrets.ENCODED_FIREBASE_ADMIN_SDK }}' \
                  docker-compose up -d
             
             sudo docker image prune -f

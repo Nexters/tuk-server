@@ -23,11 +23,14 @@ class AuthService(
         val userInfo = userProvider.getSocialUser(command)
         val member = memberService.login(
             MemberCommand.Login(
-                userInfo.socialType, userInfo.socialId
+                socialType = userInfo.socialType,
+                socialId = userInfo.socialId,
             )
         ) ?: memberService.signUp(
             MemberCommand.SignUp(
-                email = userInfo.email, socialType = userInfo.socialType, socialId = userInfo.socialId
+                email = userInfo.email,
+                socialType = userInfo.socialType,
+                socialId = userInfo.socialId,
             )
         )
 

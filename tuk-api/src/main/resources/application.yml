@@ -22,6 +22,10 @@ spring:
       host: localhost
       port: 6379
 
+firebase:
+  admin-sdk: ${ENCODED_FIREBASE_ADMIN_SDK}
+  enabled: true
+
 springdoc:
   swagger-ui:
     path: /tuk-docs
@@ -96,3 +100,7 @@ jwt:
     expires-in-days: 30
   refresh-token:
     expires-in-days: 90
+
+firebase:
+  admin-sdk: ${ENCODED_FIREBASE_ADMIN_SDK}
+  enabled: false
