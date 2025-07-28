@@ -22,7 +22,9 @@ class GatheringQueryService(
         val gatheringOverviews = gatheringMemberService.getMemberGatherings(query.memberId)
             .map {
             GatheringResponse.GatheringOverviews.GatheringOverview(
-                it.id, it.name, 0
+                gatheringId = it.id,
+                gatheringName = it.name,
+                monthsSinceLastGathering = 0
             )
         }
 

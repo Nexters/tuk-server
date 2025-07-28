@@ -10,17 +10,18 @@ class TagService(
     fun getCategorizedTags(): TagResponse.CategorizedTags {
         val tags = tagRepository.findAllWithCategory()
 
-        val categoryGroups = tags.groupBy { it.category }.map {
-            (category, categoryTags) ->
-            val tagItems = categoryTags.map { tag ->
-                TagResponse.CategorizedTags.CategoryGroup.TagItem(
-                    tag.id, tag.name
+        val categoryGroups = tags.groupBy { it.category }
+            .map { (category, categoryTags) ->
+                val tagItems = categoryTags.map {
+                    TagResponse.CategorizedTags.CategoryGroup.TagItem(
+                        id = it.id,
+                        name = it.name,
+                    )
+                }
+                TagResponse.CategorizedTags.CategoryGroup(
+                    category.name, tagItems
                 )
             }
-            TagResponse.CategorizedTags.CategoryGroup(
-                category.name, tagItems
-            )
-        }
 
         return TagResponse.CategorizedTags(categoryGroups)
     }
