@@ -1,9 +1,11 @@
 package nexters.tuk.ui.gathering
 
-import nexters.tuk.application.gathering.GatheringAppService
-import nexters.tuk.application.gathering.dto.request.GatheringCommand
+import nexters.tuk.application.gathering.GatheringGenerateService
+import nexters.tuk.application.gathering.GatheringMemberService
+import nexters.tuk.application.gathering.GatheringQueryService
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
-import nexters.tuk.application.gathering.dto.response.GatheringFacadeResponse
+import nexters.tuk.application.gathering.dto.response.GatheringMemberResponse
+import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.contract.ApiResponse
 import nexters.tuk.ui.resolver.Authenticated
 import org.springframework.web.bind.annotation.*
@@ -11,16 +13,18 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("api/v1/gatherings")
 class GatheringController(
-    private val gatheringAppService: GatheringAppService,
+    private val gatheringGenerateService: GatheringGenerateService,
+    private val gatheringQueryService: GatheringQueryService,
+    private val gatheringMemberService: GatheringMemberService
 ) : GatheringSpec {
 
     @PostMapping
     override fun generateGathering(
         @Authenticated memberId: Long,
         @RequestBody request: GatheringDto.Request.Generate
-    ): ApiResponse<GatheringFacadeResponse.Generate> {
+    ): ApiResponse<GatheringResponse.Generate> {
 
-        val response = gatheringAppService.generateGathering(request.toCommand(memberId))
+        val response = gatheringGenerateService.generateGathering(request.toCommand(memberId))
 
         return ApiResponse.ok(response)
     }
@@ -28,10 +32,10 @@ class GatheringController(
     @GetMapping
     override fun getMemberGathering(
         @Authenticated memberId: Long,
-    ): ApiResponse<GatheringFacadeResponse.GatheringOverviews> {
+    ): ApiResponse<GatheringResponse.GatheringOverviews> {
 
         val query = GatheringQuery.MemberGathering(memberId)
-        val response = gatheringAppService.getMemberGatherings(query)
+        val response = gatheringQueryService.getMemberGatherings(query)
 
         return ApiResponse.ok(response)
     }
@@ -40,10 +44,10 @@ class GatheringController(
     override fun getGatheringDetail(
         @Authenticated memberId: Long,
         @PathVariable("gatheringId") gatheringId: Long
-    ): ApiResponse<GatheringFacadeResponse.GatheringDetail> {
+    ): ApiResponse<GatheringResponse.GatheringDetail> {
 
         val query = GatheringQuery.GatheringDetail(memberId, gatheringId)
-        val response = gatheringAppService.getGatheringDetail(query)
+        val response = gatheringQueryService.getGatheringDetail(query)
 
         return ApiResponse.ok(response)
     }
@@ -52,10 +56,9 @@ class GatheringController(
     override fun joinGathering(
         @Authenticated memberId: Long,
         @PathVariable("gatheringId") gatheringId: Long
-    ): ApiResponse<GatheringFacadeResponse.JoinGathering> {
+    ): ApiResponse<GatheringMemberResponse.JoinGathering> {
 
-        val command = GatheringCommand.JoinGathering(memberId, gatheringId)
-        val response = gatheringAppService.joinGathering(command)
+        val response = gatheringMemberService.joinGathering(gatheringId, memberId)
 
         return ApiResponse.ok(response)
     }
