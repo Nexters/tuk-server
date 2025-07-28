@@ -13,10 +13,10 @@ class PushService(
     private val logger = LoggerFactory.getLogger(PushService::class.java)
 
     @Transactional
-    fun sendPush(command: PushCommand.Push): PushResponse.Push {
+    fun sendPush(command: PushCommand.Push) {
         logger.info("Sending bulk push notification. Recipients: ${command.recipients.size}")
 
-        return pushSender.send(
+        pushSender.send(
             recipients = command.recipients,
             message = command.message
         )

@@ -2,7 +2,7 @@ package nexters.tuk.contract
 
 data class ApiResponse<T>(
     val success: Boolean,
-    val data: T,
+    val data: T?,
     val meta: Meta? = null,
 ) {
     data class Meta(
@@ -11,7 +11,7 @@ data class ApiResponse<T>(
     )
 
     companion object {
-        fun <T> ok(data: T): ApiResponse<T> {
+        fun <T> ok(data: T? = null): ApiResponse<T> {
             return ApiResponse(success = true, data = data)
         }
 

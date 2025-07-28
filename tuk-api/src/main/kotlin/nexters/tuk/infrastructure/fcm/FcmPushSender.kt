@@ -29,8 +29,8 @@ class FcmPushSender : PushSender {
     override fun send(
         recipients: List<PushCommand.PushRecipient>,
         message: PushCommand.MessagePayload,
-    ): PushResponse.Push {
-        return when (recipients.size) {
+    ) {
+        when (recipients.size) {
             0 -> throw BaseException(ErrorType.BAD_REQUEST, "No valid device tokens found")
 
             1 -> singlePush(
@@ -82,7 +82,7 @@ class FcmPushSender : PushSender {
             logger.info("Retry attempt ${attempt + 1}/${MAX_RETRY_ATTEMPTS}, processing ${remainingTokens.size} tokens")
 
             chunks.forEach { chunk ->
-                val result =  if (chunk.size == 1) {
+                val result = if (chunk.size == 1) {
                     sendSingleToken(chunk.first(), message)
                 } else {
                     sendMultipleTokens(chunk, message)

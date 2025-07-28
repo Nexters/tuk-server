@@ -19,7 +19,7 @@ class PushController(
     override fun sendPush(
         @RequestBody request: PushCommand.Push,
     ): ApiResponse<PushResponse.Push> {
-        val result = pushService.sendPush(request)
-        return ApiResponse.ok(result)
+         pushService.sendPush(request)
+        return ApiResponse.ok()
     }
 }
