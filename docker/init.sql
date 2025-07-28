@@ -18,34 +18,31 @@ CREATE TABLE IF NOT EXISTS member
 
 CREATE TABLE IF NOT EXISTS gathering
 (
-    id                   BIGINT AUTO_INCREMENT PRIMARY KEY,
-    gathering_name       VARCHAR(255) NOT NULL,
-    member_id            BIGINT       NOT NULL,
-    first_gathering_date DATE         NOT NULL,
-    last_gathering_date  DATE         NOT NULL,
-    interval_days        BIGINT       NOT NULL,
-    tags                 JSON         NULL,
-    created_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at           TIMESTAMP    NULL,
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    gathering_name VARCHAR(255) NOT NULL,
+    member_id      BIGINT       NOT NULL,
+    interval_days  BIGINT       NOT NULL,
+    created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at     TIMESTAMP    NULL,
 
     INDEX idx_deleted_at (deleted_at),
 
-    CONSTRAINT fk_gathering_member FOREIGN KEY (member_id) REFERENCES member(id)
+    CONSTRAINT fk_gathering_member FOREIGN KEY (member_id) REFERENCES member (id)
 );
 
 CREATE TABLE IF NOT EXISTS gathering_member
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    gathering_id BIGINT      NOT NULL,
-    member_id    BIGINT      NOT NULL,
-    is_host      BIT         NOT NULL,
-    created_at   TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at   TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at   TIMESTAMP   NULL,
+    gathering_id BIGINT    NOT NULL,
+    member_id    BIGINT    NOT NULL,
+    is_host      BIT       NOT NULL,
+    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at   TIMESTAMP NULL,
 
-    CONSTRAINT fk_gathering_member_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering(id),
-    CONSTRAINT fk_gathering_member_member_id FOREIGN KEY (member_id) REFERENCES member(id),
+    CONSTRAINT fk_gathering_member_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering (id),
+    CONSTRAINT fk_gathering_member_member_id FOREIGN KEY (member_id) REFERENCES member (id),
     INDEX idx_gathering_member (gathering_id, member_id),
     INDEX idx_deleted_at (deleted_at)
 );
@@ -60,25 +57,60 @@ CREATE TABLE IF NOT EXISTS invitation
     updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at   TIMESTAMP    NULL,
 
-    CONSTRAINT fk_invitation_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering(id),
-    CONSTRAINT fk_invitation_member_id FOREIGN KEY (member_id) REFERENCES member(id),
+    CONSTRAINT fk_invitation_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering (id),
+    CONSTRAINT fk_invitation_member_id FOREIGN KEY (member_id) REFERENCES member (id),
     INDEX idx_gathering_member (gathering_id, member_id),
     INDEX idx_deleted_at (deleted_at)
+);
+
+CREATE TABLE IF NOT EXISTS category
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP    NULL,
+
+    INDEX idx_deleted_at (deleted_at)
+);
+
+CREATE TABLE IF NOT EXISTS tag
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    category_id BIGINT       NOT NULL,
+    created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP    NULL,
+
+    CONSTRAINT fk_tag_category FOREIGN KEY (category_id) REFERENCES category (id),
+    INDEX idx_deleted_at (deleted_at)
+);
+
+CREATE TABLE IF NOT EXISTS gathering_tag
+(
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    gathering_id BIGINT NOT NULL,
+    tag_id       BIGINT NOT NULL,
+
+    CONSTRAINT fk_gathering_tag_gathering FOREIGN KEY (gathering_id) REFERENCES gathering (id),
+    CONSTRAINT fk_gathering_tag_tag FOREIGN KEY (tag_id) REFERENCES tag (id),
+    UNIQUE KEY uk_gathering_tag (gathering_id, tag_id)
 );
 
 CREATE TABLE IF NOT EXISTS device
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    deleted_at TIMESTAMP DEFAULT NULL,
+    created_at   TIMESTAMP    NOT NULL,
+    updated_at   TIMESTAMP    NOT NULL,
+    deleted_at   TIMESTAMP DEFAULT NULL,
 
-    device_id VARCHAR(255) NOT NULL,
-    member_id BIGINT NOT NULL,
-    is_active BOOLEAN DEFAULT NULL,
+    device_id    VARCHAR(255) NOT NULL,
+    member_id    BIGINT       NOT NULL,
+    is_active    BOOLEAN   DEFAULT NULL,
     device_token VARCHAR(255) NOT NULL,
-    app_version VARCHAR(20),
-    os_version VARCHAR(20),
+    app_version  VARCHAR(20),
+    os_version   VARCHAR(20),
 
     INDEX idx_device_device_id (device_id),
     INDEX idx_device_member_id (member_id),
