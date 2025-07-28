@@ -3,7 +3,8 @@ package nexters.tuk.ui.gathering
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import nexters.tuk.application.gathering.dto.response.GatheringFacadeResponse
+import nexters.tuk.application.gathering.dto.response.GatheringMemberResponse
+import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.config.SwaggerConfig
 import nexters.tuk.contract.ApiResponse
 
@@ -16,7 +17,7 @@ interface GatheringSpec {
     fun generateGathering(
         @Parameter(hidden = true) memberId: Long,
         request: GatheringDto.Request.Generate
-    ): ApiResponse<GatheringFacadeResponse.Generate>
+    ): ApiResponse<GatheringResponse.Generate>
 
     @Operation(
         summary = "사용자 모임 조회",
@@ -24,7 +25,7 @@ interface GatheringSpec {
     )
     fun getMemberGathering(
         @Parameter(hidden = true) memberId: Long,
-    ): ApiResponse<GatheringFacadeResponse.GatheringOverviews>
+    ): ApiResponse<GatheringResponse.GatheringOverviews>
 
     @Operation(
         summary = "모임 상세 조회",
@@ -33,7 +34,7 @@ interface GatheringSpec {
     fun getGatheringDetail(
         @Parameter(hidden = true) memberId: Long,
         @Parameter(description = "모임 id") gatheringId: Long,
-    ): ApiResponse<GatheringFacadeResponse.GatheringDetail>
+    ): ApiResponse<GatheringResponse.GatheringDetail>
 
     @Operation(
         summary = "모임 참여",
@@ -42,5 +43,5 @@ interface GatheringSpec {
     fun joinGathering(
         @Parameter(hidden = true) memberId: Long,
         @Parameter(description = "모임 id") gatheringId: Long,
-    ): ApiResponse<GatheringFacadeResponse.JoinGathering>
+    ): ApiResponse<GatheringMemberResponse.JoinGathering>
 }

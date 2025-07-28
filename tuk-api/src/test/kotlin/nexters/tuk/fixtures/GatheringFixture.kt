@@ -11,13 +11,11 @@ object GatheringFixture {
     fun gatheringGenerateCommand(
         memberId: Long,
         gatheringName: String = "test gathering",
-        daysSinceLastGathering: Long = 0,
         gatheringIntervalDays: Long = 7,
-        tags: List<String> = emptyList()
+        tags: List<Long> = emptyList()
     ) = GatheringCommand.Generate(
         memberId = memberId,
         gatheringName = gatheringName,
-        daysSinceLastGathering = daysSinceLastGathering,
         gatheringIntervalDays = gatheringIntervalDays,
         tags = tags
     )
@@ -30,18 +28,13 @@ class GatheringFixtureHelper(
     fun createGathering(
         hostMember: Member,
         name: String = "test gathering",
-        daysSince: Long = 0,
         intervalDays: Long = 7,
-        tags: List<String> = emptyList()
+        tags: List<Long> = emptyList()
     ): Gathering = gatheringRepository.save(
         Gathering.generate(
-            GatheringFixture.gatheringGenerateCommand(
-                memberId = hostMember.id,
-                gatheringName = name,
-                daysSinceLastGathering = daysSince,
-                gatheringIntervalDays = intervalDays,
-                tags = tags
-            )
+            hostId = hostMember.id,
+            name = name,
+            intervalDays = intervalDays
         )
     )
 

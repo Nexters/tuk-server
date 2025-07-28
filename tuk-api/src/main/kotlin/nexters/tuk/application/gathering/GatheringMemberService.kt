@@ -1,13 +1,11 @@
 package nexters.tuk.application.gathering
 
-import nexters.tuk.application.gathering.dto.response.GatheringResponse
+import nexters.tuk.application.gathering.dto.response.GatheringMemberResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.gathering.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 @Service
 class GatheringMemberService(
@@ -15,7 +13,7 @@ class GatheringMemberService(
     private val gatheringMemberRepository: GatheringMemberRepository
 ) {
     @Transactional
-    fun registerMember(gatheringId: Long, memberId: Long): Long {
+    fun joinGathering(gatheringId: Long, memberId: Long): GatheringMemberResponse.JoinGathering {
         val gathering = gatheringRepository.findByIdOrThrow(gatheringId)
         if (gathering.hasMember(memberId)) {
             throw BaseException(ErrorType.BAD_REQUEST, "이미 가입된 사용자입니다.")
@@ -24,7 +22,7 @@ class GatheringMemberService(
         val gatheringMember = GatheringMember.registerMember(gathering, memberId)
             .also { gatheringMemberRepository.save(it) }
 
-        return gatheringMember.id
+        return GatheringMemberResponse.JoinGathering(gatheringMember.id)
     }
 
     private fun Gathering.hasMember(memberId: Long): Boolean {
@@ -32,22 +30,17 @@ class GatheringMemberService(
     }
 
     @Transactional(readOnly = true)
-    fun getMemberGatherings(memberId: Long): List<GatheringResponse.GatheringOverview> {
+    fun getMemberGatherings(memberId: Long): List<GatheringMemberResponse.MemberGatherings> {
         val gatheringMembers = gatheringMemberRepository.findAllByMemberId(memberId)
 
         return gatheringMembers
             .map { it.gathering }
             .map {
-                GatheringResponse.GatheringOverview(
+                GatheringMemberResponse.MemberGatherings(
                     it.id,
                     it.name,
-                    it.lastGatheringDate.monthsAgo()
                 )
             }.sortedBy { it.name }
-    }
-
-    private fun LocalDate.monthsAgo(): Int {
-        return until(LocalDate.now(), ChronoUnit.MONTHS).toInt()
     }
 
     @Transactional(readOnly = true)

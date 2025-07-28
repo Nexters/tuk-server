@@ -29,7 +29,7 @@ class AuthController(
     }
 
     @PostMapping("/refresh")
-    fun refreshAccessToken(
+    override fun refreshAccessToken(
         @RequestBody request: AuthDto.Request.Refresh
     ): ApiResponse<AuthResponse.Refresh> {
         val response = authService.refreshAccessToken(request.toCommand())
