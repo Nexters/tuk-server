@@ -19,16 +19,29 @@ class GatheringQueryService(
 ) {
     @Transactional(readOnly = true)
     fun getMemberGatherings(query: GatheringQuery.MemberGathering): GatheringResponse.GatheringOverviews {
-        val gatheringOverviews = gatheringMemberService.getMemberGatherings(query.memberId)
-            .map {
+        val gatheringOverviews = gatheringMemberService.getMemberGatherings(query.memberId).map {
             GatheringResponse.GatheringOverviews.GatheringOverview(
                 gatheringId = it.id,
                 gatheringName = it.name,
-                monthsSinceLastGathering = 0
+                relativeTime = 0.toRelativeTime()
             )
         }
 
         return GatheringResponse.GatheringOverviews(gatheringOverviews.size, gatheringOverviews)
+    }
+
+    private fun Int.toRelativeTime(): String {
+        val daysInWeek = 7
+        val daysInMonth = 30
+        val daysInYear = 365
+
+        return when {
+            this == 0 -> "오늘"
+            this < daysInWeek -> "${this}일 전"
+            this < daysInMonth -> "${this / daysInWeek}주 전"
+            this < daysInYear -> "${this / daysInMonth}개월 전"
+            else -> "${this / daysInYear}년 전"
+        }
     }
 
     @Transactional(readOnly = true)

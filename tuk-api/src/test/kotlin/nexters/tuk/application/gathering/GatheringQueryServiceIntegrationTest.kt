@@ -12,7 +12,6 @@ import nexters.tuk.fixtures.GatheringFixtureHelper
 import nexters.tuk.fixtures.MemberFixtureHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,7 +64,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         
         // 모든 monthsSinceLastGathering는 현재 0으로 설정
         result.gatheringOverviews.forEach {
-            assertThat(it.monthsSinceLastGathering).isEqualTo(0)
+            assertThat(it.relativeTime).isEqualTo("오늘")
         }
     }
 

@@ -19,7 +19,7 @@ class GatheringGenerateService(
             hostId = command.memberId,
             name = command.gatheringName,
             intervalDays = command.gatheringIntervalDays
-        ).also { gatheringRepository.save(it) }
+        ).let { gatheringRepository.save(it) }
 
         val gatheringTags = gatheringTagService.addTags(gathering.id, command.tags)
 

@@ -17,8 +17,10 @@ class GatheringTagService(
     fun addTags(gatheringId: Long, tagsId: List<Long>): GatheringTagResponse.AddTag {
         val gathering = gatheringRepository.findByIdOrThrow(gatheringId)
 
-        val gatheringTags = tagsId.map { GatheringTag.addTag(gathering, it) }
-            .also { gatheringTagRepository.saveAll(it) }
+        val gatheringTags = tagsId
+            .map { GatheringTag.addTag(gathering, it) }
+            .let { gatheringTagRepository.saveAll(it) }
+            .toList()
 
         return GatheringTagResponse.AddTag(gatheringTags.map { it.id })
     }
