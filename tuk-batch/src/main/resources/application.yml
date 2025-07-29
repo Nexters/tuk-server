@@ -25,6 +25,7 @@ spring:
 firebase:
   admin-sdk: ${ENCODED_FIREBASE_ADMIN_SDK}
   enabled: true
+
 ---
 spring:
   config:
@@ -51,4 +52,4 @@ spring:
 
 firebase:
   admin-sdk: ${ENCODED_FIREBASE_ADMIN_SDK}
-  enabled: true
+  enabled: false

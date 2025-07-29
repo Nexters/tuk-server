@@ -50,10 +50,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
         val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
         val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
 
-        // 기존 회원 생성
-        val existingMember = memberFixture.createMember(
-            socialId = "google-123",
-            email = "test@example.com"
+        // 기존 회원 생성 (이름 초기화 안됨)
+        val existingMember = memberRepository.save(
+            Member.signUp(
+                MemberFixture.memberSignUpCommand(
+                    socialId = "google-123",
+                    email = "test@example.com"
+                )
+            )
         )
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider
@@ -109,7 +113,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         val command = AuthCommand.SocialLogin.Apple("apple-id-token")
         val socialUserInfo = SocialUserInfo("apple-123", SocialType.APPLE, "test@icloud.com")
 
-        // 기존 회원 생성 (Apple 타입)
+        // 기존 회원 생성 (Apple 타입, 이름 초기화 안됨)
         val existingMember = memberRepository.save(
             Member.signUp(
                 MemberFixture.memberSignUpCommand(
@@ -244,13 +248,37 @@ class AuthServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
+    fun `첫 로그인 시 requiredOnboardingData에 NAME이 포함된다`() {
+        // given
+        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val socialUserInfo = SocialUserInfo("google-first-login", SocialType.GOOGLE, "firstlogin@example.com")
+
+        every { socialUserProviderFactory.getProvider(command) } returns googleProvider
+        every { googleProvider.getSocialUser(command) } returns socialUserInfo
+
+        // when
+        val result = authService.socialLogin(command)
+
+        // then
+        assertThat(result.memberId).isPositive()
+        assertThat(result.accessToken).isNotBlank()
+        assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.requiredOnboardingData).containsExactly("NAME")
+
+        // 생성된 회원의 name이 초기화되지 않았는지 확인
+        val savedMember = memberRepository.findById(result.memberId).orElse(null)
+        assertThat(savedMember).isNotNull
+        assertThat(savedMember.getRequiredOnboardingData()).containsExactly("NAME")
+    }
+
+    @Test
     fun `온보딩 완료 후 로그인시 requiredOnboardingData가 비어있다`() {
         // given
         val member = memberFixture.createMember(
             socialId = "google-123",
             email = "test@example.com"
         )
-        
+
         // 온보딩 완료
         member.setInitialProfile(
             nexters.tuk.application.member.dto.request.MemberCommand.Onboarding(

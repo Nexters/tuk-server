@@ -136,7 +136,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.members).hasSize(3)
         
         val memberNames = result.members.map { it.memberName }
-        assertThat(memberNames).containsExactlyInAnyOrder("이름 없음", "이름 없음", "이름 없음")
+        assertThat(memberNames).containsExactlyInAnyOrder("테스트사용자", "테스트사용자", "테스트사용자")
     }
 
     @Test
@@ -212,7 +212,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.sentInvitationCount).isEqualTo(0)
         assertThat(result.receivedInvitationCount).isEqualTo(0)
         assertThat(result.members).hasSize(1)
-        assertThat(result.members.first().memberName).isEqualTo("이름 없음")
+        assertThat(result.members.first().memberName).isEqualTo("테스트사용자")
         assertThat(result.members.first().memberId).isEqualTo(host.id)
     }
 

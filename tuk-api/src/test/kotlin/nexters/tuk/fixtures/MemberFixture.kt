@@ -22,16 +22,22 @@ class MemberFixtureHelper(
 ) {
     fun createMember(
         socialId: String = "1",
-        email: String = "test@test.com"
-    ): Member = memberRepository.save(
-        Member.signUp(MemberFixture.memberSignUpCommand(socialId = socialId, email = email))
-    )
+        email: String = "test@test.com",
+        name: String = "테스트사용자"
+    ): Member {
+        val member = memberRepository.save(
+            Member.signUp(MemberFixture.memberSignUpCommand(socialId = socialId, email = email))
+        )
+        member.setInitialProfile(MemberCommand.Onboarding(member.id, name))
+        return memberRepository.save(member)
+    }
 
     fun createMembers(count: Int, prefix: String = "member"): List<Member> {
         return (1..count).map { index ->
             createMember(
                 socialId = "${prefix}${index}",
-                email = "${prefix}${index}@test.com"
+                email = "${prefix}${index}@test.com",
+                name = "${prefix}${index}"
             )
         }
     }
