@@ -66,7 +66,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isEqualTo(existingMember.id)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).containsExactly("name")
+        assertThat(result.requiredOnboardingData).containsExactly("NAME")
 
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)
@@ -89,7 +89,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isPositive()
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).containsExactly("name")
+        assertThat(result.requiredOnboardingData).containsExactly("NAME")
 
         // 신규 회원이 저장되었는지 확인
         val savedMember = memberRepository.findById(result.memberId).orElse(null)
@@ -130,7 +130,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isEqualTo(existingMember.id)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).containsExactly("name")
+        assertThat(result.requiredOnboardingData).containsExactly("NAME")
 
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)

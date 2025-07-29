@@ -35,11 +35,10 @@ class Member private constructor(
     }
 
     fun getRequiredOnboardingData(): List<String> {
-        return listOfNotNull(
-            if (!::name.isInitialized) "name" else null
-        )
+        return buildList {
+            if (!::name.isInitialized) add(::name.name.uppercase())
+        }
     }
-
 
     fun setInitialProfile(command: MemberCommand.Onboarding) {
         require(command.name.isNotBlank()) { "이름은 필수 입니다." }
