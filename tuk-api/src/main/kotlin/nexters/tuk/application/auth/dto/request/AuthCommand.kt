@@ -15,4 +15,8 @@ class AuthCommand {
     data class Refresh(
         val refreshToken: String
     )
+
+    data class Onboarding(
+        val name: String
+    )
 }

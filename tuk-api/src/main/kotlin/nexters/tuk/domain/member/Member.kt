@@ -16,20 +16,34 @@ import org.hibernate.annotations.SQLRestriction
 @Entity
 @Table(name = "member")
 class Member private constructor(
-    val name: String?,
     val email: String,
     @Enumerated(EnumType.STRING)
     val socialType: SocialType,
     val socialId: String,
 ) : BaseEntity() {
+    lateinit var name: String
+        private set
+
     companion object {
-        fun signUp(command: MemberCommand.SignUp): Member {
+        fun signUp(command: MemberCommand.Login): Member {
             return Member(
-                name = null,
                 email = command.email,
                 socialType = command.socialType,
                 socialId = command.socialId,
             )
         }
+    }
+
+    fun getRequiredOnboardingData(): List<String> {
+        return listOfNotNull(
+            if (!::name.isInitialized) "name" else null
+        )
+    }
+
+
+    fun setInitialProfile(command: MemberCommand.Onboarding) {
+        require(command.name.isNotBlank()) { "이름은 필수 입니다." }
+
+        name = command.name
     }
 }

@@ -10,7 +10,7 @@ object MemberFixture {
         socialId: String = "1",
         socialType: SocialType = SocialType.GOOGLE,
         email: String = "test@test.com"
-    ) = MemberCommand.SignUp(
+    ) = MemberCommand.Login(
         socialId = socialId,
         socialType = socialType,
         email = email

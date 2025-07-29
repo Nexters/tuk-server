@@ -51,7 +51,7 @@ class GatheringQueryService(
         val invitationStat = invitationService.getGatheringInvitationStat(query.gatheringId, query.memberId)
 
         val gatheringMemberIds = gatheringMemberService.getGatheringMemberIds(query.gatheringId)
-        val members = memberService.getMemberOverview(gatheringMemberIds).map {
+        val members = memberService.getMemberOverviews(gatheringMemberIds).map {
             GatheringResponse.GatheringDetail.MemberOverview(it.memberId, it.memberName)
         }
 

@@ -23,11 +23,6 @@ class AuthService(
         val userInfo = userProvider.getSocialUser(command)
         val member = memberService.login(
             MemberCommand.Login(
-                socialType = userInfo.socialType,
-                socialId = userInfo.socialId,
-            )
-        ) ?: memberService.signUp(
-            MemberCommand.SignUp(
                 email = userInfo.email,
                 socialType = userInfo.socialType,
                 socialId = userInfo.socialId,
@@ -40,6 +35,7 @@ class AuthService(
             memberId = member.memberId,
             accessToken = jwt.accessToken,
             refreshToken = jwt.refreshToken,
+            requiredOnboardingData = member.requiredOnboardingData,
         )
     }
 
