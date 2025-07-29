@@ -1,6 +1,6 @@
 package nexters.tuk.application.scheduler
 
-import nexters.tuk.application.gathering.dto.request.GatheringCommand
+import nexters.tuk.application.scheduler.dto.request.GatheringCommand
 import nexters.tuk.job.TukNotificationJob
 import org.quartz.*
 import org.springframework.stereotype.Component
@@ -12,26 +12,18 @@ import java.util.*
 class GatheringNotificationScheduler(
     private val scheduler: Scheduler,
 ) {
-    fun scheduleTukNotification(command: GatheringCommand.Notification.Tuk) {
+    fun scheduleTukNotification(command: GatheringCommand.Notification) {
         val jobKey = JobKey(command.gatheringId.toString(), "notification-job-group")
         val triggerKey = TriggerKey(command.gatheringId.toString(), "notification-trigger-group")
 
 
-        val jobDataMap = JobDataMap(
-            mapOf(
-                "gatheringId" to command.gatheringId,
-                "intervalDays" to command.intervalDays
-            )
-        )
-
         val jobDetail = JobBuilder.newJob(TukNotificationJob::class.java)
             .withIdentity(jobKey)
-            .usingJobData(jobDataMap)
             .storeDurably()
             .requestRecovery(true)
             .build()
 
-        val notificationTime = LocalDateTime.now().plusDays(command.intervalDays)
+        val notificationTime = command.sendAt
         val trigger = TriggerBuilder.newTrigger()
             .withIdentity(triggerKey)
             .startAt(notificationTime.toDate())
