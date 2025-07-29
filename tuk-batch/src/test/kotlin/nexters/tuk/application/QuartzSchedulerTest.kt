@@ -7,7 +7,6 @@ import io.mockk.verify
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.scheduler.GatheringNotificationScheduler
-import nexters.tuk.config.FcmConfig
 import nexters.tuk.infrastructure.FcmClient
 import nexters.tuk.job.TukNotificationJob
 import org.assertj.core.api.Assertions.assertThat
@@ -27,14 +26,12 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 @SpringBootTest
-@ActiveProfiles("test")
 class QuartzSchedulerTest @Autowired constructor(
     private val scheduler: Scheduler,
     private val gatheringNotificationScheduler: GatheringNotificationScheduler,
     private val realTukNotificationJob: TukNotificationJob,
     @MockkBean private val memberService: MemberService,
     @MockkBean private val fcmClient: FcmClient,
-    @MockkBean private val fcmConfig: FcmConfig,
 ) {
 
     private lateinit var spyTukNotificationJob: TukNotificationJob

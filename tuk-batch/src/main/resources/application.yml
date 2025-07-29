@@ -21,8 +21,10 @@ spring:
       database: 0
       host: localhost
       port: 6379
-  app:
-    firebase-config-file: firebase-adminsdk.json
+
+firebase:
+  admin-sdk: ${ENCODED_FIREBASE_ADMIN_SDK}
+  enabled: true
 ---
 spring:
   config:
@@ -46,3 +48,7 @@ spring:
   config:
     activate:
       on-profile: test
+
+firebase:
+  admin-sdk: ${ENCODED_FIREBASE_ADMIN_SDK}
+  enabled: true
