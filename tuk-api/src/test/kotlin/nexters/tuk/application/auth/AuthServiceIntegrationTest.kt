@@ -70,7 +70,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isEqualTo(existingMember.id)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).containsExactly("NAME")
+        assertThat(result.isFirstLogin).isTrue()
 
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)
@@ -93,7 +93,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isPositive()
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).containsExactly("NAME")
+        assertThat(result.isFirstLogin).isTrue()
 
         // 신규 회원이 저장되었는지 확인
         val savedMember = memberRepository.findById(result.memberId).orElse(null)
@@ -134,7 +134,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isEqualTo(existingMember.id)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).containsExactly("NAME")
+        assertThat(result.isFirstLogin).isTrue()
 
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)
@@ -248,7 +248,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    fun `첫 로그인 시 requiredOnboardingData에 NAME이 포함된다`() {
+    fun `첫 로그인 시 isFirstLogin이 true가 된다`() {
         // given
         val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
         val socialUserInfo = SocialUserInfo("google-first-login", SocialType.GOOGLE, "firstlogin@example.com")
@@ -263,29 +263,24 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isPositive()
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).containsExactly("NAME")
+        assertThat(result.isFirstLogin).isTrue()
 
         // 생성된 회원의 name이 초기화되지 않았는지 확인
         val savedMember = memberRepository.findById(result.memberId).orElse(null)
         assertThat(savedMember).isNotNull
-        assertThat(savedMember.getRequiredOnboardingData()).containsExactly("NAME")
+        assertThat(savedMember.name).isNull()
     }
 
     @Test
-    fun `온보딩 완료 후 로그인시 requiredOnboardingData가 비어있다`() {
+    fun `온보딩 완료 후 로그인시 isFirstLogin이 false가 된다`() {
         // given
         val member = memberFixture.createMember(
             socialId = "google-123",
             email = "test@example.com"
         )
 
-        // 온보딩 완료
-        member.updateProfile(
-            nexters.tuk.application.member.dto.request.MemberCommand.Onboarding(
-                memberId = member.id,
-                name = "홍길동"
-            )
-        )
+        // 온보딩 완료 (이름 설정)
+        member.updateProfile("홍길동")
         memberRepository.save(member)
 
         val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
@@ -301,6 +296,35 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isEqualTo(member.id)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
-        assertThat(result.requiredOnboardingData).isEmpty()
+        assertThat(result.isFirstLogin).isFalse()
+    }
+
+    @Test
+    fun `빈 문자열 이름도 첫 로그인으로 판별된다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberFixture.memberSignUpCommand(
+                    socialId = "google-123",
+                    email = "test@example.com"
+                )
+            )
+        )
+        // member는 name이 null인 상태
+
+        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
+
+        every { socialUserProviderFactory.getProvider(command) } returns googleProvider
+        every { googleProvider.getSocialUser(command) } returns socialUserInfo
+
+        // when
+        val result = authService.socialLogin(command)
+
+        // then
+        assertThat(result.memberId).isEqualTo(member.id)
+        assertThat(result.accessToken).isNotBlank()
+        assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.isFirstLogin).isTrue()  // 빈 문자열은 첫 로그인으로 판별
     }
 }

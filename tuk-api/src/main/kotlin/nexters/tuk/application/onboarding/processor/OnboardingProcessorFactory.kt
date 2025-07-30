@@ -1,14 +1,14 @@
-package nexters.tuk.application.onboarding.halper
+package nexters.tuk.application.onboarding.processor
 
 import nexters.tuk.application.onboarding.OnboardingField
 import org.springframework.stereotype.Component
 
 @Component
 class OnboardingProcessorFactory(
-    private val helpers: List<OnboardingProcessor<*>>
+    private val processors: List<OnboardingProcessor<*>>
 ) {
-    fun getHelper(domain: OnboardingField.Domain): OnboardingProcessor<*> {
-        return helpers.find { it.domain == domain }
+    fun getProcessor(domain: OnboardingField.Domain): OnboardingProcessor<*> {
+        return processors.find { it.domain == domain }
             ?: throw IllegalArgumentException("No helper found for domain: $domain")
     }
 }

@@ -28,20 +28,20 @@ class MemberServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    fun `온보딩 성공시 사용자 정보가 업데이트된다`() {
+    fun `프로필 업데이트 성공시 사용자 정보가 업데이트된다`() {
         // given
         val member = memberFixture.createMember(
             socialId = "google-123",
             email = "test@example.com"
         )
 
-        val command = MemberCommand.Onboarding(
+        val command = MemberCommand.UpdateProfile(
             memberId = member.id,
             name = "홍길동"
         )
 
         // when
-        val result = memberService.executeOnboarding(command)
+        val result = memberService.updateProfile(command)
 
         // then
         assertThat(result.memberId).isEqualTo(member.id)
@@ -51,66 +51,71 @@ class MemberServiceIntegrationTest @Autowired constructor(
         val updatedMember = memberRepository.findById(member.id).orElse(null)
         assertThat(updatedMember).isNotNull
         assertThat(updatedMember.name).isEqualTo("홍길동")
-        assertThat(updatedMember.getRequiredOnboardingData()).isEmpty()
     }
 
     @Test
-    fun `존재하지 않는 사용자로 온보딩 시도시 예외가 발생한다`() {
+    fun `존재하지 않는 사용자로 프로필 업데이트 시도시 예외가 발생한다`() {
         // given
-        val command = MemberCommand.Onboarding(
+        val command = MemberCommand.UpdateProfile(
             memberId = 999L,
             name = "홍길동"
         )
 
         // when & then
         val exception = assertThrows<BaseException> {
-            memberService.executeOnboarding(command)
+            memberService.updateProfile(command)
         }
 
         assertThat(exception.errorType).isEqualTo(ErrorType.NOT_FOUND)
-        assertThat(exception.message).isEqualTo("찾을 수 없는 사용자 입니다.")
+        assertThat(exception.message).isEqualTo("존재하지 않는 사용자입니다.")
     }
 
     @Test
-    fun `빈 이름으로 온보딩 시도시 예외가 발생한다`() {
+    fun `빈 이름으로 프로필 업데이트시 이름이 변경되지 않는다`() {
         // given
-        val member = memberFixture.createMember(
-            socialId = "google-123",
-            email = "test@example.com"
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberFixture.memberSignUpCommand(
+                    socialId = "google-123",
+                    email = "test@example.com"
+                )
+            )
         )
 
-        val command = MemberCommand.Onboarding(
+        val command = MemberCommand.UpdateProfile(
             memberId = member.id,
             name = ""
         )
 
-        // when & then
-        val exception = assertThrows<IllegalArgumentException> {
-            memberService.executeOnboarding(command)
-        }
+        // when
+        val result = memberService.updateProfile(command)
 
-        assertThat(exception.message).isEqualTo("이름은 필수 입니다.")
+        // then - 빈 문자열이므로 이름이 업데이트되지 않음
+        assertThat(result.name).isNull()
     }
 
     @Test
-    fun `공백만 있는 이름으로 온보딩 시도시 예외가 발생한다`() {
+    fun `공백만 있는 이름으로 프로필 업데이트시 이름이 변경되지 않는다`() {
         // given
-        val member = memberFixture.createMember(
-            socialId = "google-123",
-            email = "test@example.com"
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberFixture.memberSignUpCommand(
+                    socialId = "google-123",
+                    email = "test@example.com"
+                )
+            )
         )
 
-        val command = MemberCommand.Onboarding(
+        val command = MemberCommand.UpdateProfile(
             memberId = member.id,
             name = "   "
         )
 
-        // when & then
-        val exception = assertThrows<IllegalArgumentException> {
-            memberService.executeOnboarding(command)
-        }
+        // when
+        val result = memberService.updateProfile(command)
 
-        assertThat(exception.message).isEqualTo("이름은 필수 입니다.")
+        // then - 공백만 있는 문자열이므로 이름이 업데이트되지 않음
+        assertThat(result.name).isNull()
     }
 
     @Test
@@ -124,7 +129,7 @@ class MemberServiceIntegrationTest @Autowired constructor(
                 )
             )
         )
-        member1.updateProfile(MemberCommand.Onboarding(member1.id, "사용자1"))
+        member1.updateProfile("사용자1")
 
         val member2 = memberRepository.save(
             Member.signUp(
@@ -134,7 +139,7 @@ class MemberServiceIntegrationTest @Autowired constructor(
                 )
             )
         )
-        member2.updateProfile(MemberCommand.Onboarding(member2.id, "사용자2"))
+        member2.updateProfile("사용자2")
 
         memberRepository.saveAll(listOf(member1, member2))
 
@@ -156,7 +161,7 @@ class MemberServiceIntegrationTest @Autowired constructor(
             socialId = "google-123",
             email = "test@example.com"
         )
-        member.updateProfile(MemberCommand.Onboarding(member.id, "사용자1"))
+        member.updateProfile("사용자1")
         memberRepository.save(member)
 
         // when

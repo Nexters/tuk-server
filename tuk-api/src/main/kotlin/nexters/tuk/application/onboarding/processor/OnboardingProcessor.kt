@@ -1,4 +1,4 @@
-package nexters.tuk.application.onboarding.halper
+package nexters.tuk.application.onboarding.processor
 
 import nexters.tuk.application.onboarding.OnboardingField
 import nexters.tuk.application.onboarding.dto.request.OnboardingCommand
