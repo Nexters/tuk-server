@@ -1,6 +1,5 @@
 package nexters.tuk.application.auth.dto.response
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 
 class AuthResponse {
@@ -9,10 +8,7 @@ class AuthResponse {
         val memberId: Long,
         val accessToken: String,
         val refreshToken: String,
-
-        @JsonInclude(JsonInclude.Include.NON_EMPTY)
-        @Schema(description = "온보딩 필요시 입력해야 할 필드 목록")
-        val requiredOnboardingData: List<String>
+        val isFirstLogin: Boolean,
     )
 
     @Schema(name = "RefreshResponse")

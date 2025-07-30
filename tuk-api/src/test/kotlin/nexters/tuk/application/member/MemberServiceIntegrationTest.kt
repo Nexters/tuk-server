@@ -124,7 +124,7 @@ class MemberServiceIntegrationTest @Autowired constructor(
                 )
             )
         )
-        member1.setInitialProfile(MemberCommand.Onboarding(member1.id, "사용자1"))
+        member1.updateProfile(MemberCommand.Onboarding(member1.id, "사용자1"))
 
         val member2 = memberRepository.save(
             Member.signUp(
@@ -134,7 +134,7 @@ class MemberServiceIntegrationTest @Autowired constructor(
                 )
             )
         )
-        member2.setInitialProfile(MemberCommand.Onboarding(member2.id, "사용자2"))
+        member2.updateProfile(MemberCommand.Onboarding(member2.id, "사용자2"))
 
         memberRepository.saveAll(listOf(member1, member2))
 
@@ -156,7 +156,7 @@ class MemberServiceIntegrationTest @Autowired constructor(
             socialId = "google-123",
             email = "test@example.com"
         )
-        member.setInitialProfile(MemberCommand.Onboarding(member.id, "사용자1"))
+        member.updateProfile(MemberCommand.Onboarding(member.id, "사용자1"))
         memberRepository.save(member)
 
         // when

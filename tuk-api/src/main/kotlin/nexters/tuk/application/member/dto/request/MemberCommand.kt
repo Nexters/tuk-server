@@ -9,8 +9,8 @@ class MemberCommand {
         val socialType: SocialType,
     )
 
-    data class Onboarding(
+    data class UpdateProfile(
         val memberId: Long,
-        val name: String,
+        val name: String?,
     )
 }

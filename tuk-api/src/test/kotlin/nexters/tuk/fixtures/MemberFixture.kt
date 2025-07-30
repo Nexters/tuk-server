@@ -28,7 +28,7 @@ class MemberFixtureHelper(
         val member = memberRepository.save(
             Member.signUp(MemberFixture.memberSignUpCommand(socialId = socialId, email = email))
         )
-        member.setInitialProfile(MemberCommand.Onboarding(member.id, name))
+        member.updateProfile(MemberCommand.Onboarding(member.id, name))
         return memberRepository.save(member)
     }
 

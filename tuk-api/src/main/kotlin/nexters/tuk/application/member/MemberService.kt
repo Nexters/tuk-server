@@ -13,20 +13,30 @@ import org.springframework.transaction.annotation.Transactional
 class MemberService(
     private val memberRepository: MemberRepository,
 ) {
-
     @Transactional
     fun login(command: MemberCommand.Login): MemberResponse.Login {
         val member =
-            memberRepository.findBySocialTypeAndSocialId(command.socialType, command.socialId) ?: memberRepository.save(
-                Member.signUp(command)
-            )
+            memberRepository.findBySocialTypeAndSocialId(command.socialType, command.socialId)
+                ?: memberRepository.save(Member.signUp(command))
 
         return MemberResponse.Login(
             memberId = member.id,
             email = member.email,
             socialType = member.socialType,
             socialId = member.socialId,
-            requiredOnboardingData = member.getRequiredOnboardingData(),
+            memberName = member.name,
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getMemberProfile(id: Long): MemberResponse.Profile {
+        val member = memberRepository.findById(id)
+            .orElseThrow { BaseException(ErrorType.NOT_FOUND, "존재하지 않는 사용자입니다.") }
+
+        return MemberResponse.Profile(
+            memberId = member.id,
+            email = member.email,
+            name = member.name
         )
     }
 
@@ -38,21 +48,22 @@ class MemberService(
             .map {
                 MemberResponse.Overview(
                     memberId = it.id,
-                    memberName = it.name
+                    memberName = it.name ?: "이름 없음",
                 )
             }
     }
 
     @Transactional
-    fun executeOnboarding(command: MemberCommand.Onboarding): MemberResponse.Onboarding {
-        val member = memberRepository.findById(command.memberId).orElseThrow {
-            BaseException(ErrorType.NOT_FOUND, "찾을 수 없는 사용자 입니다.")
-        }
-        member.setInitialProfile(command)
+    fun updateProfile(command: MemberCommand.UpdateProfile): MemberResponse.Profile {
+        val member = memberRepository.findById(command.memberId)
+            .orElseThrow { BaseException(ErrorType.NOT_FOUND, "존재하지 않는 사용자입니다.") }
 
-        return MemberResponse.Onboarding(
+        member.updateProfile(command.name)
+
+        return MemberResponse.Profile(
             memberId = member.id,
-            name = member.name
+            email = member.email,
+            name = member.name,
         )
     }
 }

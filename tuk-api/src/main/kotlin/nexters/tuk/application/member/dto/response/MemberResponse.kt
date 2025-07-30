@@ -9,7 +9,7 @@ class MemberResponse {
         val email: String,
         val socialType: SocialType,
         val socialId: String,
-        val requiredOnboardingData: List<String>
+        val memberName: String?,
     )
 
     data class Overview(
@@ -23,5 +23,11 @@ class MemberResponse {
     data class Onboarding(
         val memberId: Long,
         val name: String
+    )
+
+    data class Profile(
+        val memberId: Long,
+        val email: String,
+        val name: String?,
     )
 }

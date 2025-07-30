@@ -21,7 +21,7 @@ class Member private constructor(
     val socialType: SocialType,
     val socialId: String,
 ) : BaseEntity() {
-    lateinit var name: String
+    var name: String? = null
         private set
 
     companion object {
@@ -34,15 +34,7 @@ class Member private constructor(
         }
     }
 
-    fun getRequiredOnboardingData(): List<String> {
-        return buildList {
-            if (!::name.isInitialized) add(::name.name.uppercase())
-        }
-    }
-
-    fun setInitialProfile(command: MemberCommand.Onboarding) {
-        require(command.name.isNotBlank()) { "이름은 필수 입니다." }
-
-        name = command.name
+    fun updateProfile(name: String?) {
+        if(!name.isNullOrBlank()) this.name = name
     }
 }

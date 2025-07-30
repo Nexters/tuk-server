@@ -280,7 +280,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         )
 
         // 온보딩 완료
-        member.setInitialProfile(
+        member.updateProfile(
             nexters.tuk.application.member.dto.request.MemberCommand.Onboarding(
                 memberId = member.id,
                 name = "홍길동"
