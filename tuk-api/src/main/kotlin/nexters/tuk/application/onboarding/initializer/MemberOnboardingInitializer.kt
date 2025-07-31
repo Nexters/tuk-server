@@ -1,4 +1,4 @@
-package nexters.tuk.application.onboarding.processor
+package nexters.tuk.application.onboarding.initializer
 
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.member.dto.request.MemberCommand
@@ -8,9 +8,9 @@ import nexters.tuk.application.onboarding.dto.request.OnboardingCommand
 import org.springframework.stereotype.Component
 
 @Component
-class MemberOnboardingProcessor(
+class MemberOnboardingInitializer(
     private val memberService: MemberService
-) : OnboardingProcessor<MemberResponse.Profile>() {
+) : OnboardingInitializer<MemberResponse.Profile>() {
     override val domain = OnboardingField.Domain.MEMBER
 
     override fun getIncompleteOnboardingData(memberId: Long): MemberResponse.Profile {

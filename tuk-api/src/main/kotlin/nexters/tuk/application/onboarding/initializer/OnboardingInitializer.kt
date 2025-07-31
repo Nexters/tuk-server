@@ -1,9 +1,9 @@
-package nexters.tuk.application.onboarding.processor
+package nexters.tuk.application.onboarding.initializer
 
 import nexters.tuk.application.onboarding.OnboardingField
 import nexters.tuk.application.onboarding.dto.request.OnboardingCommand
 
-abstract class OnboardingProcessor<T> {
+abstract class OnboardingInitializer<T> {
     abstract val domain: OnboardingField.Domain
 
     abstract fun getIncompleteOnboardingData(memberId: Long): T

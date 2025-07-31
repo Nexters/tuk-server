@@ -1,4 +1,4 @@
-package nexters.tuk.application.onboarding.processor
+package nexters.tuk.application.onboarding.initializer
 
 import io.mockk.every
 import io.mockk.mockk
@@ -12,10 +12,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class MemberOnboardingProcessorTest {
+class MemberOnboardingInitializerTest {
 
     private val memberService = mockk<MemberService>()
-    private val processor = MemberOnboardingProcessor(memberService)
+    private val processor = MemberOnboardingInitializer(memberService)
 
     @Test
     fun `도메인이 MEMBER인지 확인`() {

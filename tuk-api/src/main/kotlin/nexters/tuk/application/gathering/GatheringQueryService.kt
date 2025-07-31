@@ -2,6 +2,7 @@ package nexters.tuk.application.gathering
 
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
+import nexters.tuk.application.gathering.vo.RelativeTime
 import nexters.tuk.application.invitation.InvitationService
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.domain.gathering.GatheringRepository
@@ -23,25 +24,11 @@ class GatheringQueryService(
             GatheringResponse.GatheringOverviews.GatheringOverview(
                 gatheringId = it.id,
                 gatheringName = it.name,
-                relativeTime = 0.toRelativeTime()
+                relativeTime = RelativeTime.fromDays(0)
             )
         }
 
         return GatheringResponse.GatheringOverviews(gatheringOverviews.size, gatheringOverviews)
-    }
-
-    private fun Int.toRelativeTime(): String {
-        val daysInWeek = 7
-        val daysInMonth = 30
-        val daysInYear = 365
-
-        return when {
-            this == 0 -> "오늘"
-            this < daysInWeek -> "${this}일 전"
-            this < daysInMonth -> "${this / daysInWeek}주 전"
-            this < daysInYear -> "${this / daysInMonth}개월 전"
-            else -> "${this / daysInYear}년 전"
-        }
     }
 
     @Transactional(readOnly = true)

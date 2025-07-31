@@ -62,9 +62,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         val gatheringNames = result.gatheringOverviews.map { it.gatheringName }
         assertThat(gatheringNames).containsExactlyInAnyOrder("모임1", "모임2")
         
-        // 모든 monthsSinceLastGathering는 현재 0으로 설정
+        // 모든 relativeTime은 현재 0일로 설정되어 "오늘"
         result.gatheringOverviews.forEach {
-            assertThat(it.relativeTime).isEqualTo("오늘")
+            assertThat(it.relativeTime.value).isEqualTo("오늘")
         }
     }
 
