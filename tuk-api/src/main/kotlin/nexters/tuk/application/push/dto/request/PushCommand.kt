@@ -1,9 +1,12 @@
 package nexters.tuk.application.push.dto.request
 
+import nexters.tuk.application.push.PushType
+
 class PushCommand {
     data class Push(
         val recipients: List<PushRecipient>,
         val message: MessagePayload,
+        val pushType: PushType = PushType.GROUP_NOTIFICATION,
     )
 
     data class MessagePayload(

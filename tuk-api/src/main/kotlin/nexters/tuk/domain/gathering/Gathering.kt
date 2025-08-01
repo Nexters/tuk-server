@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import nexters.tuk.domain.BaseEntity
 import org.hibernate.annotations.SQLRestriction
+import java.time.LocalDateTime
 
 @SQLRestriction("deleted_at is NULL")
 @Entity
@@ -19,13 +20,16 @@ class Gathering private constructor(
     @Column(name = "member_id", nullable = false, updatable = false)
     val hostId: Long,
 
-    ) : BaseEntity() {
+    @Column(name = "last_pushed_at", nullable = true, updatable = false)
+    val lastPushedAt: LocalDateTime?,
+) : BaseEntity() {
     companion object {
         fun generate(hostId: Long, name: String, intervalDays: Long): Gathering {
             return Gathering(
                 hostId = hostId,
                 name = name,
                 intervalDays = intervalDays,
+                lastPushedAt = null
             )
         }
     }

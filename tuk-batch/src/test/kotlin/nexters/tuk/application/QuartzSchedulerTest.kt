@@ -1,7 +1,7 @@
 package nexters.tuk.application
 
 import nexters.tuk.application.scheduler.dto.request.GatheringCommand
-import nexters.tuk.application.scheduler.GatheringNotificationScheduler
+import nexters.tuk.scheduler.GatheringNotificationScheduler
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.AfterEach

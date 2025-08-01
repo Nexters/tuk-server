@@ -2,7 +2,7 @@ package nexters.tuk.ui.auth
 
 import io.swagger.v3.oas.annotations.media.Schema
 import nexters.tuk.application.auth.dto.request.AuthCommand
-import nexters.tuk.contract.device.TukDeviceInfo
+import nexters.tuk.contract.device.TukClientInfo
 
 class AuthDto {
     class Request {
@@ -10,7 +10,7 @@ class AuthDto {
             @Schema(description = "Google ID Token")
             val idToken: String,
             @Schema(description = "유저 디바이스 정보")
-            val deviceInfo: TukDeviceInfo,
+            val deviceInfo: TukClientInfo,
         ) {
             fun toCommand(): AuthCommand.SocialLogin.Google {
                 return AuthCommand.SocialLogin.Google(
@@ -24,7 +24,7 @@ class AuthDto {
             @Schema(description = "Apple ID Token")
             val idToken: String,
             @Schema(description = "유저 디바이스 정보")
-            val deviceInfo: TukDeviceInfo,
+            val deviceInfo: TukClientInfo,
         ) {
             fun toCommand(): AuthCommand.SocialLogin.Apple {
                 return AuthCommand.SocialLogin.Apple(

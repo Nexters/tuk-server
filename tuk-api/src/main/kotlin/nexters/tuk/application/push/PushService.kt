@@ -20,5 +20,6 @@ class PushService(
             recipients = command.recipients,
             message = command.message
         )
+        // TODO: Gathering lastPushedAt 업데이트
     }
 }
