@@ -4,6 +4,7 @@ import nexters.tuk.application.auth.dto.request.AuthCommand
 import nexters.tuk.application.auth.dto.response.AuthResponse
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.member.dto.request.MemberCommand
+import nexters.tuk.application.onboarding.OnboardingService
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.auth.JwtRepository
@@ -16,6 +17,7 @@ class AuthService(
     private val jwtProvider: JwtProvider,
     private val jwtRepository: JwtRepository,
     private val memberService: MemberService,
+    private val onboardingService: OnboardingService,
 ) {
     @Transactional
     fun socialLogin(command: AuthCommand.SocialLogin): AuthResponse.Login {
@@ -23,11 +25,6 @@ class AuthService(
         val userInfo = userProvider.getSocialUser(command)
         val member = memberService.login(
             MemberCommand.Login(
-                socialType = userInfo.socialType,
-                socialId = userInfo.socialId,
-            )
-        ) ?: memberService.signUp(
-            MemberCommand.SignUp(
                 email = userInfo.email,
                 socialType = userInfo.socialType,
                 socialId = userInfo.socialId,
@@ -40,6 +37,7 @@ class AuthService(
             memberId = member.memberId,
             accessToken = jwt.accessToken,
             refreshToken = jwt.refreshToken,
+            isFirstLogin = member.memberName.isNullOrBlank(),
         )
     }
 

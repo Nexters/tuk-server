@@ -8,6 +8,7 @@ class AuthResponse {
         val memberId: Long,
         val accessToken: String,
         val refreshToken: String,
+        val isFirstLogin: Boolean,
     )
 
     @Schema(name = "RefreshResponse")

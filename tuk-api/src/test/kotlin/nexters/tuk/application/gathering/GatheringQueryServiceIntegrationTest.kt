@@ -12,7 +12,6 @@ import nexters.tuk.fixtures.GatheringFixtureHelper
 import nexters.tuk.fixtures.MemberFixtureHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -63,9 +62,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         val gatheringNames = result.gatheringOverviews.map { it.gatheringName }
         assertThat(gatheringNames).containsExactlyInAnyOrder("모임1", "모임2")
         
-        // 모든 monthsSinceLastGathering는 현재 0으로 설정
+        // 모든 relativeTime은 현재 0일로 설정되어 "오늘"
         result.gatheringOverviews.forEach {
-            assertThat(it.monthsSinceLastGathering).isEqualTo(0)
+            assertThat(it.lastNotificationRelativeTime.value).isEqualTo("오늘")
         }
     }
 
@@ -131,13 +130,13 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
         assertThat(result.gatheringName).isEqualTo("테스트 모임")
-        assertThat(result.monthsSinceLastNotification).isEqualTo(0) // 현재는 하드코딩
+        assertThat(result.lastNotificationRelativeTime.value).isEqualTo("오늘") // 현재는 하드코딩
         assertThat(result.sentInvitationCount).isEqualTo(2)
         assertThat(result.receivedInvitationCount).isEqualTo(1)
         assertThat(result.members).hasSize(3)
         
         val memberNames = result.members.map { it.memberName }
-        assertThat(memberNames).containsExactlyInAnyOrder("이름 없음", "이름 없음", "이름 없음")
+        assertThat(memberNames).containsExactlyInAnyOrder("테스트사용자", "테스트사용자", "테스트사용자")
     }
 
     @Test
@@ -213,7 +212,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.sentInvitationCount).isEqualTo(0)
         assertThat(result.receivedInvitationCount).isEqualTo(0)
         assertThat(result.members).hasSize(1)
-        assertThat(result.members.first().memberName).isEqualTo("이름 없음")
+        assertThat(result.members.first().memberName).isEqualTo("테스트사용자")
         assertThat(result.members.first().memberId).isEqualTo(host.id)
     }
 

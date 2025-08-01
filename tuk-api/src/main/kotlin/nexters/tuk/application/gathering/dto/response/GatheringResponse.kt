@@ -1,6 +1,7 @@
 package nexters.tuk.application.gathering.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
+import nexters.tuk.application.gathering.vo.RelativeTime
 
 class GatheringResponse {
     @Schema(name = "GenerateResponse")
@@ -21,8 +22,8 @@ class GatheringResponse {
             val gatheringId: Long,
             @Schema(description = "모임명")
             val gatheringName: String,
-            @Schema(description = "마지막 알림부터 현재까지 지난 개월수")
-            val monthsSinceLastGathering: Int
+            @Schema(description = "상대 시간 타입 - \"오늘\", \"n일 전\", \"n주 전\", \"n개월 전\", \"n년 전\" ")
+            val lastNotificationRelativeTime: RelativeTime
         )
     }
 
@@ -32,8 +33,8 @@ class GatheringResponse {
         val gatheringId: Long,
         @Schema(description = "모임명")
         val gatheringName: String,
-        @Schema(description = "마지막 알림부터 현재까지 지난 개월수")
-        val monthsSinceLastNotification: Int,
+        @Schema(description = "상대 시간 타입 - \"오늘\", \"n일 전\", \"n주 전\", \"n개월 전\", \"n년 전\" ")
+        val lastNotificationRelativeTime: RelativeTime,
         @Schema(description = "보낸 초대장 수")
         val sentInvitationCount: Int,
         @Schema(description = "받은 초대장 수")

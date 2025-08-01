@@ -2,6 +2,7 @@ package nexters.tuk.application.gathering
 
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
+import nexters.tuk.application.gathering.vo.RelativeTime
 import nexters.tuk.application.invitation.InvitationService
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.domain.gathering.GatheringRepository
@@ -19,12 +20,11 @@ class GatheringQueryService(
 ) {
     @Transactional(readOnly = true)
     fun getMemberGatherings(query: GatheringQuery.MemberGathering): GatheringResponse.GatheringOverviews {
-        val gatheringOverviews = gatheringMemberService.getMemberGatherings(query.memberId)
-            .map {
+        val gatheringOverviews = gatheringMemberService.getMemberGatherings(query.memberId).map {
             GatheringResponse.GatheringOverviews.GatheringOverview(
                 gatheringId = it.id,
                 gatheringName = it.name,
-                monthsSinceLastGathering = 0
+                lastNotificationRelativeTime = RelativeTime.fromDays(0)
             )
         }
 
@@ -38,7 +38,7 @@ class GatheringQueryService(
         val invitationStat = invitationService.getGatheringInvitationStat(query.gatheringId, query.memberId)
 
         val gatheringMemberIds = gatheringMemberService.getGatheringMemberIds(query.gatheringId)
-        val members = memberService.getMemberOverview(gatheringMemberIds).map {
+        val members = memberService.getMemberOverviews(gatheringMemberIds).map {
             GatheringResponse.GatheringDetail.MemberOverview(it.memberId, it.memberName)
         }
 
@@ -47,7 +47,7 @@ class GatheringQueryService(
         return GatheringResponse.GatheringDetail(
             gatheringId = gatheringDetail.id,
             gatheringName = gatheringDetail.name,
-            monthsSinceLastNotification = 0,
+            lastNotificationRelativeTime = RelativeTime.fromDays(0),
             sentInvitationCount = invitationStat.sentCount,
             receivedInvitationCount = invitationStat.receivedCount,
             members = members

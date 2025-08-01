@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
 class AuthServiceIntegrationTest @Autowired constructor(
@@ -51,10 +50,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
         val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
         val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
 
-        // 기존 회원 생성
-        val existingMember = memberFixture.createMember(
-            socialId = "google-123",
-            email = "test@example.com"
+        // 기존 회원 생성 (이름 초기화 안됨)
+        val existingMember = memberRepository.save(
+            Member.signUp(
+                MemberFixture.memberSignUpCommand(
+                    socialId = "google-123",
+                    email = "test@example.com"
+                )
+            )
         )
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider
@@ -67,6 +70,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isEqualTo(existingMember.id)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.isFirstLogin).isTrue()
 
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)
@@ -89,6 +93,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isPositive()
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.isFirstLogin).isTrue()
 
         // 신규 회원이 저장되었는지 확인
         val savedMember = memberRepository.findById(result.memberId).orElse(null)
@@ -108,7 +113,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         val command = AuthCommand.SocialLogin.Apple("apple-id-token")
         val socialUserInfo = SocialUserInfo("apple-123", SocialType.APPLE, "test@icloud.com")
 
-        // 기존 회원 생성 (Apple 타입)
+        // 기존 회원 생성 (Apple 타입, 이름 초기화 안됨)
         val existingMember = memberRepository.save(
             Member.signUp(
                 MemberFixture.memberSignUpCommand(
@@ -129,6 +134,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         assertThat(result.memberId).isEqualTo(existingMember.id)
         assertThat(result.accessToken).isNotBlank()
         assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.isFirstLogin).isTrue()
 
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)
@@ -239,5 +245,86 @@ class AuthServiceIntegrationTest @Autowired constructor(
 
         assertThat(exception.errorType).isEqualTo(ErrorType.UNAUTHORIZED)
         assertThat(exception.message).isEqualTo("인증에 실패했습니다.")
+    }
+
+    @Test
+    fun `첫 로그인 시 isFirstLogin이 true가 된다`() {
+        // given
+        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val socialUserInfo = SocialUserInfo("google-first-login", SocialType.GOOGLE, "firstlogin@example.com")
+
+        every { socialUserProviderFactory.getProvider(command) } returns googleProvider
+        every { googleProvider.getSocialUser(command) } returns socialUserInfo
+
+        // when
+        val result = authService.socialLogin(command)
+
+        // then
+        assertThat(result.memberId).isPositive()
+        assertThat(result.accessToken).isNotBlank()
+        assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.isFirstLogin).isTrue()
+
+        // 생성된 회원의 name이 초기화되지 않았는지 확인
+        val savedMember = memberRepository.findById(result.memberId).orElse(null)
+        assertThat(savedMember).isNotNull
+        assertThat(savedMember.name).isNull()
+    }
+
+    @Test
+    fun `온보딩 완료 후 로그인시 isFirstLogin이 false가 된다`() {
+        // given
+        val member = memberFixture.createMember(
+            socialId = "google-123",
+            email = "test@example.com"
+        )
+
+        // 온보딩 완료 (이름 설정)
+        member.updateProfile("홍길동")
+        memberRepository.save(member)
+
+        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
+
+        every { socialUserProviderFactory.getProvider(command) } returns googleProvider
+        every { googleProvider.getSocialUser(command) } returns socialUserInfo
+
+        // when
+        val result = authService.socialLogin(command)
+
+        // then
+        assertThat(result.memberId).isEqualTo(member.id)
+        assertThat(result.accessToken).isNotBlank()
+        assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.isFirstLogin).isFalse()
+    }
+
+    @Test
+    fun `빈 문자열 이름도 첫 로그인으로 판별된다`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberFixture.memberSignUpCommand(
+                    socialId = "google-123",
+                    email = "test@example.com"
+                )
+            )
+        )
+        // member는 name이 null인 상태
+
+        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
+
+        every { socialUserProviderFactory.getProvider(command) } returns googleProvider
+        every { googleProvider.getSocialUser(command) } returns socialUserInfo
+
+        // when
+        val result = authService.socialLogin(command)
+
+        // then
+        assertThat(result.memberId).isEqualTo(member.id)
+        assertThat(result.accessToken).isNotBlank()
+        assertThat(result.refreshToken).isNotBlank()
+        assertThat(result.isFirstLogin).isTrue()  // 빈 문자열은 첫 로그인으로 판별
     }
 }

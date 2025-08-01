@@ -20,7 +20,7 @@ class GatheringMemberService(
         }
 
         val gatheringMember = GatheringMember.registerMember(gathering, memberId)
-            .also { gatheringMemberRepository.save(it) }
+                .let { gatheringMemberRepository.save(it) }
 
         return GatheringMemberResponse.JoinGathering(gatheringMember.id)
     }

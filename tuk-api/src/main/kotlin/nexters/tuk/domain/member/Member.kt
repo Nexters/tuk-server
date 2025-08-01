@@ -16,20 +16,25 @@ import org.hibernate.annotations.SQLRestriction
 @Entity
 @Table(name = "member")
 class Member private constructor(
-    val name: String?,
     val email: String,
     @Enumerated(EnumType.STRING)
     val socialType: SocialType,
     val socialId: String,
 ) : BaseEntity() {
+    var name: String? = null
+        private set
+
     companion object {
-        fun signUp(command: MemberCommand.SignUp): Member {
+        fun signUp(command: MemberCommand.Login): Member {
             return Member(
-                name = null,
                 email = command.email,
                 socialType = command.socialType,
                 socialId = command.socialId,
             )
         }
+    }
+
+    fun updateProfile(name: String?) {
+        if(!name.isNullOrBlank()) this.name = name
     }
 }
