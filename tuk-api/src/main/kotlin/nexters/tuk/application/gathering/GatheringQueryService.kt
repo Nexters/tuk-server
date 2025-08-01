@@ -24,7 +24,7 @@ class GatheringQueryService(
             GatheringResponse.GatheringOverviews.GatheringOverview(
                 gatheringId = it.id,
                 gatheringName = it.name,
-                relativeTime = RelativeTime.fromDays(0)
+                lastNotificationRelativeTime = RelativeTime.fromDays(0)
             )
         }
 
@@ -47,7 +47,7 @@ class GatheringQueryService(
         return GatheringResponse.GatheringDetail(
             gatheringId = gatheringDetail.id,
             gatheringName = gatheringDetail.name,
-            monthsSinceLastNotification = 0,
+            lastNotificationRelativeTime = RelativeTime.fromDays(0),
             sentInvitationCount = invitationStat.sentCount,
             receivedInvitationCount = invitationStat.receivedCount,
             members = members

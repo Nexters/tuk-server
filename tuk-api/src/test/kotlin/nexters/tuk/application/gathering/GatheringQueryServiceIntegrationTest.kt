@@ -64,7 +64,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         
         // 모든 relativeTime은 현재 0일로 설정되어 "오늘"
         result.gatheringOverviews.forEach {
-            assertThat(it.relativeTime.value).isEqualTo("오늘")
+            assertThat(it.lastNotificationRelativeTime.value).isEqualTo("오늘")
         }
     }
 
@@ -130,7 +130,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
         assertThat(result.gatheringName).isEqualTo("테스트 모임")
-        assertThat(result.monthsSinceLastNotification).isEqualTo(0) // 현재는 하드코딩
+        assertThat(result.lastNotificationRelativeTime.value).isEqualTo("오늘") // 현재는 하드코딩
         assertThat(result.sentInvitationCount).isEqualTo(2)
         assertThat(result.receivedInvitationCount).isEqualTo(1)
         assertThat(result.members).hasSize(3)
