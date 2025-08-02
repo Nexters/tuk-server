@@ -5,8 +5,8 @@ import nexters.tuk.contract.BaseException
 import nexters.tuk.domain.gathering.GatheringMember
 import nexters.tuk.domain.gathering.GatheringMemberRepository
 import nexters.tuk.domain.gathering.GatheringRepository
-import nexters.tuk.domain.invitation.Invitation
-import nexters.tuk.domain.invitation.InvitationRepository
+import nexters.tuk.domain.proposal.Proposal
+import nexters.tuk.domain.proposal.ProposalRepository
 import nexters.tuk.domain.member.MemberRepository
 import nexters.tuk.fixtures.GatheringFixtureHelper
 import nexters.tuk.fixtures.MemberFixtureHelper
@@ -23,7 +23,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
     private val gatheringRepository: GatheringRepository,
     private val gatheringMemberRepository: GatheringMemberRepository,
     private val memberRepository: MemberRepository,
-    private val invitationRepository: InvitationRepository,
+    private val proposalRepository: ProposalRepository,
 ) {
 
     private val memberFixture = MemberFixtureHelper(memberRepository)
@@ -31,7 +31,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
     @AfterEach
     fun tearDown() {
-        invitationRepository.deleteAllInBatch()
+        proposalRepository.deleteAllInBatch()
         gatheringMemberRepository.deleteAllInBatch()
         gatheringRepository.deleteAllInBatch()
         memberRepository.deleteAllInBatch()
@@ -118,9 +118,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
 
         // 초대장 생성 (보낸 초대장 2개, 받은 초대장 1개)
-        invitationRepository.save(Invitation.publish(gathering.id, host.id, "모임 초대"))
-        invitationRepository.save(Invitation.publish(gathering.id, host.id, "모임 초대"))
-        invitationRepository.save(Invitation.publish(gathering.id, member1.id, "모임 초대"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "모임 제안"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -228,9 +228,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
 
         // 다양한 상태의 초대장 생성
-        invitationRepository.save(Invitation.publish(gathering.id, host.id, "첫번째 초대"))
-        invitationRepository.save(Invitation.publish(gathering.id, host.id, "두번째 초대"))
-        invitationRepository.save(Invitation.publish(gathering.id, member1.id, "역초대"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "첫번째 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "두번째 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "역제안"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 

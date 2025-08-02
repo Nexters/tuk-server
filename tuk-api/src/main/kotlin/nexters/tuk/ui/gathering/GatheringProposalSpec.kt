@@ -1,20 +1,21 @@
-package nexters.tuk.ui.invitation
+package nexters.tuk.ui.gathering
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import nexters.tuk.application.invitation.dto.response.InvitationResponse
+import nexters.tuk.application.proposal.dto.response.ProposalResponse
 import nexters.tuk.config.SwaggerConfig
 import nexters.tuk.contract.ApiResponse
 
 
-interface InvitationSpec {
+interface GatheringProposalSpec {
     @Operation(
-        summary = "초대장 발행",
+        summary = "제안 발행",
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
-    fun generateInvitation(
+    fun generateProposal(
         @Parameter(hidden = true) memberId: Long,
-        request: InvitationDto.Request.Publish
-    ): ApiResponse<InvitationResponse.Publish>
+        gatheringId: Long,
+        request: GatheringProposalDto.Request.Publish
+    ): ApiResponse<ProposalResponse.Propose>
 }

@@ -1,27 +1,27 @@
-package nexters.tuk.domain.invitation
+package nexters.tuk.domain.proposal
 
 import jakarta.persistence.*
 import nexters.tuk.domain.BaseEntity
 import org.hibernate.annotations.SQLRestriction
 
 @SQLRestriction("deleted_at is NULL")
-@Table(name = "invitation_member")
+@Table(name = "proposal_member")
 @Entity
-class InvitationMember private constructor(
+class ProposalMember private constructor(
     @Column(name = "member_id")
     val memberId: Long,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invitation_id", nullable = false)
-    val invitation: Invitation,
+    @JoinColumn(name = "proposal_id", nullable = false)
+    val proposal: Proposal,
 
     val isRead: Boolean = false
 ) : BaseEntity() {
     companion object {
-        fun publish(invitation: Invitation, memberId: Long): InvitationMember {
-            return InvitationMember(
+        fun publish(proposal: Proposal, memberId: Long): ProposalMember {
+            return ProposalMember(
                 memberId = memberId,
-                invitation = invitation
+                proposal = proposal
             )
         }
     }

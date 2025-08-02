@@ -1,6 +1,6 @@
-package nexters.tuk.application.invitation.vo
+package nexters.tuk.application.proposal.vo
 
-data class InvitationPurpose(
+data class ProposalPurpose(
     val where: String,
     val time: String,
     val what: String,

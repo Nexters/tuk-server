@@ -1,18 +1,16 @@
-package nexters.tuk.domain.invitation
+package nexters.tuk.domain.proposal
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import nexters.tuk.domain.BaseEntity
 import org.hibernate.annotations.SQLRestriction
 
-// FIXME: 모임 생성을 위한 임시 초대장 엔티티
+// FIXME: 모임 생성을 위한 임시 제안 엔티티
 @SQLRestriction("deleted_at is NULL")
-@Table(name = "invitation")
+@Table(name = "proposal")
 @Entity
-class Invitation private constructor(
+class Proposal private constructor(
     @Column(name = "member_id", nullable = false)
-    val inviterId: Long,
+    val proposerId: Long,
 
     @Column(name = "gathering_id", nullable = false)
     val gatheringId: Long,
@@ -21,9 +19,9 @@ class Invitation private constructor(
     val purpose: String,
 ) : BaseEntity() {
     companion object {
-        fun publish(gatheringId: Long, inviterId: Long, purpose: String): Invitation {
-            return Invitation(
-                inviterId = inviterId,
+        fun publish(gatheringId: Long, proposerId: Long, purpose: String): Proposal {
+            return Proposal(
+                proposerId = proposerId,
                 gatheringId = gatheringId,
                 purpose = purpose
             )
