@@ -21,10 +21,11 @@ class GatheringNotificationScheduler(
             if (scheduler.checkExists(job.getJobDetail().key)) {
                 scheduler.deleteJob(job.getJobDetail().key)
             }
+            logger.info("Job 등록: ${job.getJobDetail().key}")
             scheduler.scheduleJob(job.getJobDetail(), setOf(job.getTrigger()), true)
         }
 
         scheduler.start()
-        logger.info("[GatheringNotificationScheduler] 스케줄러 초기화 완료 - 10분마다 실행")
+        logger.info("[GatheringNotificationScheduler] 스케줄러 초기화 완료")
     }
 }
