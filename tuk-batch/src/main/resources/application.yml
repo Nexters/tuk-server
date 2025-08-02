@@ -1,3 +1,5 @@
+server:
+  port: 8084
 spring:
   application:
     name: tuk-batch
@@ -36,6 +38,8 @@ spring:
             driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
             tablePrefix: tuk_db.QRTZ_
             isClustered: true
+  main:
+    web-application-type: none
 
 ---
 spring:
@@ -45,6 +49,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: false
   datasource:
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/tuk_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${MYSQL_USERNAME}

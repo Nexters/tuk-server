@@ -19,7 +19,7 @@ class GatheringPushCheckJob(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun getScheduleBuilder(): ScheduleBuilder<CronTrigger> {
-        return CronScheduleBuilder.cronSchedule("0 */1 * * * ?")
+        return CronScheduleBuilder.cronSchedule("0 */10 * * * ?")
             .withMisfireHandlingInstructionDoNothing();
     }
 

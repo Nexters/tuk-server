@@ -4,14 +4,14 @@ import jakarta.annotation.PostConstruct
 import nexters.tuk.job.TukJob
 import org.quartz.Scheduler
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Configuration
 
-@Component
-class GatheringNotificationScheduler(
+@Configuration
+class TukSchedulerConfig(
     private val scheduler: Scheduler,
     private val jobs: List<TukJob>,
 ) {
-    private val logger = LoggerFactory.getLogger(GatheringNotificationScheduler::class.java)
+    private val logger = LoggerFactory.getLogger(TukSchedulerConfig::class.java)
 
     @PostConstruct
     fun gatheringJobScheduler() {
