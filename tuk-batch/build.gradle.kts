@@ -18,7 +18,7 @@ jib {
     }
     container {
         ports = listOf("8084")
-        mainClass = "nexters.tuk.TukBatchApplication"
+        mainClass = "nexters.tuk.TukBatchApplicationKt"
         jvmFlags = listOf(
             "-XX:InitialRAMPercentage=25.0",
             "-XX:MinRAMPercentage=25.0",
