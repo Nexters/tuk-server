@@ -1,6 +1,7 @@
 package nexters.tuk.infrastructure.fcm
 
 import com.google.firebase.messaging.*
+import nexters.tuk.application.push.DeviceToken
 import nexters.tuk.application.push.PushSender
 import nexters.tuk.application.push.dto.request.PushCommand
 import nexters.tuk.application.push.dto.response.PushResponse
@@ -27,44 +28,34 @@ class FcmPushSender : PushSender {
 
     @Async
     override fun send(
-        recipients: List<PushCommand.PushRecipient>,
+        deviceTokens: List<DeviceToken>,
         message: PushCommand.MessagePayload,
     ) {
-        when (recipients.size) {
+        when (deviceTokens.size) {
             0 -> throw BaseException(ErrorType.BAD_REQUEST, "No valid device tokens found")
-
-            1 -> singlePush(
-                recipient = recipients.first(),
-                message = message
-            )
-
-            else -> multicastPush(
-                recipients = recipients,
-                message = message,
-            )
+            else -> sendWithRetry(deviceTokens = deviceTokens, message = message)
         }
     }
 
     private fun singlePush(
-        recipient: PushCommand.PushRecipient,
+        deviceToken: DeviceToken,
         message: PushCommand.MessagePayload,
     ): PushResponse.Push {
-        return sendWithRetry(listOf(recipient.deviceToken), message)
+        return sendWithRetry(listOf(deviceToken), message)
     }
 
     private fun multicastPush(
-        recipients: List<PushCommand.PushRecipient>,
+        deviceTokens: List<DeviceToken>,
         message: PushCommand.MessagePayload,
     ): PushResponse.Push {
-        val deviceTokens = extractValidTokens(recipients)
         return sendWithRetry(deviceTokens, message)
     }
 
     private fun sendWithRetry(
-        deviceTokens: List<String>,
+        deviceTokens: List<DeviceToken>,
         message: PushCommand.MessagePayload,
     ): PushResponse.Push {
-        var remainingTokens = deviceTokens.toMutableList()
+        var remainingTokens = deviceTokens.map { it.token }.toMutableList()
 
         val totalCount = deviceTokens.size
         var totalSuccessCount = 0
@@ -221,13 +212,6 @@ class FcmPushSender : PushSender {
             MessagingErrorCode.INVALID_ARGUMENT -> false // 잘못된 요청은 재시도하지 않음
             else -> false
         }
-    }
-
-    private fun extractValidTokens(recipients: List<PushCommand.PushRecipient>): List<String> {
-        return recipients
-            .map { it.deviceToken }
-            .filter { it.isNotBlank() }
-            .distinct()
     }
 
     private fun buildSingleMessage(

@@ -13,7 +13,6 @@ class PushDto {
     )
 
     data class PushRecipient(
-        val deviceToken: String,
         val memberId: Long,
     )
 

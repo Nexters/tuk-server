@@ -20,9 +20,20 @@ class Gathering private constructor(
     @Column(name = "member_id", nullable = false, updatable = false)
     val hostId: Long,
 
-    @Column(name = "last_pushed_at", nullable = true, updatable = false)
-    val lastPushedAt: LocalDateTime?,
+    lastPushedAt: LocalDateTime?,
 ) : BaseEntity() {
+    @Column(name = "last_pushed_at", nullable = true, updatable = false)
+    var lastPushedAt = lastPushedAt
+        private set
+
+    fun updatePushStatus() {
+        this.lastPushedAt = LocalDateTime.now()
+    }
+
+    fun isHost(memberId: Long): Boolean {
+        return hostId == memberId
+    }
+
     companion object {
         fun generate(hostId: Long, name: String, intervalDays: Long): Gathering {
             return Gathering(
@@ -32,10 +43,6 @@ class Gathering private constructor(
                 lastPushedAt = null
             )
         }
-    }
-
-    fun isHost(memberId: Long): Boolean {
-        return hostId == memberId
     }
 }
 

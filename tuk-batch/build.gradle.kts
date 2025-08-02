@@ -20,6 +20,7 @@ dependencies {
     testRuntimeOnly("com.mysql:mysql-connector-j")
     testImplementation("org.mockito.kotlin:mockito-kotlin:${project.properties["mockitoKotlinVersion"]}")
     testImplementation("com.ninja-squad:springmockk:${project.properties["springMockkVersion"]}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
 
 tasks.withType<Test> {

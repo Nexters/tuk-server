@@ -1,16 +1,19 @@
 package nexters.tuk.infrastructure.mysql.gathering
 
 import nexters.tuk.domain.gathering.Gathering
+import nexters.tuk.domain.gathering.GatheringMembers
 import nexters.tuk.domain.gathering.GatheringRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 
 @Component
-class GatheringJdbcRepository(
+class GatheringCoreRepository(
     private val jdbcTemplate: JdbcTemplate,
+    private val gatheringJpaRepository: GatheringJpaRepository,
 ) : GatheringRepository {
 
-    override fun getAllGatherings(): List<Gathering> {
+    override fun getAllGatheringsWithMember(): List<GatheringMembers> {
         val sql = """
             SELECT g.id,
                    GROUP_CONCAT(gm.member_id) AS member_ids,
@@ -25,7 +28,7 @@ class GatheringJdbcRepository(
         """.trimIndent()
 
         return jdbcTemplate.query(sql) { rs, _ ->
-            Gathering(
+            GatheringMembers(
                 id = rs.getLong("id"),
                 memberIds = rs.getString("member_ids")
                     ?.takeIf { it.isNotBlank() }
@@ -37,5 +40,9 @@ class GatheringJdbcRepository(
                 intervalDays = rs.getLong("interval_days")
             )
         }
+    }
+
+    override fun findById(id: Long): Gathering? {
+        return gatheringJpaRepository.findByIdAndDeletedAtIsNull(id)
     }
 }

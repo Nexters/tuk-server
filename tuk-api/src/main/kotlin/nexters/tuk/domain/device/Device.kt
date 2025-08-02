@@ -19,13 +19,13 @@ class Device private constructor(
     @Column(name = "is_active")
     val isPushActive: Boolean,
 
-    deviceToken: String,
+    deviceToken: String?,
     appVersion: String,
     osVersion: String,
 ) : BaseEntity() {
 
-    @Column(name = "device_token", nullable = false)
-    var deviceToken: String = deviceToken
+    @Column(name = "device_token", nullable = true)
+    var deviceToken: String? = deviceToken
         private set
 
     @Column(name = "app_version", length = 20)

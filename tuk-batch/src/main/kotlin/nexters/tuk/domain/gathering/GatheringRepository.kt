@@ -1,5 +1,6 @@
 package nexters.tuk.domain.gathering
 
 interface GatheringRepository {
-    fun getAllGatherings(): List<Gathering>
+    fun getAllGatheringsWithMember(): List<GatheringMembers>
+    fun findById(id: Long): Gathering?
 }
