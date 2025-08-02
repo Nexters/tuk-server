@@ -1,4 +1,6 @@
 dependencies {
+    implementation(project(":tuk-contract"))
+
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -18,6 +20,7 @@ dependencies {
     testRuntimeOnly("com.mysql:mysql-connector-j")
     testImplementation("org.mockito.kotlin:mockito-kotlin:${project.properties["mockitoKotlinVersion"]}")
     testImplementation("com.ninja-squad:springmockk:${project.properties["springMockkVersion"]}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
 
 tasks.withType<Test> {

@@ -10,7 +10,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -21,6 +21,21 @@ spring:
       database: 0
       host: localhost
       port: 6379
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+      schema: tuk_db
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceId: AUTO
+            instanceName: quartzScheduler
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            tablePrefix: tuk_db.QRTZ_
+            isClustered: true
 
 ---
 spring:

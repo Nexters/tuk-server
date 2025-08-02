@@ -1,8 +1,6 @@
-package nexters.tuk.application.push.dto.request
+package nexters.tuk.domain.push
 
-import nexters.tuk.application.push.PushType
-
-class PushCommand {
+class PushDto {
     data class Push(
         val recipients: List<PushRecipient>,
         val message: MessagePayload,
@@ -17,4 +15,12 @@ class PushCommand {
     data class PushRecipient(
         val memberId: Long,
     )
+
+    enum class PushType {
+        // 모임 정기 푸시
+        GROUP_NOTIFICATION,
+
+        // 초대장 푸시
+        INVITATION,
+    }
 }

@@ -2,7 +2,7 @@ package nexters.tuk.contract.device
 
 import io.swagger.v3.oas.annotations.media.Schema
 
-data class TukDeviceInfo(
+data class TukClientInfo(
     @Schema(description = "디바이스 ID")
     val deviceId: String,
     @Schema(description = "디바이스 타입 - \"ios\", \"android\", \"web\" ")

@@ -1,6 +1,6 @@
 package nexters.tuk.fixtures
 
-import nexters.tuk.contract.device.TukDeviceInfo
+import nexters.tuk.contract.device.TukClientInfo
 
 fun createDeviceInfoFixture(
     deviceId: String = "1",
@@ -8,8 +8,8 @@ fun createDeviceInfoFixture(
     deviceType: String = "ios",
     appVersion: String = "1.0",
     osVersion: String = "1.0",
-): TukDeviceInfo {
-    return TukDeviceInfo(
+): TukClientInfo {
+    return TukClientInfo(
         deviceId = deviceId,
         deviceToken = deviceToken,
         deviceType = deviceType,

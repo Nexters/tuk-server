@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS gathering
     created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at     TIMESTAMP    NULL,
+    last_pushed_at TIMESTAMP    NULL,
 
     INDEX idx_deleted_at (deleted_at),
 
