@@ -9,4 +9,8 @@ class InvitationResponse {
         @Schema(description = "받은 초대장 수")
         val receivedCount: Int,
     )
+
+    data class Publish(
+        val invitationId: Long,
+    )
 }

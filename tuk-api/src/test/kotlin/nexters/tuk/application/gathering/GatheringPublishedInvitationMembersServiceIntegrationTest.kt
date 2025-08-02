@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class GatheringGenerateServiceIntegrationTest @Autowired constructor(
+class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired constructor(
     private val gatheringGenerateService: GatheringGenerateService,
     private val gatheringRepository: GatheringRepository,
     private val gatheringMemberRepository: GatheringMemberRepository,

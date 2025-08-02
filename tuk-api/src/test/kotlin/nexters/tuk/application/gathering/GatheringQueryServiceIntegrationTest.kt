@@ -118,9 +118,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
 
         // 초대장 생성 (보낸 초대장 2개, 받은 초대장 1개)
-        invitationRepository.save(Invitation(host.id, gathering, "모임 초대"))
-        invitationRepository.save(Invitation(host.id, gathering, "모임 초대"))
-        invitationRepository.save(Invitation(member1.id, gathering, "모임 초대"))
+        invitationRepository.save(Invitation.publish(gathering.id, host.id, "모임 초대"))
+        invitationRepository.save(Invitation.publish(gathering.id, host.id, "모임 초대"))
+        invitationRepository.save(Invitation.publish(gathering.id, member1.id, "모임 초대"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -228,9 +228,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
 
         // 다양한 상태의 초대장 생성
-        invitationRepository.save(Invitation(host.id, gathering, "첫번째 초대"))
-        invitationRepository.save(Invitation(host.id, gathering, "두번째 초대"))
-        invitationRepository.save(Invitation(member1.id, gathering, "역초대"))
+        invitationRepository.save(Invitation.publish(gathering.id, host.id, "첫번째 초대"))
+        invitationRepository.save(Invitation.publish(gathering.id, host.id, "두번째 초대"))
+        invitationRepository.save(Invitation.publish(gathering.id, member1.id, "역초대"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
