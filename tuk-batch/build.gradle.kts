@@ -1,3 +1,34 @@
+plugins {
+    id("com.google.cloud.tools.jib")
+}
+
+jib {
+    from {
+        image = "eclipse-temurin:21-jre"
+    }
+    to {
+        image = System.getProperty("jib.to.image") ?: System.getenv("JIB_TO_IMAGE") ?: "tuk-api"
+        tags = setOf(
+            System.getProperty("jib.to.tags") ?: System.getenv("JIB_TO_TAGS") ?: "latest"
+        )
+        auth {
+            username = System.getProperty("jib.to.auth.username") ?: System.getenv("JIB_TO_AUTH_USERNAME")
+            password = System.getProperty("jib.to.auth.password") ?: System.getenv("JIB_TO_AUTH_PASSWORD")
+        }
+    }
+    container {
+        ports = listOf("8084")
+        mainClass = "nexters.tuk.TukBatchApplication"
+        jvmFlags = listOf(
+            "-XX:InitialRAMPercentage=25.0",
+            "-XX:MinRAMPercentage=25.0",
+            "-XX:MaxRAMPercentage=50.0",
+            "-XX:+UseG1GC",
+            "-Dspring.profiles.active=prod"
+        )
+    }
+}
+
 dependencies {
     implementation(project(":tuk-contract"))
 
