@@ -3,7 +3,7 @@ package nexters.tuk.application.gathering
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.application.gathering.vo.RelativeTime
-import nexters.tuk.application.invitation.InvitationService
+import nexters.tuk.application.proposal.ProposalService
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.gathering.findByIdOrThrow
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class GatheringQueryService(
     private val gatheringRepository: GatheringRepository,
     private val gatheringMemberService: GatheringMemberService,
-    private val invitationService: InvitationService,
+    private val proposalService: ProposalService,
     private val memberService: MemberService,
 ) {
     @Transactional(readOnly = true)
@@ -35,7 +35,7 @@ class GatheringQueryService(
     fun getGatheringDetail(query: GatheringQuery.GatheringDetail): GatheringResponse.GatheringDetail {
         gatheringMemberService.verifyGatheringAccess(query.gatheringId, query.memberId)
 
-        val invitationStat = invitationService.getGatheringInvitationStat(query.gatheringId, query.memberId)
+        val proposalStat = proposalService.getGatheringProposalStat(query.gatheringId, query.memberId)
 
         val gatheringMemberIds = gatheringMemberService.getGatheringMemberIds(query.gatheringId)
         val members = memberService.getMemberOverviews(gatheringMemberIds).map {
@@ -48,8 +48,8 @@ class GatheringQueryService(
             gatheringId = gatheringDetail.id,
             gatheringName = gatheringDetail.name,
             lastNotificationRelativeTime = RelativeTime.fromDays(0),
-            sentInvitationCount = invitationStat.sentCount,
-            receivedInvitationCount = invitationStat.receivedCount,
+            sentProposalCount = proposalStat.sentCount,
+            receivedProposalCount = proposalStat.receivedCount,
             members = members
         )
     }
