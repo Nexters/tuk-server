@@ -3,6 +3,7 @@ package nexters.tuk.domain.gathering
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
+import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.domain.BaseEntity
 import org.hibernate.annotations.SQLRestriction
 import java.time.LocalDateTime
@@ -14,8 +15,7 @@ class Gathering private constructor(
     @Column(name = "gathering_name", nullable = false)
     val name: String,
 
-    @Column(name = "interval_days", nullable = false)
-    val intervalDays: Long,
+    intervalDays: Long,
 
     @Column(name = "member_id", nullable = false, updatable = false)
     val hostId: Long,
@@ -26,12 +26,20 @@ class Gathering private constructor(
     var lastPushedAt = lastPushedAt
         private set
 
+    @Column(name = "interval_days", nullable = false)
+    var intervalDays: Long = intervalDays
+        private set
+
     fun updatePushStatus() {
         this.lastPushedAt = LocalDateTime.now()
     }
 
     fun isHost(memberId: Long): Boolean {
         return hostId == memberId
+    }
+
+    fun update(command: GatheringCommand.Update) {
+        this.intervalDays = command.gatheringIntervalDays
     }
 
     companion object {
