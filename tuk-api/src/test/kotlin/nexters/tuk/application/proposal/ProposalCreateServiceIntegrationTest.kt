@@ -1,7 +1,7 @@
 package nexters.tuk.application.proposal
 
 import nexters.tuk.application.proposal.dto.request.ProposalCommand
-import nexters.tuk.application.proposal.vo.ProposalPurpose
+import nexters.tuk.application.proposal.vo.ProposalPurposeInfo
 import nexters.tuk.contract.BaseException
 import nexters.tuk.domain.gathering.GatheringMember
 import nexters.tuk.domain.gathering.GatheringMemberRepository
@@ -57,10 +57,10 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val command = ProposalCommand.Propose(
             memberId = host.id,
             gatheringId = gathering.id,
-            purpose = ProposalPurpose(
-                where = "카페",
-                time = "오후 3시",
-                what = "커피 모임"
+            purpose = ProposalPurposeInfo(
+                whereTag = "카페",
+                whenTag = "오후 3시",
+                whatTag = "커피 모임"
             )
         )
 
@@ -103,10 +103,10 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val command = ProposalCommand.Propose(
             memberId = host.id,
             gatheringId = gathering.id,
-            purpose = ProposalPurpose(
-                where = "집",
-                time = "저녁 7시",
-                what = "혼자 공부"
+            purpose = ProposalPurposeInfo(
+                whereTag = "집",
+                whenTag = "저녁 7시",
+                whatTag = "혼자 공부"
             )
         )
 
@@ -138,10 +138,10 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val command = ProposalCommand.Propose(
             memberId = nonMember.id, // 모임에 속하지 않은 멤버
             gatheringId = gathering.id,
-            purpose = ProposalPurpose(
-                where = "카페",
-                time = "오후 3시",
-                what = "커피 모임"
+            purpose = ProposalPurposeInfo(
+                whereTag = "카페",
+                whenTag = "오후 3시",
+                whatTag = "커피 모임"
             )
         )
 
@@ -167,10 +167,10 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val command = ProposalCommand.Propose(
             memberId = member.id,
             gatheringId = nonExistentGatheringId,
-            purpose = ProposalPurpose(
-                where = "카페",
-                time = "오후 3시",
-                what = "커피 모임"
+            purpose = ProposalPurposeInfo(
+                whereTag = "카페",
+                whenTag = "오후 3시",
+                whatTag = "커피 모임"
             )
         )
 
@@ -200,10 +200,10 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val command = ProposalCommand.Propose(
             memberId = host.id,
             gatheringId = gathering.id,
-            purpose = ProposalPurpose(
-                where = "강남역 스타벅스 2층",
-                time = "2024년 12월 25일 오후 2시 30분",
-                what = "크리스마스 파티 및 연말 회식"
+            purpose = ProposalPurposeInfo(
+                whereTag = "강남역 스타벅스 2층",
+                whenTag = "2024년 12월 25일 오후 2시 30분",
+                whatTag = "크리스마스 파티 및 연말 회식"
             )
         )
 
@@ -228,13 +228,13 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val command1 = ProposalCommand.Propose(
             memberId = host.id,
             gatheringId = gathering.id,
-            purpose = ProposalPurpose(where = "카페", time = "오후 3시", what = "첫 번째 모임")
+            purpose = ProposalPurposeInfo(whereTag = "카페", whenTag = "오후 3시", whatTag = "첫 번째 모임")
         )
 
         val command2 = ProposalCommand.Propose(
             memberId = host.id,
             gatheringId = gathering.id,
-            purpose = ProposalPurpose(where = "레스토랑", time = "저녁 7시", what = "두 번째 모임")
+            purpose = ProposalPurposeInfo(whereTag = "레스토랑", whenTag = "저녁 7시", whatTag = "두 번째 모임")
         )
 
         // when

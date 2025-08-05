@@ -69,7 +69,6 @@ class ProposalQueryService(
             )
         }
 
-
         return ProposalResponse.GatheringProposals(
             hasNext = hasNext,
             size = query.pageSize,

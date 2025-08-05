@@ -19,7 +19,7 @@ class GatheringProposalController(
     override fun generateProposal(
         @Authenticated memberId: Long,
         @PathVariable("gatheringId") gatheringId: Long,
-        request: GatheringProposalDto.Request.Publish
+        @RequestBody request: GatheringProposalDto.Request.Publish
     ): ApiResponse<ProposalResponse.Propose> {
         val response = proposalCreateService.propose(request.toCommand(memberId, gatheringId))
 

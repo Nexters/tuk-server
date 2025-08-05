@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS gathering_member
     INDEX idx_deleted_at (deleted_at)
 );
 
-CREATE TABLE IF NOT EXISTS invitation
+CREATE TABLE IF NOT EXISTS proposal
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
     gathering_id BIGINT       NOT NULL,
@@ -57,9 +57,37 @@ CREATE TABLE IF NOT EXISTS invitation
     updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at   TIMESTAMP    NULL,
 
-    CONSTRAINT fk_invitation_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering (id),
-    CONSTRAINT fk_invitation_member_id FOREIGN KEY (member_id) REFERENCES member (id),
+    CONSTRAINT fk_proposal_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering (id),
+    CONSTRAINT fk_proposal_member_id FOREIGN KEY (member_id) REFERENCES member (id),
     INDEX idx_gathering_member (gathering_id, member_id),
+    INDEX idx_deleted_at (deleted_at)
+);
+
+CREATE TABLE IF NOT EXISTS proposal_member
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    proposal_id BIGINT    NOT NULL,
+    member_id   BIGINT    NOT NULL,
+    is_read     BOOLEAN   NOT NULL DEFAULT FALSE,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP NULL,
+
+    CONSTRAINT fk_proposal_member_proposal_id FOREIGN KEY (proposal_id) REFERENCES proposal (id),
+    INDEX idx_proposal_member_id (proposal_id, member_id),
+    INDEX idx_deleted_at (deleted_at)
+);
+
+CREATE TABLE IF NOT EXISTS purpose
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type       VARCHAR(50)  NOT NULL,
+    tag        VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP    NULL,
+
+    INDEX idx_type (type),
     INDEX idx_deleted_at (deleted_at)
 );
 

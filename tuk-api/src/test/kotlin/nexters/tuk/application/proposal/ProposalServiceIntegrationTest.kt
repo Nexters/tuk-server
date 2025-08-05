@@ -1,7 +1,7 @@
 package nexters.tuk.application.proposal
 
 import nexters.tuk.application.proposal.dto.request.ProposalCommand
-import nexters.tuk.application.proposal.vo.ProposalPurpose
+import nexters.tuk.application.proposal.vo.ProposalPurposeInfo
 import nexters.tuk.domain.gathering.GatheringMemberRepository
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.member.MemberRepository
@@ -44,10 +44,10 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val command = ProposalCommand.Propose(
             memberId = host.id,
             gatheringId = gathering.id,
-            purpose = ProposalPurpose(
-                where = "카페",
-                time = "오후 3시",
-                what = "커피 모임"
+            purpose = ProposalPurposeInfo(
+                whereTag = "카페",
+                whenTag = "오후 3시",
+                whatTag = "커피 모임"
             )
         )
 
