@@ -1,6 +1,12 @@
 package nexters.tuk.infrastructure.fcm
 
-import com.google.firebase.messaging.*
+import com.google.firebase.messaging.BatchResponse
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.FirebaseMessagingException
+import com.google.firebase.messaging.Message
+import com.google.firebase.messaging.MessagingErrorCode
+import com.google.firebase.messaging.MulticastMessage
+import com.google.firebase.messaging.Notification
 import nexters.tuk.application.push.DeviceToken
 import nexters.tuk.application.push.PushSender
 import nexters.tuk.application.push.dto.request.PushCommand
@@ -35,20 +41,6 @@ class FcmPushSender : PushSender {
             0 -> throw BaseException(ErrorType.BAD_REQUEST, "No valid device tokens found")
             else -> sendWithRetry(deviceTokens = deviceTokens, message = message)
         }
-    }
-
-    private fun singlePush(
-        deviceToken: DeviceToken,
-        message: PushCommand.MessagePayload,
-    ): PushResponse.Push {
-        return sendWithRetry(listOf(deviceToken), message)
-    }
-
-    private fun multicastPush(
-        deviceTokens: List<DeviceToken>,
-        message: PushCommand.MessagePayload,
-    ): PushResponse.Push {
-        return sendWithRetry(deviceTokens, message)
     }
 
     private fun sendWithRetry(
@@ -150,18 +142,6 @@ class FcmPushSender : PushSender {
 
             val failedTokens = extractFailedTokens(response, chunk)
 
-            // 만료된 토큰 로깅
-            response.responses.forEachIndexed { index, sendResponse ->
-                if (!sendResponse.isSuccessful) {
-                    val error = sendResponse.exception
-                    val token = failedTokens[index]
-
-                    if (error?.messagingErrorCode == MessagingErrorCode.UNREGISTERED) {
-                        logger.info("unregistered token: $token")
-                    }
-                }
-            }
-
             ChunkResult(
                 successCount = response.successCount,
                 failedTokens = failedTokens
@@ -191,11 +171,7 @@ class FcmPushSender : PushSender {
                 }
 
                 logger.error(
-                    "Token failed: ${tokens[index]}, error: ${error?.message}, retryable: ${
-                        isRetryableError(
-                            error
-                        )
-                    }"
+                    "Token failed: ${tokens[index]}, error: ${error?.message}, retryable: ${isRetryableError(error)}"
                 )
             }
         }

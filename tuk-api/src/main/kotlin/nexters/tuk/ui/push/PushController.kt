@@ -2,7 +2,6 @@ package nexters.tuk.ui.push
 
 import nexters.tuk.application.push.PushService
 import nexters.tuk.application.push.dto.request.PushCommand
-import nexters.tuk.application.push.dto.response.PushResponse
 import nexters.tuk.contract.ApiResponse
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -18,8 +17,8 @@ class PushController(
     @PostMapping("/send")
     override fun sendPush(
         @RequestBody request: PushCommand.Push,
-    ): ApiResponse<PushResponse.Push> {
-         pushService.sendPush(request)
+    ): ApiResponse<Any?> {
+        pushService.sendPush(request)
         return ApiResponse.ok()
     }
 }

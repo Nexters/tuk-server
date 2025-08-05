@@ -5,11 +5,12 @@ import io.swagger.v3.oas.annotations.media.Schema
 class GatheringMemberResponse {
     @Schema(name = "JoinGatheringResponse")
     data class JoinGathering(
-        val id: Long
+        val id: Long,
     )
 
     data class MemberGatherings(
         val id: Long,
         val name: String,
+        val pushIntervalDays: Int,
     )
 }

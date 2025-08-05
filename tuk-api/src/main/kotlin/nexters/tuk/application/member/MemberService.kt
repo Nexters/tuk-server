@@ -66,4 +66,19 @@ class MemberService(
             name = member.name,
         )
     }
+
+    @Transactional(readOnly = true)
+    fun getMembers(memberIds: List<Long>): List<MemberResponse.Overview> {
+        if (memberIds.isEmpty()) return emptyList()
+
+        val members = memberRepository.findAllById(memberIds).toList()
+        if (members.isEmpty()) return emptyList()
+
+        return members.mapNotNull { member ->
+            MemberResponse.Overview(
+                memberId = member.id,
+                memberName = member.name ?: return@mapNotNull null,
+            )
+        }
+    }
 }
