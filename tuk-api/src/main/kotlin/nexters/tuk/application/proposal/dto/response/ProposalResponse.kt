@@ -2,6 +2,7 @@ package nexters.tuk.application.proposal.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
 import nexters.tuk.application.gathering.vo.RelativeTime
+import nexters.tuk.application.proposal.dto.response.ProposalResponse.MemberProposals.ProposalOverview
 
 class ProposalResponse {
     data class ProposalStat(
@@ -30,4 +31,11 @@ class ProposalResponse {
             val relativeTime: RelativeTime,
         )
     }
+
+    data class GatheringProposals(
+        val hasNext: Boolean,
+        val size: Long,
+        val pageNumber: Long,
+        val proposalOverviews: List<ProposalOverview>
+    )
 }

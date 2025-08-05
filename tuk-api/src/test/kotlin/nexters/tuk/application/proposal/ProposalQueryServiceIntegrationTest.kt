@@ -422,4 +422,293 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.proposalOverviews[0].proposalId).isEqualTo(proposal.id)
         assertThat(result.proposalOverviews[0].relativeTime).isNotNull()
     }
+
+    @Test
+    fun `특정 모임에서 보낸 제안들을 정상적으로 조회한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
+        val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "제안 테스트 모임")
+
+        // 모임 멤버 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
+
+        // member1이 보낸 제안 2개
+        val proposal1 = proposalRepository.save(Proposal.publish(gathering.id, member1.id, "member1의 첫 번째 제안"))
+        val proposal2 = proposalRepository.save(Proposal.publish(gathering.id, member1.id, "member1의 두 번째 제안"))
+
+        // host가 보낸 제안 1개 (이건 조회되지 않아야 함)
+        val proposal3 = proposalRepository.save(Proposal.publish(gathering.id, host.id, "host의 제안"))
+
+        // 제안 멤버 생성
+        proposalMemberRepository.save(ProposalMember.publish(proposal1, member1.id))
+        proposalMemberRepository.save(ProposalMember.publish(proposal2, member1.id))
+        proposalMemberRepository.save(ProposalMember.publish(proposal3, member1.id))
+
+        val query = ProposalQuery.GatheringProposals(
+            memberId = member1.id,
+            gatheringId = gathering.id,
+            type = ProposalDirection.SENT,
+            pageSize = 10,
+            pageNumber = 0
+        )
+
+        // when
+        val result = proposalQueryService.getGatheringProposals(query)
+
+        // then
+        assertThat(result.hasNext).isFalse()
+        assertThat(result.size).isEqualTo(10)
+        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.proposalOverviews).hasSize(2) // member1이 보낸 제안만 2개
+
+        val purposes = result.proposalOverviews.map { it.purpose }
+        assertThat(purposes).containsExactlyInAnyOrder("member1의 첫 번째 제안", "member1의 두 번째 제안")
+    }
+
+    @Test
+    fun `특정 모임에서 받은 제안들을 정상적으로 조회한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
+        val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "제안 테스트 모임")
+
+        // 모임 멤버 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
+
+        // 다른 사람들이 보낸 제안들
+        val proposal1 = proposalRepository.save(Proposal.publish(gathering.id, host.id, "host의 제안"))
+        val proposal2 = proposalRepository.save(Proposal.publish(gathering.id, member2.id, "member2의 제안"))
+
+        // member1이 보낸 제안 (이건 조회되지 않아야 함)
+        val proposal3 = proposalRepository.save(Proposal.publish(gathering.id, member1.id, "member1의 제안"))
+
+        // 제안 멤버 생성
+        proposalMemberRepository.save(ProposalMember.publish(proposal1, member1.id))
+        proposalMemberRepository.save(ProposalMember.publish(proposal2, member1.id))
+        proposalMemberRepository.save(ProposalMember.publish(proposal3, member1.id))
+
+        val query = ProposalQuery.GatheringProposals(
+            memberId = member1.id,
+            gatheringId = gathering.id,
+            type = ProposalDirection.RECEIVED,
+            pageSize = 10,
+            pageNumber = 0
+        )
+
+        // when
+        val result = proposalQueryService.getGatheringProposals(query)
+
+        // then
+        assertThat(result.hasNext).isFalse()
+        assertThat(result.size).isEqualTo(10)
+        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.proposalOverviews).hasSize(2) // member1이 받은 제안만 2개
+
+        val purposes = result.proposalOverviews.map { it.purpose }
+        assertThat(purposes).containsExactlyInAnyOrder("host의 제안", "member2의 제안")
+    }
+
+    @Test
+    fun `모임 제안이 없는 경우 빈 목록을 반환한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "빈 모임")
+
+        // 모임 멤버 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        val query = ProposalQuery.GatheringProposals(
+            memberId = member.id,
+            gatheringId = gathering.id,
+            type = ProposalDirection.SENT,
+            pageSize = 10,
+            pageNumber = 0
+        )
+
+        // when
+        val result = proposalQueryService.getGatheringProposals(query)
+
+        // then
+        assertThat(result.hasNext).isFalse()
+        assertThat(result.size).isEqualTo(10)
+        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.proposalOverviews).isEmpty()
+    }
+
+    @Test
+    fun `모임 제안 페이징이 올바르게 동작한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "페이징 테스트 모임")
+
+        // 모임 멤버 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        // member가 보낸 제안 15개 생성
+        val proposals = (1..15).map { index ->
+            proposalRepository.save(Proposal.publish(gathering.id, member.id, "제안 $index"))
+        }
+
+        proposals.forEach { proposal ->
+            proposalMemberRepository.save(ProposalMember.publish(proposal, member.id))
+        }
+
+        // when
+        val firstPageResult = proposalQueryService.getGatheringProposals(
+            ProposalQuery.GatheringProposals(
+                memberId = member.id,
+                gatheringId = gathering.id,
+                type = ProposalDirection.SENT,
+                pageSize = 10,
+                pageNumber = 0
+            )
+        )
+
+        val secondPageResult = proposalQueryService.getGatheringProposals(
+            ProposalQuery.GatheringProposals(
+                memberId = member.id,
+                gatheringId = gathering.id,
+                type = ProposalDirection.SENT,
+                pageSize = 10,
+                pageNumber = 1
+            )
+        )
+
+        // then
+        assertThat(firstPageResult.hasNext).isTrue() // 15개 > 10개이므로 다음 페이지 존재
+        assertThat(firstPageResult.size).isEqualTo(10)
+        assertThat(firstPageResult.pageNumber).isEqualTo(0)
+        assertThat(firstPageResult.proposalOverviews).hasSize(10)
+
+        assertThat(secondPageResult.hasNext).isFalse() // 5개 < 10개이므로 다음 페이지 없음
+        assertThat(secondPageResult.size).isEqualTo(10)
+        assertThat(secondPageResult.pageNumber).isEqualTo(1)
+        assertThat(secondPageResult.proposalOverviews).hasSize(5)
+    }
+
+    @Test
+    fun `다른 모임의 제안은 조회되지 않는다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+
+        val gathering1 = gatheringFixture.createGathering(host, "첫 번째 모임")
+        val gathering2 = gatheringFixture.createGathering(host, "두 번째 모임")
+
+        // 모임 멤버 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering1, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering1, member.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering2, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering2, member.id))
+
+        // 각 모임에 제안 생성
+        val proposal1 = proposalRepository.save(Proposal.publish(gathering1.id, member.id, "첫 번째 모임 제안"))
+        val proposal2 = proposalRepository.save(Proposal.publish(gathering2.id, member.id, "두 번째 모임 제안"))
+
+        // 제안 멤버 생성
+        proposalMemberRepository.save(ProposalMember.publish(proposal1, member.id))
+        proposalMemberRepository.save(ProposalMember.publish(proposal2, member.id))
+
+        // gathering1에 대한 조회
+        val query = ProposalQuery.GatheringProposals(
+            memberId = member.id,
+            gatheringId = gathering1.id,
+            type = ProposalDirection.SENT,
+            pageSize = 10,
+            pageNumber = 0
+        )
+
+        // when
+        val result = proposalQueryService.getGatheringProposals(query)
+
+        // then
+        assertThat(result.proposalOverviews).hasSize(1) // gathering1의 제안만 조회
+        assertThat(result.proposalOverviews[0].purpose).isEqualTo("첫 번째 모임 제안")
+        assertThat(result.proposalOverviews[0].gatheringName).isEqualTo("첫 번째 모임")
+    }
+
+    @Test
+    fun `삭제된 제안은 모임 제안 조회에서 제외된다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "삭제 테스트 모임")
+
+        // 모임 멤버 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        // 제안 생성
+        val proposal1 = proposalRepository.save(Proposal.publish(gathering.id, member.id, "활성 제안"))
+        val proposal2 = proposalRepository.save(Proposal.publish(gathering.id, member.id, "삭제될 제안"))
+
+        // 제안 멤버 생성
+        proposalMemberRepository.save(ProposalMember.publish(proposal1, member.id))
+        val proposalMember2 = proposalMemberRepository.save(ProposalMember.publish(proposal2, member.id))
+
+        proposalMember2.delete()
+        proposalMemberRepository.save(proposalMember2)
+        proposal2.delete()
+        proposalRepository.save(proposal2)
+
+        val query = ProposalQuery.GatheringProposals(
+            memberId = member.id,
+            gatheringId = gathering.id,
+            type = ProposalDirection.SENT,
+            pageSize = 10,
+            pageNumber = 0
+        )
+
+        // when
+        val result = proposalQueryService.getGatheringProposals(query)
+
+        // then
+        assertThat(result.proposalOverviews).hasSize(1) // 삭제되지 않은 제안만 조회
+        assertThat(result.proposalOverviews[0].purpose).isEqualTo("활성 제안")
+    }
+
+    @Test
+    fun `혼자만 있는 모임에서도 제안 조회가 가능하다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val gathering = gatheringFixture.createGathering(host, "혼자 모임")
+
+        // 호스트만 모임에 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+
+        // host가 보낸 제안 생성
+        val proposal = proposalRepository.save(Proposal.publish(gathering.id, host.id, "혼자 제안"))
+        proposalMemberRepository.save(ProposalMember.publish(proposal, host.id))
+
+        val query = ProposalQuery.GatheringProposals(
+            memberId = host.id,
+            gatheringId = gathering.id,
+            type = ProposalDirection.SENT,
+            pageSize = 10,
+            pageNumber = 0
+        )
+
+        // when
+        val result = proposalQueryService.getGatheringProposals(query)
+
+        // then
+        assertThat(result.proposalOverviews).hasSize(1)
+        assertThat(result.proposalOverviews[0].purpose).isEqualTo("혼자 제안")
+    }
 }

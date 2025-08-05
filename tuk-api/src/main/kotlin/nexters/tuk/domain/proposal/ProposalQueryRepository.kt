@@ -1,5 +1,7 @@
 package nexters.tuk.domain.proposal
 
+import nexters.tuk.application.proposal.ProposalDirection
+
 
 interface ProposalQueryRepository {
     fun findMemberProposals(
@@ -9,4 +11,12 @@ interface ProposalQueryRepository {
     ): List<ProposalQueryModel.ProposalDetail>
 
     fun countUnreadMemberProposal(memberId: Long): Long
+
+    fun findGatheringProposals(
+        memberId: Long,
+        gatheringId: Long,
+        type: ProposalDirection,
+        pageSize: Long,
+        pageNumber: Long
+    ): List<ProposalQueryModel.ProposalDetail>
 }

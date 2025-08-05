@@ -1,7 +1,9 @@
 package nexters.tuk.infrastructure.proposal
 
 import com.querydsl.core.types.Projections
+import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
+import nexters.tuk.application.proposal.ProposalDirection
 import nexters.tuk.domain.gathering.QGathering
 import nexters.tuk.domain.proposal.ProposalQueryModel
 import nexters.tuk.domain.proposal.ProposalQueryRepository
@@ -31,7 +33,7 @@ class ProposalQueryRepositoryImpl(
                     qGathering.name,
                     qProposal.purpose,
                     qProposalMember.isRead,
-                    qProposal.createdAt,
+                    qProposalMember.createdAt,
                 )
             )
             .distinct()
@@ -41,7 +43,7 @@ class ProposalQueryRepositoryImpl(
             .where(qProposalMember.memberId.eq(memberId))
             .orderBy(
                 qProposalMember.isRead.asc(),
-                qProposal.createdAt.desc()
+                qProposalMember.createdAt.desc()
             )
             .offset(pageSize * pageNumber)
             .limit(pageSize + 1L)
@@ -59,5 +61,53 @@ class ProposalQueryRepositoryImpl(
             .where(qProposalMember.memberId.eq(memberId))
             .where(qProposalMember.isRead.isFalse)
             .fetchOne() ?: 0L
+    }
+
+    override fun findGatheringProposals(
+        memberId: Long,
+        gatheringId: Long,
+        type: ProposalDirection,
+        pageSize: Long,
+        pageNumber: Long
+    ): List<ProposalQueryModel.ProposalDetail> {
+        val qGathering = QGathering.gathering
+        val qProposal = QProposal.proposal
+        val qProposalMember = QProposalMember.proposalMember
+
+        val directionCondition: BooleanExpression = when (type) {
+            ProposalDirection.SENT -> qProposal.proposerId.eq(memberId)
+            ProposalDirection.RECEIVED -> qProposal.proposerId.ne(memberId)
+        }
+
+        return jpaQueryFactory
+            .select(
+                Projections.constructor(
+                    ProposalQueryModel.ProposalDetail::class.java,
+                    qProposal.id,
+                    qGathering.name,
+                    qProposal.purpose,
+                    qProposalMember.isRead,
+                    qProposalMember.createdAt,
+                )
+            )
+            .distinct()
+            .from(qProposal)
+            .join(qGathering).on(qProposal.gatheringId.eq(qGathering.id))
+            .join(qProposalMember)
+            .on(
+                qProposalMember.proposal.id.eq(qProposal.id),
+                qProposalMember.memberId.eq(memberId)
+            )
+            .where(
+                qProposal.gatheringId.eq(gatheringId),
+                directionCondition,
+            )
+            .orderBy(
+                qProposalMember.isRead.asc(),
+                qProposalMember.createdAt.desc()
+            )
+            .offset(pageSize * pageNumber)
+            .limit(pageSize + 1)
+            .fetch()
     }
 }
