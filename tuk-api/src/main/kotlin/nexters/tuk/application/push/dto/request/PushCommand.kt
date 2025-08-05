@@ -3,7 +3,7 @@ package nexters.tuk.application.push.dto.request
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.Schema
-import nexters.tuk.application.push.PushType
+import nexters.tuk.contract.push.PushType
 
 class PushCommand {
     @JsonTypeInfo(
