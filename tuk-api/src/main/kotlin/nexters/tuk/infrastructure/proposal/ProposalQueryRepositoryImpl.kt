@@ -58,7 +58,6 @@ class ProposalQueryRepositoryImpl(
             .from(qProposalMember)
             .where(qProposalMember.memberId.eq(memberId))
             .where(qProposalMember.isRead.isFalse)
-            .where(qProposalMember.deletedAt.isNull)
             .fetchOne() ?: 0L
     }
 }

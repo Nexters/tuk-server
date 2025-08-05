@@ -44,4 +44,11 @@ interface GatheringSpec {
         @Parameter(hidden = true) memberId: Long,
         @Parameter(description = "모임 id") gatheringId: Long,
     ): ApiResponse<GatheringMemberResponse.JoinGathering>
+
+    @Operation(
+        summary = "모임명 조회",
+    )
+    fun getGatheringName(
+        gatheringId: Long
+    ): ApiResponse<GatheringResponse.GatheringName>
 }

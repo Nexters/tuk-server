@@ -49,4 +49,9 @@ class GatheringResponse {
             val memberName: String,
         )
     }
+
+    data class GatheringName(
+        val gatheringId: Long,
+        val gatheringName: String
+    )
 }

@@ -3,6 +3,7 @@ package nexters.tuk.ui.gathering
 import nexters.tuk.application.gathering.GatheringGenerateService
 import nexters.tuk.application.gathering.GatheringMemberService
 import nexters.tuk.application.gathering.GatheringQueryService
+import nexters.tuk.application.gathering.GatheringService
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringMemberResponse
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.*
 class GatheringController(
     private val gatheringGenerateService: GatheringGenerateService,
     private val gatheringQueryService: GatheringQueryService,
-    private val gatheringMemberService: GatheringMemberService
+    private val gatheringMemberService: GatheringMemberService,
+    private val gatheringService: GatheringService,
 ) : GatheringSpec {
 
     @PostMapping
@@ -59,6 +61,16 @@ class GatheringController(
     ): ApiResponse<GatheringMemberResponse.JoinGathering> {
 
         val response = gatheringMemberService.joinGathering(gatheringId, memberId)
+
+        return ApiResponse.ok(response)
+    }
+
+    @GetMapping("/{gatheringId}/name")
+    override fun getGatheringName(
+        @PathVariable("gatheringId") gatheringId: Long
+    ): ApiResponse<GatheringResponse.GatheringName> {
+
+        val response = gatheringService.getGatheringName(gatheringId)
 
         return ApiResponse.ok(response)
     }
