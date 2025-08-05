@@ -118,9 +118,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
 
         // 제안 생성 (보낸 제안 2개, 받은 제안 1개)
-        proposalRepository.save(Proposal.publish(gathering, host.id, "모임 제안"))
-        proposalRepository.save(Proposal.publish(gathering, host.id, "모임 제안"))
-        proposalRepository.save(Proposal.publish(gathering, member1.id, "모임 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "모임 제안"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -228,9 +228,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
 
         // 다양한 상태의 제안 생성
-        proposalRepository.save(Proposal.publish(gathering, host.id, "첫번째 제안"))
-        proposalRepository.save(Proposal.publish(gathering, host.id, "두번째 제안"))
-        proposalRepository.save(Proposal.publish(gathering, member1.id, "역제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "첫번째 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, host.id, "두번째 제안"))
+        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "역제안"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -239,7 +239,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
-        assertThat(result.sentProposalCount).isEqualTo(2) // 상태와 관계없이 보낸 제안 수
+        assertThat(result.sentProposalCount).isEqualTo(2) // 상태와 관계없이 보낸 초대장 수
         assertThat(result.receivedProposalCount).isEqualTo(1)
         assertThat(result.members).hasSize(2)
     }

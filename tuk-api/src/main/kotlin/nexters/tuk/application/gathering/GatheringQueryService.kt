@@ -48,8 +48,8 @@ class GatheringQueryService(
             gatheringId = gatheringDetail.id,
             gatheringName = gatheringDetail.name,
             lastNotificationRelativeTime = RelativeTime.fromDays(0),
-            sentInvitationCount = proposalStat.sentCount,
-            receivedInvitationCount = proposalStat.receivedCount,
+            sentProposalCount = proposalStat.sentCount,
+            receivedProposalCount = proposalStat.receivedCount,
             members = members
         )
     }
