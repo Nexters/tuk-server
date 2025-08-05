@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/purposes")
 class PurposeController(
     private val purposeService: PurposeService,
-) {
+) : PurposeSpec {
     @GetMapping
-    fun getAllPurposes(): ApiResponse<PurposeResponse.Purposes> {
+    override fun getAllPurposes(): ApiResponse<PurposeResponse.Purposes> {
         val response = purposeService.getAllPurposes()
 
         return ApiResponse.ok(response)
