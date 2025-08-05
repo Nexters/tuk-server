@@ -1,5 +1,6 @@
 plugins {
     id("com.google.cloud.tools.jib")
+    kotlin("kapt")
 }
 
 jib {
@@ -55,6 +56,13 @@ dependencies {
 
     // firebase
     implementation("com.google.firebase:firebase-admin:${properties["firebaseVersion"]}")
+
+    // queryDsl
+    implementation("com.querydsl:querydsl-core:${properties["queryDslVersion"]}")
+    implementation("com.querydsl:querydsl-jpa:${properties["queryDslVersion"]}:jakarta")
+    kapt("com.querydsl:querydsl-apt:${properties["queryDslVersion"]}:jakarta")
+    kapt("jakarta.annotation:jakarta.annotation-api")
+    kapt("jakarta.persistence:jakarta.persistence-api")
 
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
