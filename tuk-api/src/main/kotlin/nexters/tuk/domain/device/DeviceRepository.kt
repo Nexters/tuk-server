@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface DeviceRepository : JpaRepository<Device, Long> {
     fun findByDeviceIdAndMemberId(deviceId: String, memberId: Long): Device?
-    fun findByDeviceToken(deviceToken: String): Device?
+    fun findByMemberIdIn(memberIds: List<Long>): List<Device>
 }

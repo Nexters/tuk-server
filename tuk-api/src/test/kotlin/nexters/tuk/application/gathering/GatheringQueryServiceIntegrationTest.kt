@@ -117,10 +117,10 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
 
-        // 초대장 생성 (보낸 초대장 2개, 받은 초대장 1개)
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "모임 제안"))
+        // 제안 생성 (보낸 제안 2개, 받은 제안 1개)
+        proposalRepository.save(Proposal.publish(gathering, host.id, "모임 제안"))
+        proposalRepository.save(Proposal.publish(gathering, host.id, "모임 제안"))
+        proposalRepository.save(Proposal.publish(gathering, member1.id, "모임 제안"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -131,8 +131,8 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.gatheringId).isEqualTo(gathering.id)
         assertThat(result.gatheringName).isEqualTo("테스트 모임")
         assertThat(result.lastNotificationRelativeTime.value).isEqualTo("오늘") // 현재는 하드코딩
-        assertThat(result.sentInvitationCount).isEqualTo(2)
-        assertThat(result.receivedInvitationCount).isEqualTo(1)
+        assertThat(result.sentProposalCount).isEqualTo(2)
+        assertThat(result.receivedProposalCount).isEqualTo(1)
         assertThat(result.members).hasSize(3)
         
         val memberNames = result.members.map { it.memberName }
@@ -171,12 +171,12 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    fun `초대장이 없는 모임의 상세 정보를 조회한다`() {
+    fun `제안이 없는 모임의 상세 정보를 조회한다`() {
         // given
         val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
         val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
 
-        val gathering = gatheringFixture.createGathering(host, "초대장 없는 모임")
+        val gathering = gatheringFixture.createGathering(host, "제안 없는 모임")
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
 
@@ -187,9 +187,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
-        assertThat(result.gatheringName).isEqualTo("초대장 없는 모임")
-        assertThat(result.sentInvitationCount).isEqualTo(0)
-        assertThat(result.receivedInvitationCount).isEqualTo(0)
+        assertThat(result.gatheringName).isEqualTo("제안 없는 모임")
+        assertThat(result.sentProposalCount).isEqualTo(0)
+        assertThat(result.receivedProposalCount).isEqualTo(0)
         assertThat(result.members).hasSize(2)
     }
 
@@ -209,28 +209,28 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
         assertThat(result.gatheringName).isEqualTo("혼자 모임")
-        assertThat(result.sentInvitationCount).isEqualTo(0)
-        assertThat(result.receivedInvitationCount).isEqualTo(0)
+        assertThat(result.sentProposalCount).isEqualTo(0)
+        assertThat(result.receivedProposalCount).isEqualTo(0)
         assertThat(result.members).hasSize(1)
         assertThat(result.members.first().memberName).isEqualTo("테스트사용자")
         assertThat(result.members.first().memberId).isEqualTo(host.id)
     }
 
     @Test
-    fun `다양한 상태의 초대장이 있는 모임의 상세 정보를 조회한다`() {
+    fun `다양한 상태의 제안이 있는 모임의 상세 정보를 조회한다`() {
         // given
         val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
         val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
         val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
 
-        val gathering = gatheringFixture.createGathering(host, "다양한 초대장 모임")
+        val gathering = gatheringFixture.createGathering(host, "다양한 제안 모임")
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
 
-        // 다양한 상태의 초대장 생성
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "첫번째 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "두번째 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "역제안"))
+        // 다양한 상태의 제안 생성
+        proposalRepository.save(Proposal.publish(gathering, host.id, "첫번째 제안"))
+        proposalRepository.save(Proposal.publish(gathering, host.id, "두번째 제안"))
+        proposalRepository.save(Proposal.publish(gathering, member1.id, "역제안"))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -239,8 +239,8 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
-        assertThat(result.sentInvitationCount).isEqualTo(2) // 상태와 관계없이 보낸 초대장 수
-        assertThat(result.receivedInvitationCount).isEqualTo(1)
+        assertThat(result.sentProposalCount).isEqualTo(2) // 상태와 관계없이 보낸 제안 수
+        assertThat(result.receivedProposalCount).isEqualTo(1)
         assertThat(result.members).hasSize(2)
     }
 

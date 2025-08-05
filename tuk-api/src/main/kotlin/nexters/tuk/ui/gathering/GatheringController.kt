@@ -1,5 +1,6 @@
 package nexters.tuk.ui.gathering
 
+import nexters.tuk.application.gathering.GatheringCommandService
 import nexters.tuk.application.gathering.GatheringGenerateService
 import nexters.tuk.application.gathering.GatheringMemberService
 import nexters.tuk.application.gathering.GatheringQueryService
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("api/v1/gatherings")
 class GatheringController(
+    private val gatheringCommandService: GatheringCommandService,
     private val gatheringGenerateService: GatheringGenerateService,
     private val gatheringQueryService: GatheringQueryService,
     private val gatheringMemberService: GatheringMemberService,
@@ -23,12 +25,21 @@ class GatheringController(
     @PostMapping
     override fun generateGathering(
         @Authenticated memberId: Long,
-        @RequestBody request: GatheringDto.Request.Generate
+        @RequestBody request: GatheringDto.Request.Generate,
     ): ApiResponse<GatheringResponse.Generate> {
 
         val response = gatheringGenerateService.generateGathering(request.toCommand(memberId))
 
         return ApiResponse.ok(response)
+    }
+
+    @PatchMapping("/{gatheringId}")
+    override fun updateGathering(
+        @Authenticated memberId: Long,
+        @PathVariable gatheringId: Long,
+        @RequestBody request: GatheringDto.Request.Update,
+    ) {
+        gatheringCommandService.updateGathering(request.toCommand(gatheringId))
     }
 
     @GetMapping
@@ -45,7 +56,7 @@ class GatheringController(
     @GetMapping("/{gatheringId}/members")
     override fun getGatheringDetail(
         @Authenticated memberId: Long,
-        @PathVariable("gatheringId") gatheringId: Long
+        @PathVariable("gatheringId") gatheringId: Long,
     ): ApiResponse<GatheringResponse.GatheringDetail> {
 
         val query = GatheringQuery.GatheringDetail(memberId, gatheringId)
@@ -57,7 +68,7 @@ class GatheringController(
     @PostMapping("/{gatheringId}/members")
     override fun joinGathering(
         @Authenticated memberId: Long,
-        @PathVariable("gatheringId") gatheringId: Long
+        @PathVariable("gatheringId") gatheringId: Long,
     ): ApiResponse<GatheringMemberResponse.JoinGathering> {
 
         val response = gatheringMemberService.joinGathering(gatheringId, memberId)

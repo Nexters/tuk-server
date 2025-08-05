@@ -16,8 +16,18 @@ interface GatheringSpec {
     )
     fun generateGathering(
         @Parameter(hidden = true) memberId: Long,
-        request: GatheringDto.Request.Generate
+        request: GatheringDto.Request.Generate,
     ): ApiResponse<GatheringResponse.Generate>
+
+    @Operation(
+        summary = "모임 수정",
+        security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
+    )
+    fun updateGathering(
+        @Parameter(hidden = true) memberId: Long,
+        gatheringId: Long,
+        request: GatheringDto.Request.Update,
+    )
 
     @Operation(
         summary = "사용자 모임 조회",

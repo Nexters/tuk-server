@@ -23,6 +23,20 @@ services:
       - redis
     networks:
       - tuk-network
+  batch:
+    container_name: tuk-batch
+    image: ${NCP_CONTAINER_REGISTRY_API}/tuk-batch:${IMAGE_TAG}
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_USERNAME: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+    depends_on:
+      - mysql
+    networks:
+      - tuk-network
   mysql:
     image: mysql:8.0.39
     container_name: tuk-mysql
@@ -36,7 +50,6 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci

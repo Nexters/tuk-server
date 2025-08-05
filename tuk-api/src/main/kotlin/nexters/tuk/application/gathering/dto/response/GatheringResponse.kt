@@ -35,10 +35,10 @@ class GatheringResponse {
         val gatheringName: String,
         @Schema(description = "상대 시간 타입 - \"오늘\", \"n일 전\", \"n주 전\", \"n개월 전\", \"n년 전\" ")
         val lastNotificationRelativeTime: RelativeTime,
-        @Schema(description = "보낸 초대장 수")
-        val sentInvitationCount: Int,
-        @Schema(description = "받은 초대장 수")
-        val receivedInvitationCount: Int,
+        @Schema(description = "보낸 제안 수")
+        val sentProposalCount: Int,
+        @Schema(description = "받은 제안 수")
+        val receivedProposalCount: Int,
         @Schema(description = "모임원")
         val members: List<MemberOverview>
     ) {

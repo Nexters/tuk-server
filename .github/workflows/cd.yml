@@ -38,6 +38,16 @@ jobs:
           JIB_TO_AUTH_USERNAME: ${{ secrets.NCP_ACCESS_KEY }}
           JIB_TO_AUTH_PASSWORD: ${{ secrets.NCP_SECRET_KEY }}
 
+      - name: Build and Push with Jib (BATCH)
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        with:
+          arguments: clean :tuk-batch:jib -Djib.to.image=${{ secrets.NCP_CONTAINER_REGISTRY_API }}/tuk-batch -Djib.to.tags=${{ github.sha }} -Djib.to.auth.username=${{ secrets.NCP_ACCESS_KEY }} -Djib.to.auth.password=${{ secrets.NCP_SECRET_KEY }}
+        env:
+          JIB_TO_IMAGE: ${{ secrets.NCP_CONTAINER_REGISTRY_API }}/tuk-batch
+          JIB_TO_TAGS: ${{ github.sha }}
+          JIB_TO_AUTH_USERNAME: ${{ secrets.NCP_ACCESS_KEY }}
+          JIB_TO_AUTH_PASSWORD: ${{ secrets.NCP_SECRET_KEY }}
+
       - name: Create directory and copy docker files to server
         run: |
           sshpass -p ${{ secrets.API_SERVER_PASSWORD }} ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }} "mkdir -p ${{ secrets.DOCKER_COMPOSE_PATH }}"
