@@ -30,11 +30,11 @@ class GatheringProposalController(
         return ApiResponse.ok(response)
     }
 
-    @GetMapping
+    @GetMapping("/{type}")
     override fun getGatheringProposals(
         @Authenticated memberId: Long,
-        @PathVariable gatheringId: Long,
-        @RequestParam type: ProposalDirection,
+        @PathVariable("gatheringId") gatheringId: Long,
+        @PathVariable("type") type: ProposalDirection,
         @ModelAttribute page: SliceRequest
     ): ApiResponse<SliceResponse<ProposalResponse.ProposalOverview>> {
         val response = proposalQueryService.getGatheringProposals(

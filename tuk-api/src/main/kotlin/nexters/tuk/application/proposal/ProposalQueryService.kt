@@ -3,6 +3,8 @@ package nexters.tuk.application.proposal
 import nexters.tuk.application.gathering.vo.RelativeTime
 import nexters.tuk.application.proposal.dto.request.ProposalQuery
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
+import nexters.tuk.contract.BaseException
+import nexters.tuk.contract.ErrorType
 import nexters.tuk.contract.SliceDto.SliceResponse
 import nexters.tuk.domain.proposal.ProposalQueryRepository
 import org.springframework.stereotype.Service
@@ -55,5 +57,20 @@ class ProposalQueryService(
         }
 
         return SliceResponse.from(proposalOverviews, query.page)
+    }
+
+    @Transactional(readOnly = true)
+    fun getProposal(proposalId: Long): ProposalResponse.ProposalDetail {
+        val proposal = proposalQueryRepository.findProposalById(proposalId) ?: throw BaseException(
+            ErrorType.NOT_FOUND, "존재하지 않는 만남 초대장입니다."
+        )
+
+        return ProposalResponse.ProposalDetail(
+            proposalId = proposal.id,
+            gatheringId = proposal.gatheringId,
+            gatheringName = proposal.gatheringName,
+            purpose = proposal.purpose,
+            relativeTime = RelativeTime.from(proposal.createdAt)
+        )
     }
 }

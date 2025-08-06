@@ -1,20 +1,12 @@
 package nexters.tuk.ui.proposal
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
-import nexters.tuk.config.SwaggerConfig
 import nexters.tuk.contract.ApiResponse
-import nexters.tuk.contract.SliceDto.SliceRequest
-import nexters.tuk.contract.SliceDto.SliceResponse
 
 interface ProposalSpec {
     @Operation(
-        summary = "사용자 만남 초대장 전체 조회",
-        security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
+        summary = "[비회원] 만남 초대장 상세 조회",
     )
-    fun getMemberProposals(
-        memberId: Long,
-        request: SliceRequest
-    ): ApiResponse<SliceResponse<ProposalResponse.ProposalOverview>>
+    fun getProposal(proposalId: Long): ApiResponse<ProposalResponse.ProposalDetail>
 }

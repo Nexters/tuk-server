@@ -8,7 +8,7 @@ interface ProposalQueryRepository {
     fun findMemberProposals(
         memberId: Long,
         page: SliceRequest
-    ): List<ProposalQueryModel.ProposalDetail>
+    ): List<ProposalQueryModel.ProposalOverview>
 
     fun countUnreadMemberProposal(memberId: Long): Long
 
@@ -17,5 +17,7 @@ interface ProposalQueryRepository {
         gatheringId: Long,
         type: ProposalDirection,
         page: SliceRequest
-    ): List<ProposalQueryModel.ProposalDetail>
+    ): List<ProposalQueryModel.ProposalOverview>
+
+    fun findProposalById(proposalId: Long): ProposalQueryModel.ProposalDetail?
 }

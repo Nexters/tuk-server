@@ -11,8 +11,10 @@ import nexters.tuk.domain.proposal.ProposalQueryRepository
 import nexters.tuk.domain.proposal.QProposal
 import nexters.tuk.domain.proposal.QProposalMember
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
+@Transactional(readOnly = true)
 class ProposalQueryRepositoryImpl(
     private val jpaQueryFactory: JPAQueryFactory
 ) : ProposalQueryRepository {
@@ -20,7 +22,7 @@ class ProposalQueryRepositoryImpl(
     override fun findMemberProposals(
         memberId: Long,
         page: SliceRequest
-    ): List<ProposalQueryModel.ProposalDetail> {
+    ): List<ProposalQueryModel.ProposalOverview> {
         val qGathering = QGathering.gathering
         val qProposal = QProposal.proposal
         val qProposalMember = QProposalMember.proposalMember
@@ -28,7 +30,7 @@ class ProposalQueryRepositoryImpl(
         val response = jpaQueryFactory
             .select(
                 Projections.constructor(
-                    ProposalQueryModel.ProposalDetail::class.java,
+                    ProposalQueryModel.ProposalOverview::class.java,
                     qProposal.id,
                     qGathering.name,
                     qProposal.purpose,
@@ -70,7 +72,7 @@ class ProposalQueryRepositoryImpl(
         gatheringId: Long,
         type: ProposalDirection,
         page: SliceRequest
-    ): List<ProposalQueryModel.ProposalDetail> {
+    ): List<ProposalQueryModel.ProposalOverview> {
         val qGathering = QGathering.gathering
         val qProposal = QProposal.proposal
         val qProposalMember = QProposalMember.proposalMember
@@ -83,7 +85,7 @@ class ProposalQueryRepositoryImpl(
         return jpaQueryFactory
             .select(
                 Projections.constructor(
-                    ProposalQueryModel.ProposalDetail::class.java,
+                    ProposalQueryModel.ProposalOverview::class.java,
                     qProposal.id,
                     qGathering.name,
                     qProposal.purpose,
@@ -106,5 +108,26 @@ class ProposalQueryRepositoryImpl(
             .offset(page.pageSize * page.pageNumber)
             .limit(page.pageSize + 1)
             .fetch()
+    }
+
+    override fun findProposalById(proposalId: Long): ProposalQueryModel.ProposalDetail? {
+        val qGathering = QGathering.gathering
+        val qProposal = QProposal.proposal
+
+        return jpaQueryFactory.select(
+            Projections.constructor(
+                ProposalQueryModel.ProposalDetail::class.java,
+                qProposal.id,
+                qGathering.id,
+                qGathering.name,
+                qProposal.purpose,
+                qProposal.createdAt
+            )
+        ).from(qProposal)
+            .join(qGathering).on(qGathering.id.eq(qProposal.gatheringId))
+            .where(
+                qProposal.id.eq(proposalId)
+            )
+            .fetchOne()
     }
 }

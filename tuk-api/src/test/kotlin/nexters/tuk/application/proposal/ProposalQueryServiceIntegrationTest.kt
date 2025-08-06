@@ -1,6 +1,7 @@
 package nexters.tuk.application.proposal
 
 import nexters.tuk.application.proposal.dto.request.ProposalQuery
+import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.SliceDto.SliceRequest
 import nexters.tuk.domain.gathering.GatheringMember
 import nexters.tuk.domain.gathering.GatheringMemberRepository
@@ -13,6 +14,7 @@ import nexters.tuk.domain.proposal.ProposalRepository
 import nexters.tuk.fixtures.GatheringFixtureHelper
 import nexters.tuk.fixtures.MemberFixtureHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -347,7 +349,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         proposal2.delete()
 
         // 제안 멤버 생성
-        val proposalMember1 = proposalMemberRepository.save(ProposalMember.publish(proposal1, member.id))
+        proposalMemberRepository.save(ProposalMember.publish(proposal1, member.id))
         val proposalMember2 = proposalMemberRepository.save(ProposalMember.publish(proposal2, member.id))
         proposalMember2.delete()
 
@@ -750,5 +752,196 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.content).hasSize(1)
         assertThat(result.content[0].purpose).isEqualTo("혼자 제안")
+    }
+
+    @Test
+    fun `제안 상세 정보를 정상적으로 조회한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "상세 조회 테스트 모임")
+
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        val proposal = proposalRepository.save(Proposal.publish(gathering.id, host.id, "상세 조회용 제안"))
+        proposalMemberRepository.save(ProposalMember.publish(proposal, member.id))
+
+        // when
+        val result = proposalQueryService.getProposal(proposal.id)
+
+        // then
+        assertThat(result.proposalId).isEqualTo(proposal.id)
+        assertThat(result.gatheringId).isEqualTo(gathering.id)
+        assertThat(result.gatheringName).isEqualTo("상세 조회 테스트 모임")
+        assertThat(result.purpose).isEqualTo("상세 조회용 제안")
+        assertThat(result.relativeTime).isNotNull()
+    }
+
+    @Test
+    fun `존재하지 않는 제안 조회시 예외가 발생한다`() {
+        // given
+        val nonExistentProposalId = 999999L
+
+        // when & then
+        assertThatThrownBy { 
+            proposalQueryService.getProposal(nonExistentProposalId) 
+        }
+            .isInstanceOf(BaseException::class.java)
+            .hasMessage("존재하지 않는 만남 초대장입니다.")
+    }
+
+    @Test
+    fun `삭제된 제안 조회시 예외가 발생한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "삭제 테스트 모임")
+
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        val proposal = proposalRepository.save(Proposal.publish(gathering.id, host.id, "삭제될 제안"))
+        proposalMemberRepository.save(ProposalMember.publish(proposal, member.id))
+        
+        // 제안을 soft delete
+        proposal.delete()
+        proposalRepository.save(proposal)
+
+        // when & then
+        assertThatThrownBy { 
+            proposalQueryService.getProposal(proposal.id) 
+        }
+            .isInstanceOf(BaseException::class.java)
+            .hasMessage("존재하지 않는 만남 초대장입니다.")
+    }
+
+    @Test
+    fun `삭제된 모임의 제안 조회시 예외가 발생한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "삭제될 모임")
+
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        val proposal = proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임이 삭제될 제안"))
+        proposalMemberRepository.save(ProposalMember.publish(proposal, member.id))
+        
+        // 모임을 soft delete
+        gathering.delete()
+        gatheringRepository.save(gathering)
+
+        // when & then
+        assertThatThrownBy { 
+            proposalQueryService.getProposal(proposal.id) 
+        }
+            .isInstanceOf(BaseException::class.java)
+            .hasMessage("존재하지 않는 만남 초대장입니다.")
+    }
+
+    @Test
+    fun `다양한 모임의 제안을 개별적으로 조회할 수 있다`() {
+        // given
+        val host1 = memberFixture.createMember(socialId = "host1", email = "host1@test.com")
+        val host2 = memberFixture.createMember(socialId = "host2", email = "host2@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        
+        val gathering1 = gatheringFixture.createGathering(host1, "첫 번째 모임")
+        val gathering2 = gatheringFixture.createGathering(host2, "두 번째 모임")
+
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering1, host1.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering1, member.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering2, host2.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering2, member.id))
+
+        val proposal1 = proposalRepository.save(Proposal.publish(gathering1.id, host1.id, "첫 번째 모임 제안"))
+        val proposal2 = proposalRepository.save(Proposal.publish(gathering2.id, host2.id, "두 번째 모임 제안"))
+        
+        proposalMemberRepository.save(ProposalMember.publish(proposal1, member.id))
+        proposalMemberRepository.save(ProposalMember.publish(proposal2, member.id))
+
+        // when
+        val result1 = proposalQueryService.getProposal(proposal1.id)
+        val result2 = proposalQueryService.getProposal(proposal2.id)
+
+        // then
+        assertThat(result1.proposalId).isEqualTo(proposal1.id)
+        assertThat(result1.gatheringId).isEqualTo(gathering1.id)
+        assertThat(result1.gatheringName).isEqualTo("첫 번째 모임")
+        assertThat(result1.purpose).isEqualTo("첫 번째 모임 제안")
+
+        assertThat(result2.proposalId).isEqualTo(proposal2.id)
+        assertThat(result2.gatheringId).isEqualTo(gathering2.id)
+        assertThat(result2.gatheringName).isEqualTo("두 번째 모임")
+        assertThat(result2.purpose).isEqualTo("두 번째 모임 제안")
+    }
+
+    @Test
+    fun `특수 문자가 포함된 제안도 정상적으로 조회된다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "🎉 특수문자 모임! @#$%")
+
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        val specialPurpose = "🍕 피자 먹으러 갈래? (맛있는 곳 알아!) 😋"
+        val proposal = proposalRepository.save(Proposal.publish(gathering.id, host.id, specialPurpose))
+        proposalMemberRepository.save(ProposalMember.publish(proposal, member.id))
+
+        // when
+        val result = proposalQueryService.getProposal(proposal.id)
+
+        // then
+        assertThat(result.proposalId).isEqualTo(proposal.id)
+        assertThat(result.gatheringName).isEqualTo("🎉 특수문자 모임! @#$%")
+        assertThat(result.purpose).isEqualTo(specialPurpose)
+    }
+
+    @Test
+    fun `긴 제안 내용도 정상적으로 조회된다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "긴 제안 테스트 모임")
+
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        val longPurpose = "이것은 긴 제안 내용입니다. ".repeat(10) // 적당히 긴 문자열
+        val proposal = proposalRepository.save(Proposal.publish(gathering.id, host.id, longPurpose))
+        proposalMemberRepository.save(ProposalMember.publish(proposal, member.id))
+
+        // when
+        val result = proposalQueryService.getProposal(proposal.id)
+
+        // then
+        assertThat(result.proposalId).isEqualTo(proposal.id)
+        assertThat(result.purpose).isEqualTo(longPurpose)
+        assertThat(result.purpose.length).isGreaterThan(100) // 긴 문자열 확인
+    }
+
+    @Test
+    fun `RelativeTime이 올바르게 계산된다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
+        val gathering = gatheringFixture.createGathering(host, "시간 테스트 모임")
+
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member.id))
+
+        val proposal = proposalRepository.save(Proposal.publish(gathering.id, host.id, "시간 테스트 제안"))
+        proposalMemberRepository.save(ProposalMember.publish(proposal, member.id))
+
+        // when
+        val result = proposalQueryService.getProposal(proposal.id)
+
+        // then
+        assertThat(result.relativeTime).isNotNull()
+        assertThat(result.relativeTime.value).isNotBlank()
     }
 }
