@@ -172,4 +172,23 @@ class MemberServiceIntegrationTest @Autowired constructor(
         assertThat(result[0].memberId).isEqualTo(member.id)
         assertThat(result[0].memberName).isEqualTo("사용자1")
     }
+
+    @Test
+    fun `회원 탈퇴`() {
+        // given
+        val member = memberRepository.save(
+            Member.signUp(
+                MemberFixture.memberSignUpCommand(
+                    socialId = "google-123",
+                    email = "test@example.com"
+                )
+            )
+        )
+
+        // when
+        memberService.deleteMember(memberId = member.id)
+
+        // then
+        assertThat(memberRepository.findById(member.id)).isNull()
+    }
 }
