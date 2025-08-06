@@ -10,7 +10,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -85,6 +85,9 @@ oauth:
 
 ---
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
   config:
     activate:
       on-profile: test

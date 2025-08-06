@@ -9,4 +9,9 @@ class DeviceResponse {
         val deviceToken: String,
         val updatedAt: LocalDateTime,
     )
+
+    data class MemberDeviceToken(
+        val memberId: Long,
+        val deviceToken: String,
+    )
 }

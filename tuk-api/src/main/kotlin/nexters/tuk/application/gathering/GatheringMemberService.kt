@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class GatheringMemberService(
     private val gatheringRepository: GatheringRepository,
-    private val gatheringMemberRepository: GatheringMemberRepository
+    private val gatheringMemberRepository: GatheringMemberRepository,
 ) {
     @Transactional
     fun joinGathering(gatheringId: Long, memberId: Long): GatheringMemberResponse.JoinGathering {
@@ -20,7 +20,7 @@ class GatheringMemberService(
         }
 
         val gatheringMember = GatheringMember.registerMember(gathering, memberId)
-                .let { gatheringMemberRepository.save(it) }
+            .let { gatheringMemberRepository.save(it) }
 
         return GatheringMemberResponse.JoinGathering(gatheringMember.id)
     }
@@ -34,11 +34,11 @@ class GatheringMemberService(
         val gatheringMembers = gatheringMemberRepository.findAllByMemberId(memberId)
 
         return gatheringMembers
-            .map { it.gathering }
-            .map {
+            .map { memberGathering ->
                 GatheringMemberResponse.MemberGatherings(
-                    it.id,
-                    it.name,
+                    memberGathering.gathering.id,
+                    memberGathering.gathering.name,
+                    memberGathering.gathering.intervalDays.toInt(),
                 )
             }.sortedBy { it.name }
     }

@@ -7,7 +7,13 @@ class GatheringResponse {
     @Schema(name = "GenerateResponse")
     data class Generate(
         @Schema(description = "생성된 모임 id")
-        val gatheringId: Long
+        val gatheringId: Long,
+    )
+
+    data class Simple(
+        val gatheringId: Long,
+        val gatheringName: String,
+        val intervalDays: Long,
     )
 
     @Schema(name = "GatheringOverviewsResponse")
@@ -23,7 +29,7 @@ class GatheringResponse {
             @Schema(description = "모임명")
             val gatheringName: String,
             @Schema(description = "상대 시간 타입 - \"오늘\", \"n일 전\", \"n주 전\", \"n개월 전\", \"n년 전\" ")
-            val lastNotificationRelativeTime: RelativeTime
+            val lastNotificationRelativeTime: RelativeTime,
         )
     }
 
@@ -40,7 +46,7 @@ class GatheringResponse {
         @Schema(description = "받은 제안 수")
         val receivedProposalCount: Int,
         @Schema(description = "모임원")
-        val members: List<MemberOverview>
+        val members: List<MemberOverview>,
     ) {
         data class MemberOverview(
             @Schema(description = "사용자 id")
@@ -53,5 +59,10 @@ class GatheringResponse {
     data class GatheringName(
         val gatheringId: Long,
         val gatheringName: String
+
+    data class GatheringMembers(
+        val gatheringId: Long,
+        val memberIds: List<Long>,
+
     )
 }

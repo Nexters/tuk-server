@@ -2,11 +2,8 @@ package nexters.tuk.application.device
 
 import nexters.tuk.application.device.dto.request.DeviceCommand
 import nexters.tuk.application.device.dto.response.DeviceResponse
-import nexters.tuk.contract.BaseException
-import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.device.Device
 import nexters.tuk.domain.device.DeviceRepository
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -48,5 +45,20 @@ class DeviceService(
             deviceToken = deviceToken,
             updatedAt = device.updatedAt
         )
+    }
+
+    @Transactional(readOnly = true)
+    fun getDeviceTokens(memberIds: List<Long>): List<DeviceResponse.MemberDeviceToken> {
+        if (memberIds.isEmpty()) return emptyList()
+
+        val devices = deviceRepository.findByMemberIdIn(memberIds)
+        if (devices.isEmpty()) return emptyList()
+
+        return devices.mapNotNull { device ->
+            DeviceResponse.MemberDeviceToken(
+                memberId = device.memberId,
+                deviceToken = device.deviceToken ?: return@mapNotNull null
+            )
+        }
     }
 }

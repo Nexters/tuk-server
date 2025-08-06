@@ -26,7 +26,7 @@ class GatheringQueryService(
             GatheringResponse.GatheringOverviews.GatheringOverview(
                 gatheringId = it.id,
                 gatheringName = it.name,
-                lastNotificationRelativeTime = RelativeTime.fromDays(0)
+                lastNotificationRelativeTime = RelativeTime.fromDays(it.pushIntervalDays)
             )
         }
 
