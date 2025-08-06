@@ -10,6 +10,12 @@ class GatheringResponse {
         val gatheringId: Long,
     )
 
+    data class Simple(
+        val gatheringId: Long,
+        val gatheringName: String,
+        val intervalDays: Long,
+    )
+
     @Schema(name = "GatheringOverviewsResponse")
     data class GatheringOverviews(
         @Schema(description = "총 데이터 수")

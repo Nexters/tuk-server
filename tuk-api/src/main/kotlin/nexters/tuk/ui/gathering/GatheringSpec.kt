@@ -27,7 +27,7 @@ interface GatheringSpec {
         @Parameter(hidden = true) memberId: Long,
         gatheringId: Long,
         request: GatheringDto.Request.Update,
-    )
+    ): ApiResponse<GatheringResponse.Simple>
 
     @Operation(
         summary = "사용자 모임 조회",
