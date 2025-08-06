@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS proposal_member
 
     CONSTRAINT fk_proposal_member_proposal_id FOREIGN KEY (proposal_id) REFERENCES proposal (id),
     INDEX idx_proposal_member_id (proposal_id, member_id),
+    INDEX idx_is_read_created_at (member_id, is_read ASC, created_at DESC),
     INDEX idx_deleted_at (deleted_at)
 );
 

@@ -36,11 +36,13 @@ class ProposalQueryRepositoryImpl(
                     qProposalMember.createdAt,
                 )
             )
-            .distinct()
             .from(qProposalMember)
             .join(qProposalMember.proposal, qProposal)
             .join(qGathering).on(qProposal.gatheringId.eq(qGathering.id))
-            .where(qProposalMember.memberId.eq(memberId))
+            .where(
+                qProposalMember.memberId.eq(memberId),
+                qProposal.proposerId.ne(qProposalMember.memberId)
+            )
             .orderBy(
                 qProposalMember.isRead.asc(),
                 qProposalMember.createdAt.desc()
@@ -90,17 +92,13 @@ class ProposalQueryRepositoryImpl(
                     qProposalMember.createdAt,
                 )
             )
-            .distinct()
-            .from(qProposal)
-            .join(qGathering).on(qProposal.gatheringId.eq(qGathering.id))
-            .join(qProposalMember)
-            .on(
-                qProposalMember.proposal.id.eq(qProposal.id),
-                qProposalMember.memberId.eq(memberId)
-            )
+            .from(qProposalMember)
+            .join(qProposal).on(qProposal.id.eq(qProposalMember.proposal.id))
+            .join(qGathering).on(qGathering.id.eq(qProposal.gatheringId))
             .where(
-                qProposal.gatheringId.eq(gatheringId),
-                directionCondition,
+                qGathering.id.eq(gatheringId),
+                qProposalMember.memberId.eq(memberId),
+                directionCondition
             )
             .orderBy(
                 qProposalMember.isRead.asc(),
