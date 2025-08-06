@@ -1,6 +1,7 @@
 package nexters.tuk.application.proposal
 
 import nexters.tuk.application.proposal.dto.request.ProposalQuery
+import nexters.tuk.contract.SliceDto.SliceRequest
 import nexters.tuk.domain.gathering.GatheringMember
 import nexters.tuk.domain.gathering.GatheringMemberRepository
 import nexters.tuk.domain.gathering.GatheringRepository
@@ -65,8 +66,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member1.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
@@ -76,11 +79,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
         assertThat(result.pageNumber).isEqualTo(0)
-        assertThat(result.unreadProposalCount).isEqualTo(2)
-        assertThat(result.proposalOverviews).hasSize(2)
+        assertThat(result.content).hasSize(2)
 
-        val gatheringNames = result.proposalOverviews.map { it.gatheringName }
-        val purposes = result.proposalOverviews.map { it.purpose }
+        val gatheringNames = result.content.map { it.gatheringName }
+        val purposes = result.content.map { it.purpose }
         assertThat(gatheringNames).containsExactlyInAnyOrder("첫 번째 모임", "두 번째 모임")
         assertThat(purposes).containsExactlyInAnyOrder("첫 번째 제안", "두 번째 제안")
     }
@@ -92,8 +94,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
@@ -103,8 +107,8 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
         assertThat(result.pageNumber).isEqualTo(0)
-        assertThat(result.unreadProposalCount).isEqualTo(0)
-        assertThat(result.proposalOverviews).isEmpty()
+        // unread count no longer available in SliceResponse
+        assertThat(result.content).isEmpty()
     }
 
     @Test
@@ -130,16 +134,20 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val firstPageResult = proposalQueryService.getMemberProposals(
             ProposalQuery.MemberProposals(
                 memberId = member.id,
-                pageSize = 10,
-                pageNumber = 0
+                page = SliceRequest(
+                    pageNumber = 0,
+                    pageSize = 10
+                )
             )
         )
 
         val secondPageResult = proposalQueryService.getMemberProposals(
             ProposalQuery.MemberProposals(
                 memberId = member.id,
-                pageSize = 10,
-                pageNumber = 1
+                page = SliceRequest(
+                    pageNumber = 1,
+                    pageSize = 10
+                )
             )
         )
 
@@ -147,14 +155,14 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(firstPageResult.hasNext).isTrue() // 15개 > 10개이므로 다음 페이지 존재
         assertThat(firstPageResult.size).isEqualTo(10)
         assertThat(firstPageResult.pageNumber).isEqualTo(0)
-        assertThat(firstPageResult.unreadProposalCount).isEqualTo(15)
-        assertThat(firstPageResult.proposalOverviews).hasSize(10)
+        // unread count no longer available in SliceResponse
+        assertThat(firstPageResult.content).hasSize(10)
 
         assertThat(secondPageResult.hasNext).isFalse() // 5개 < 10개이므로 다음 페이지 없음
         assertThat(secondPageResult.size).isEqualTo(10)
         assertThat(secondPageResult.pageNumber).isEqualTo(1)
-        assertThat(secondPageResult.unreadProposalCount).isEqualTo(15)
-        assertThat(secondPageResult.proposalOverviews).hasSize(5)
+        // unread count no longer available in SliceResponse
+        assertThat(secondPageResult.content).hasSize(5)
     }
 
     @Test
@@ -178,16 +186,18 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getMemberProposals(query)
 
         // then
-        assertThat(result.unreadProposalCount).isEqualTo(5) // 모든 제안이 읽지 않음 상태
-        assertThat(result.proposalOverviews).hasSize(5)
+        // unread count no longer available in SliceResponse - all proposals are unread
+        assertThat(result.content).hasSize(5)
     }
 
     @Test
@@ -212,15 +222,19 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // member1 조회
         val member1Query = ProposalQuery.MemberProposals(
             memberId = member1.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // member2 조회
         val member2Query = ProposalQuery.MemberProposals(
             memberId = member2.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
@@ -229,12 +243,12 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         // member1은 제안을 볼 수 있음
-        assertThat(member1Result.proposalOverviews).hasSize(1)
-        assertThat(member1Result.unreadProposalCount).isEqualTo(1)
+        assertThat(member1Result.content).hasSize(1)
+        // unread count no longer available in SliceResponse
 
         // member2는 제안을 볼 수 없음
-        assertThat(member2Result.proposalOverviews).isEmpty()
-        assertThat(member2Result.unreadProposalCount).isEqualTo(0)
+        assertThat(member2Result.content).isEmpty()
+        // unread count no longer available in SliceResponse
     }
 
     @Test
@@ -263,19 +277,21 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getMemberProposals(query)
 
         // then
-        assertThat(result.proposalOverviews).hasSize(2)
-        assertThat(result.unreadProposalCount).isEqualTo(2)
+        assertThat(result.content).hasSize(2)
+        // unread count no longer available in SliceResponse
 
-        val gatheringNames = result.proposalOverviews.map { it.gatheringName }
-        val purposes = result.proposalOverviews.map { it.purpose }
+        val gatheringNames = result.content.map { it.gatheringName }
+        val purposes = result.content.map { it.purpose }
         assertThat(gatheringNames).containsExactlyInAnyOrder("첫 번째 모임", "두 번째 모임")
         assertThat(purposes).containsExactlyInAnyOrder("첫 번째 모임 제안", "두 번째 모임 제안")
     }
@@ -301,8 +317,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
@@ -310,7 +328,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.hasNext).isFalse() // 10개 == 10개(pageSize)이므로 hasNext = false
-        assertThat(result.proposalOverviews).hasSize(10)
+        assertThat(result.content).hasSize(10)
     }
 
     @Test
@@ -339,17 +357,19 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getMemberProposals(query)
 
         // then
-        assertThat(result.proposalOverviews).hasSize(1) // 삭제되지 않은 제안만 조회
-        assertThat(result.proposalOverviews[0].purpose).isEqualTo("활성 제안")
-        assertThat(result.unreadProposalCount).isEqualTo(1) // 삭제된 제안은 unread count에도 제외
+        assertThat(result.content).hasSize(1) // 삭제되지 않은 제안만 조회
+        assertThat(result.content[0].purpose).isEqualTo("활성 제안")
+        // unread count no longer available in SliceResponse - deleted proposals excluded from unread count
     }
 
     @Test
@@ -381,17 +401,19 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getMemberProposals(query)
 
         // then
-        assertThat(result.proposalOverviews).hasSize(1) // 삭제되지 않은 모임의 제안만 조회
-        assertThat(result.proposalOverviews[0].gatheringName).isEqualTo("활성 모임")
-        assertThat(result.proposalOverviews[0].purpose).isEqualTo("활성 모임 제안")
+        assertThat(result.content).hasSize(1) // 삭제되지 않은 모임의 제안만 조회
+        assertThat(result.content[0].gatheringName).isEqualTo("활성 모임")
+        assertThat(result.content[0].purpose).isEqualTo("활성 모임 제안")
     }
 
     @Test
@@ -410,17 +432,19 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
 
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getMemberProposals(query)
 
         // then
-        assertThat(result.proposalOverviews).hasSize(1)
-        assertThat(result.proposalOverviews[0].proposalId).isEqualTo(proposal.id)
-        assertThat(result.proposalOverviews[0].relativeTime).isNotNull()
+        assertThat(result.content).hasSize(1)
+        assertThat(result.content[0].proposalId).isEqualTo(proposal.id)
+        assertThat(result.content[0].relativeTime).isNotNull()
     }
 
     @Test
@@ -453,8 +477,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             memberId = member1.id,
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
@@ -464,9 +490,9 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
         assertThat(result.pageNumber).isEqualTo(0)
-        assertThat(result.proposalOverviews).hasSize(2) // member1이 보낸 제안만 2개
+        assertThat(result.content).hasSize(2) // member1이 보낸 제안만 2개
 
-        val purposes = result.proposalOverviews.map { it.purpose }
+        val purposes = result.content.map { it.purpose }
         assertThat(purposes).containsExactlyInAnyOrder("member1의 첫 번째 제안", "member1의 두 번째 제안")
     }
 
@@ -500,8 +526,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             memberId = member1.id,
             gatheringId = gathering.id,
             type = ProposalDirection.RECEIVED,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
@@ -511,9 +539,9 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
         assertThat(result.pageNumber).isEqualTo(0)
-        assertThat(result.proposalOverviews).hasSize(2) // member1이 받은 제안만 2개
+        assertThat(result.content).hasSize(2) // member1이 받은 제안만 2개
 
-        val purposes = result.proposalOverviews.map { it.purpose }
+        val purposes = result.content.map { it.purpose }
         assertThat(purposes).containsExactlyInAnyOrder("host의 제안", "member2의 제안")
     }
 
@@ -533,8 +561,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             memberId = member.id,
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
@@ -544,7 +574,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
         assertThat(result.pageNumber).isEqualTo(0)
-        assertThat(result.proposalOverviews).isEmpty()
+        assertThat(result.content).isEmpty()
     }
 
     @Test
@@ -574,8 +604,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
                 memberId = member.id,
                 gatheringId = gathering.id,
                 type = ProposalDirection.SENT,
-                pageSize = 10,
-                pageNumber = 0
+                page = SliceRequest(
+                    pageNumber = 0,
+                    pageSize = 10
+                )
             )
         )
 
@@ -584,8 +616,10 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
                 memberId = member.id,
                 gatheringId = gathering.id,
                 type = ProposalDirection.SENT,
-                pageSize = 10,
-                pageNumber = 1
+                page = SliceRequest(
+                    pageNumber = 1,
+                    pageSize = 10
+                )
             )
         )
 
@@ -593,12 +627,12 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         assertThat(firstPageResult.hasNext).isTrue() // 15개 > 10개이므로 다음 페이지 존재
         assertThat(firstPageResult.size).isEqualTo(10)
         assertThat(firstPageResult.pageNumber).isEqualTo(0)
-        assertThat(firstPageResult.proposalOverviews).hasSize(10)
+        assertThat(firstPageResult.content).hasSize(10)
 
         assertThat(secondPageResult.hasNext).isFalse() // 5개 < 10개이므로 다음 페이지 없음
         assertThat(secondPageResult.size).isEqualTo(10)
         assertThat(secondPageResult.pageNumber).isEqualTo(1)
-        assertThat(secondPageResult.proposalOverviews).hasSize(5)
+        assertThat(secondPageResult.content).hasSize(5)
     }
 
     @Test
@@ -629,17 +663,19 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             memberId = member.id,
             gatheringId = gathering1.id,
             type = ProposalDirection.SENT,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getGatheringProposals(query)
 
         // then
-        assertThat(result.proposalOverviews).hasSize(1) // gathering1의 제안만 조회
-        assertThat(result.proposalOverviews[0].purpose).isEqualTo("첫 번째 모임 제안")
-        assertThat(result.proposalOverviews[0].gatheringName).isEqualTo("첫 번째 모임")
+        assertThat(result.content).hasSize(1) // gathering1의 제안만 조회
+        assertThat(result.content[0].purpose).isEqualTo("첫 번째 모임 제안")
+        assertThat(result.content[0].gatheringName).isEqualTo("첫 번째 모임")
     }
 
     @Test
@@ -671,16 +707,18 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             memberId = member.id,
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getGatheringProposals(query)
 
         // then
-        assertThat(result.proposalOverviews).hasSize(1) // 삭제되지 않은 제안만 조회
-        assertThat(result.proposalOverviews[0].purpose).isEqualTo("활성 제안")
+        assertThat(result.content).hasSize(1) // 삭제되지 않은 제안만 조회
+        assertThat(result.content[0].purpose).isEqualTo("활성 제안")
     }
 
     @Test
@@ -700,15 +738,17 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             memberId = host.id,
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
-            pageSize = 10,
-            pageNumber = 0
+            page = SliceRequest(
+                pageNumber = 0,
+                pageSize = 10
+            )
         )
 
         // when
         val result = proposalQueryService.getGatheringProposals(query)
 
         // then
-        assertThat(result.proposalOverviews).hasSize(1)
-        assertThat(result.proposalOverviews[0].purpose).isEqualTo("혼자 제안")
+        assertThat(result.content).hasSize(1)
+        assertThat(result.content[0].purpose).isEqualTo("혼자 제안")
     }
 }

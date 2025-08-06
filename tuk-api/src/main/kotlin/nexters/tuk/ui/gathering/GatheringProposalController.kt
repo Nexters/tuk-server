@@ -1,9 +1,13 @@
 package nexters.tuk.ui.gathering
 
 import nexters.tuk.application.proposal.ProposalCreateService
+import nexters.tuk.application.proposal.ProposalDirection
 import nexters.tuk.application.proposal.ProposalQueryService
+import nexters.tuk.application.proposal.dto.request.ProposalQuery
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
 import nexters.tuk.contract.ApiResponse
+import nexters.tuk.contract.SliceDto.SliceRequest
+import nexters.tuk.contract.SliceDto.SliceResponse
 import nexters.tuk.ui.resolver.Authenticated
 import org.springframework.web.bind.annotation.*
 
@@ -30,12 +34,15 @@ class GatheringProposalController(
     override fun getGatheringProposals(
         @Authenticated memberId: Long,
         @PathVariable gatheringId: Long,
-        @ModelAttribute request: GatheringProposalDto.Request.GatheringProposals
-    ): ApiResponse<ProposalResponse.GatheringProposals> {
+        @RequestParam type: ProposalDirection,
+        @ModelAttribute page: SliceRequest
+    ): ApiResponse<SliceResponse<ProposalResponse.ProposalOverview>> {
         val response = proposalQueryService.getGatheringProposals(
-            request.toQuery(
+            ProposalQuery.GatheringProposals(
                 memberId = memberId,
-                gatheringId = gatheringId
+                gatheringId = gatheringId,
+                type = type,
+                page = page
             )
         )
 

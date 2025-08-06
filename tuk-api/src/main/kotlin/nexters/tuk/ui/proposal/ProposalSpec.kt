@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
 import nexters.tuk.config.SwaggerConfig
 import nexters.tuk.contract.ApiResponse
+import nexters.tuk.contract.SliceDto.SliceRequest
+import nexters.tuk.contract.SliceDto.SliceResponse
 
 interface ProposalSpec {
     @Operation(
@@ -13,6 +15,6 @@ interface ProposalSpec {
     )
     fun getMemberProposals(
         memberId: Long,
-        request: ProposalDto.Request.MemberProposals
-    ): ApiResponse<ProposalResponse.MemberProposals>
+        request: SliceRequest
+    ): ApiResponse<SliceResponse<ProposalResponse.ProposalOverview>>
 }

@@ -2,9 +2,12 @@ package nexters.tuk.ui.gathering
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import nexters.tuk.application.proposal.ProposalDirection
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
 import nexters.tuk.config.SwaggerConfig
 import nexters.tuk.contract.ApiResponse
+import nexters.tuk.contract.SliceDto.SliceRequest
+import nexters.tuk.contract.SliceDto.SliceResponse
 import org.springframework.web.bind.annotation.GetMapping
 
 
@@ -27,6 +30,7 @@ interface GatheringProposalSpec {
     fun getGatheringProposals(
         memberId: Long,
         gatheringId: Long,
-        request: GatheringProposalDto.Request.GatheringProposals
-    ): ApiResponse<ProposalResponse.GatheringProposals>
+        type: ProposalDirection,
+        page: SliceRequest
+    ): ApiResponse<SliceResponse<ProposalResponse.ProposalOverview>>
 }

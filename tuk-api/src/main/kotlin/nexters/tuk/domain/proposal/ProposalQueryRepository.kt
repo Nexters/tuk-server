@@ -1,13 +1,13 @@
 package nexters.tuk.domain.proposal
 
 import nexters.tuk.application.proposal.ProposalDirection
+import nexters.tuk.contract.SliceDto.SliceRequest
 
 
 interface ProposalQueryRepository {
     fun findMemberProposals(
         memberId: Long,
-        pageSize: Long,
-        pageNumber: Long,
+        page: SliceRequest
     ): List<ProposalQueryModel.ProposalDetail>
 
     fun countUnreadMemberProposal(memberId: Long): Long
@@ -16,7 +16,6 @@ interface ProposalQueryRepository {
         memberId: Long,
         gatheringId: Long,
         type: ProposalDirection,
-        pageSize: Long,
-        pageNumber: Long
+        page: SliceRequest
     ): List<ProposalQueryModel.ProposalDetail>
 }

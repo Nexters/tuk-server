@@ -4,6 +4,7 @@ import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import nexters.tuk.application.proposal.ProposalDirection
+import nexters.tuk.contract.SliceDto.SliceRequest
 import nexters.tuk.domain.gathering.QGathering
 import nexters.tuk.domain.proposal.ProposalQueryModel
 import nexters.tuk.domain.proposal.ProposalQueryRepository
@@ -18,8 +19,7 @@ class ProposalQueryRepositoryImpl(
 
     override fun findMemberProposals(
         memberId: Long,
-        pageSize: Long,
-        pageNumber: Long
+        page: SliceRequest
     ): List<ProposalQueryModel.ProposalDetail> {
         val qGathering = QGathering.gathering
         val qProposal = QProposal.proposal
@@ -47,8 +47,8 @@ class ProposalQueryRepositoryImpl(
                 qProposalMember.isRead.asc(),
                 qProposalMember.createdAt.desc()
             )
-            .offset(pageSize * pageNumber)
-            .limit(pageSize + 1L)
+            .offset(page.pageSize * page.pageNumber)
+            .limit(page.pageSize + 1L)
             .fetch()
 
         return response
@@ -69,8 +69,7 @@ class ProposalQueryRepositoryImpl(
         memberId: Long,
         gatheringId: Long,
         type: ProposalDirection,
-        pageSize: Long,
-        pageNumber: Long
+        page: SliceRequest
     ): List<ProposalQueryModel.ProposalDetail> {
         val qGathering = QGathering.gathering
         val qProposal = QProposal.proposal
@@ -104,8 +103,8 @@ class ProposalQueryRepositoryImpl(
                 qProposalMember.isRead.asc(),
                 qProposalMember.createdAt.desc()
             )
-            .offset(pageSize * pageNumber)
-            .limit(pageSize + 1)
+            .offset(page.pageSize * page.pageNumber)
+            .limit(page.pageSize + 1)
             .fetch()
     }
 }
