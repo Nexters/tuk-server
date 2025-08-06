@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 class PurposeService(
     private val purposeRepository: PurposeRepository
 ) {
-    @Cacheable("purposes")
+    @Cacheable("purposes:all")
     fun getAllPurposes(): PurposeResponse.Purposes {
         val purposes = purposeRepository.findAll().toList()
         val groupedPurposes = purposes.groupBy { it.type }

@@ -1,12 +1,14 @@
 package nexters.tuk.application.tag
 
 import nexters.tuk.domain.tag.TagRepository
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
 class TagService(
     private val tagRepository: TagRepository
 ) {
+    @Cacheable("tags:all")
     fun getCategorizedTags(): TagResponse.CategorizedTags {
         val tags = tagRepository.findAllWithCategory()
 
