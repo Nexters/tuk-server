@@ -189,6 +189,6 @@ class MemberServiceIntegrationTest @Autowired constructor(
         memberService.deleteMember(memberId = member.id)
 
         // then
-        assertThat(memberRepository.findById(member.id)).isNull()
+        assertThat(memberRepository.existsById(member.id)).isFalse()
     }
 }
