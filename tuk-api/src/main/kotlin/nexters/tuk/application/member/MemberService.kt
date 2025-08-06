@@ -2,6 +2,7 @@ package nexters.tuk.application.member
 
 import nexters.tuk.application.member.dto.request.MemberCommand
 import nexters.tuk.application.member.dto.response.MemberResponse
+import nexters.tuk.contract.ApiResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.member.Member
@@ -16,8 +17,10 @@ class MemberService(
     @Transactional
     fun login(command: MemberCommand.Login): MemberResponse.Login {
         val member =
-            memberRepository.findBySocialTypeAndSocialId(command.socialType, command.socialId)
-                ?: memberRepository.save(Member.signUp(command))
+            memberRepository.findBySocialTypeAndSocialId(
+                socialType = command.socialType,
+                socialId = command.socialId
+            ) ?: memberRepository.save(Member.signUp(command))
 
         return MemberResponse.Login(
             memberId = member.id,
@@ -26,6 +29,25 @@ class MemberService(
             socialId = member.socialId,
             memberName = member.name,
         )
+    }
+
+    @Transactional
+    fun updateProfile(command: MemberCommand.UpdateProfile): MemberResponse.Profile {
+        val member = memberRepository.findById(command.memberId)
+            .orElseThrow { BaseException(ErrorType.NOT_FOUND, "존재하지 않는 사용자입니다.") }
+
+        member.updateProfile(command.name)
+
+        return MemberResponse.Profile(
+            memberId = member.id,
+            email = member.email,
+            name = member.name,
+        )
+    }
+
+    @Transactional
+    fun deleteMember(memberId: Long) {
+        memberRepository.leave(memberId)
     }
 
     @Transactional(readOnly = true)
@@ -51,20 +73,6 @@ class MemberService(
                     memberName = it.name ?: "이름 없음",
                 )
             }
-    }
-
-    @Transactional
-    fun updateProfile(command: MemberCommand.UpdateProfile): MemberResponse.Profile {
-        val member = memberRepository.findById(command.memberId)
-            .orElseThrow { BaseException(ErrorType.NOT_FOUND, "존재하지 않는 사용자입니다.") }
-
-        member.updateProfile(command.name)
-
-        return MemberResponse.Profile(
-            memberId = member.id,
-            email = member.email,
-            name = member.name,
-        )
     }
 
     @Transactional(readOnly = true)
