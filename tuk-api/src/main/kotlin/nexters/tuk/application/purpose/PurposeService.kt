@@ -1,6 +1,7 @@
 package nexters.tuk.application.purpose
 
 import nexters.tuk.application.purpose.dto.response.PurposeResponse
+import nexters.tuk.config.CacheConfig
 import nexters.tuk.domain.purpose.PurposeRepository
 import nexters.tuk.domain.purpose.PurposeType
 import org.springframework.cache.annotation.Cacheable
@@ -10,7 +11,10 @@ import org.springframework.stereotype.Service
 class PurposeService(
     private val purposeRepository: PurposeRepository
 ) {
-    @Cacheable("purposes:all")
+    @Cacheable(
+        cacheNames = ["purpose:all"],
+        cacheManager = CacheConfig.CACHE_WITH_30_DAYS
+    )
     fun getAllPurposes(): PurposeResponse.Purposes {
         val purposes = purposeRepository.findAll().toList()
         val groupedPurposes = purposes.groupBy { it.type }

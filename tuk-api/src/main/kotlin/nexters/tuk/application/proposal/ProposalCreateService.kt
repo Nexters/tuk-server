@@ -21,7 +21,10 @@ class ProposalCreateService(
         val proposal = proposalService.propose(command)
         val gatheringMembers = gatheringMemberService.getGatheringMemberIds(command.gatheringId)
 
-        proposalMemberService.publishGatheringMembers(proposal.proposalId, gatheringMembers)
+        proposalMemberService.publishGatheringMembers(
+            proposalId = proposal.proposalId,
+            memberIds = gatheringMembers
+        )
 
         return ProposalResponse.Propose(proposalId = proposal.proposalId)
     }

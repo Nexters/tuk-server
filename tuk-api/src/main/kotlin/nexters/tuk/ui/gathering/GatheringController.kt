@@ -4,7 +4,6 @@ import nexters.tuk.application.gathering.GatheringCommandService
 import nexters.tuk.application.gathering.GatheringGenerateService
 import nexters.tuk.application.gathering.GatheringMemberService
 import nexters.tuk.application.gathering.GatheringQueryService
-import nexters.tuk.application.gathering.GatheringService
 import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringMemberResponse
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
@@ -19,7 +18,6 @@ class GatheringController(
     private val gatheringGenerateService: GatheringGenerateService,
     private val gatheringQueryService: GatheringQueryService,
     private val gatheringMemberService: GatheringMemberService,
-    private val gatheringService: GatheringService,
 ) : GatheringSpec {
 
     @PostMapping
@@ -81,7 +79,7 @@ class GatheringController(
         @PathVariable("gatheringId") gatheringId: Long
     ): ApiResponse<GatheringResponse.GatheringName> {
 
-        val response = gatheringService.getGatheringName(gatheringId)
+        val response = gatheringQueryService.getGatheringName(gatheringId)
 
         return ApiResponse.ok(response)
     }

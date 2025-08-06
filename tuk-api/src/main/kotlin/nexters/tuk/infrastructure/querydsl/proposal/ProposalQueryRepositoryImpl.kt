@@ -1,4 +1,4 @@
-package nexters.tuk.infrastructure.proposal
+package nexters.tuk.infrastructure.querydsl.proposal
 
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.BooleanExpression

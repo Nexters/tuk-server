@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 class GatheringServiceIntegrationTest @Autowired constructor(
-    private val gatheringService: GatheringService,
+    private val gatheringQueryService: GatheringQueryService,
     private val gatheringRepository: GatheringRepository,
     private val gatheringMemberRepository: GatheringMemberRepository,
     private val memberRepository: MemberRepository,
@@ -39,7 +39,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(host, "테스트 모임")
 
         // when
-        val result = gatheringService.getGatheringName(gathering.id)
+        val result = gatheringQueryService.getGatheringName(gathering.id)
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
@@ -64,7 +64,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when & then
         gatherings.forEachIndexed { index, gathering ->
-            val result = gatheringService.getGatheringName(gathering.id)
+            val result = gatheringQueryService.getGatheringName(gathering.id)
             assertThat(result.gatheringId).isEqualTo(gathering.id)
             assertThat(result.gatheringName).isEqualTo(gatheringNames[index])
         }
@@ -77,7 +77,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when & then
         val exception = assertThrows<BaseException> {
-            gatheringService.getGatheringName(nonExistentGatheringId)
+            gatheringQueryService.getGatheringName(nonExistentGatheringId)
         }
 
         assertThat(exception.message).isEqualTo("찾을 수 없는 모임입니다.")
@@ -95,7 +95,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
 
         // when & then
         val exception = assertThrows<BaseException> {
-            gatheringService.getGatheringName(gathering.id)
+            gatheringQueryService.getGatheringName(gathering.id)
         }
 
         assertThat(exception.message).isEqualTo("찾을 수 없는 모임입니다.")
@@ -109,7 +109,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(host, specialName)
 
         // when
-        val result = gatheringService.getGatheringName(gathering.id)
+        val result = gatheringQueryService.getGatheringName(gathering.id)
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
@@ -124,7 +124,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(host, emptyName)
 
         // when
-        val result = gatheringService.getGatheringName(gathering.id)
+        val result = gatheringQueryService.getGatheringName(gathering.id)
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
@@ -139,7 +139,7 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(host, longName)
 
         // when
-        val result = gatheringService.getGatheringName(gathering.id)
+        val result = gatheringQueryService.getGatheringName(gathering.id)
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
@@ -154,9 +154,9 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(host, "일관성 테스트 모임")
 
         // when
-        val result1 = gatheringService.getGatheringName(gathering.id)
-        val result2 = gatheringService.getGatheringName(gathering.id)
-        val result3 = gatheringService.getGatheringName(gathering.id)
+        val result1 = gatheringQueryService.getGatheringName(gathering.id)
+        val result2 = gatheringQueryService.getGatheringName(gathering.id)
+        val result3 = gatheringQueryService.getGatheringName(gathering.id)
 
         // then
         assertThat(result1.gatheringId).isEqualTo(result2.gatheringId)
@@ -175,9 +175,9 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         val gathering3 = gatheringFixture.createGathering(host, "세 번째 모임")
 
         // when
-        val result1 = gatheringService.getGatheringName(gathering1.id)
-        val result2 = gatheringService.getGatheringName(gathering2.id)
-        val result3 = gatheringService.getGatheringName(gathering3.id)
+        val result1 = gatheringQueryService.getGatheringName(gathering1.id)
+        val result2 = gatheringQueryService.getGatheringName(gathering2.id)
+        val result3 = gatheringQueryService.getGatheringName(gathering3.id)
 
         // then
         assertThat(result1.gatheringId).isEqualTo(gathering1.id)

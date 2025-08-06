@@ -5,6 +5,8 @@ import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.application.gathering.vo.RelativeTime
 import nexters.tuk.application.proposal.ProposalService
 import nexters.tuk.application.member.MemberService
+import nexters.tuk.contract.BaseException
+import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.gathering.findByIdOrThrow
 import org.springframework.stereotype.Service
@@ -52,5 +54,14 @@ class GatheringQueryService(
             receivedProposalCount = proposalStat.receivedCount,
             members = members
         )
+    }
+
+    @Transactional(readOnly = true)
+    fun getGatheringName(gatheringId: Long): GatheringResponse.GatheringName {
+        val gathering = gatheringRepository.findById(gatheringId).orElseThrow {
+            BaseException(ErrorType.NOT_FOUND, "찾을 수 없는 모임입니다.")
+        }
+
+        return GatheringResponse.GatheringName(gathering.id, gathering.name)
     }
 }
