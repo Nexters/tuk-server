@@ -75,4 +75,14 @@ class GatheringController(
 
         return ApiResponse.ok(response)
     }
+
+    @GetMapping("/{gatheringId}/name")
+    override fun getGatheringName(
+        @PathVariable("gatheringId") gatheringId: Long
+    ): ApiResponse<GatheringResponse.GatheringName> {
+
+        val response = gatheringQueryService.getGatheringName(gatheringId)
+
+        return ApiResponse.ok(response)
+    }
 }
