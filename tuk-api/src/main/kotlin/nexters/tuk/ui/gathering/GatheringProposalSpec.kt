@@ -1,7 +1,6 @@
 package nexters.tuk.ui.gathering
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
 import nexters.tuk.config.SwaggerConfig
@@ -15,7 +14,7 @@ interface GatheringProposalSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun generateProposal(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
         gatheringId: Long,
         request: GatheringProposalDto.Request.Publish
     ): ApiResponse<ProposalResponse.Propose>
@@ -26,7 +25,7 @@ interface GatheringProposalSpec {
     )
     @GetMapping
     fun getGatheringProposals(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
         gatheringId: Long,
         request: GatheringProposalDto.Request.GatheringProposals
     ): ApiResponse<ProposalResponse.GatheringProposals>

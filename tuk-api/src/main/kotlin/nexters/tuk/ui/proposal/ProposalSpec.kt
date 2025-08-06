@@ -1,7 +1,6 @@
 package nexters.tuk.ui.proposal
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
 import nexters.tuk.config.SwaggerConfig
@@ -13,7 +12,7 @@ interface ProposalSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun getMemberProposals(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
         request: ProposalDto.Request.MemberProposals
     ): ApiResponse<ProposalResponse.MemberProposals>
 }

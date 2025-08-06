@@ -15,7 +15,7 @@ interface GatheringSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun generateGathering(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
         request: GatheringDto.Request.Generate,
     ): ApiResponse<GatheringResponse.Generate>
 
@@ -24,7 +24,7 @@ interface GatheringSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun updateGathering(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
         gatheringId: Long,
         request: GatheringDto.Request.Update,
     )
@@ -34,7 +34,7 @@ interface GatheringSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun getMemberGathering(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
     ): ApiResponse<GatheringResponse.GatheringOverviews>
 
     @Operation(
@@ -42,7 +42,7 @@ interface GatheringSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun getGatheringDetail(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
         @Parameter(description = "모임 id") gatheringId: Long,
     ): ApiResponse<GatheringResponse.GatheringDetail>
 
@@ -51,7 +51,7 @@ interface GatheringSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun joinGathering(
-        @Parameter(hidden = true) memberId: Long,
+        memberId: Long,
         @Parameter(description = "모임 id") gatheringId: Long,
     ): ApiResponse<GatheringMemberResponse.JoinGathering>
 
