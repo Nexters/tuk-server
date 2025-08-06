@@ -1,26 +1,14 @@
 package nexters.tuk.domain.push
 
+import nexters.tuk.contract.push.PushType
+
 class PushDto {
     data class Push(
         val recipients: List<PushRecipient>,
-        val message: MessagePayload,
-        val pushType: PushType,
+        val pushType: PushType = PushType.GATHERING_NOTIFICATION,
     )
-
-    data class MessagePayload(
-        val title: String,
-        val body: String,
-    )
-
-    data class PushRecipient(
-        val memberId: Long,
-    )
-
-    enum class PushType {
-        // 모임 정기 푸시
-        GROUP_NOTIFICATION,
-
-        // 초대장 푸시
-        INVITATION,
-    }
 }
+
+data class PushRecipient(
+    val memberId: Long,
+)

@@ -1,8 +1,10 @@
 package nexters.tuk.job
 
+import nexters.tuk.contract.push.PushType
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.push.PushApiClient
 import nexters.tuk.domain.push.PushDto
+import nexters.tuk.domain.push.PushRecipient
 import org.quartz.CronScheduleBuilder
 import org.quartz.CronTrigger
 import org.quartz.JobExecutionContext
@@ -38,14 +40,8 @@ class GatheringPushCheckJob(
             if (nextNotificationTime <= LocalDateTime.now()) {
                 pushApiClient.sendPushNotification(
                     PushDto.Push(
-                        recipients = gathering.memberIds.map { memberId ->
-                            PushDto.PushRecipient(memberId = memberId)
-                        },
-                        message = PushDto.MessagePayload(
-                            title = "모임 알림",
-                            body = "모임 푸시 템플릿은 아직 미정입니다! 다음 모임은 ${gathering.intervalDays}일 후입니다."
-                        ),
-                        pushType = PushDto.PushType.GROUP_NOTIFICATION
+                        recipients = gathering.memberIds.map { PushRecipient(it) },
+                        pushType = PushType.GATHERING_NOTIFICATION
                     )
                 )
 

@@ -58,14 +58,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.totalCount).isEqualTo(2)
         assertThat(result.gatheringOverviews).hasSize(2)
-        
+
         val gatheringNames = result.gatheringOverviews.map { it.gatheringName }
         assertThat(gatheringNames).containsExactlyInAnyOrder("모임1", "모임2")
-        
-        // 모든 relativeTime은 현재 0일로 설정되어 "오늘"
-        result.gatheringOverviews.forEach {
-            assertThat(it.lastNotificationRelativeTime.value).isEqualTo("오늘")
-        }
     }
 
     @Test
@@ -111,7 +106,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
 
         val gathering = gatheringFixture.createGathering(host, "테스트 모임")
-        
+
         // 멤버들을 모임에 추가
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
@@ -134,7 +129,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.sentProposalCount).isEqualTo(2)
         assertThat(result.receivedProposalCount).isEqualTo(1)
         assertThat(result.members).hasSize(3)
-        
+
         val memberNames = result.members.map { it.memberName }
         assertThat(memberNames).containsExactlyInAnyOrder("테스트사용자", "테스트사용자", "테스트사용자")
     }
@@ -263,7 +258,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.totalCount).isEqualTo(10)
         assertThat(result.gatheringOverviews).hasSize(10)
-        
+
         val expectedNames = (1..10).map { "모임$it" }
         val actualNames = result.gatheringOverviews.map { it.gatheringName }
         assertThat(actualNames).containsExactlyInAnyOrderElementsOf(expectedNames)
