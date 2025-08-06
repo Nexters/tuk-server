@@ -59,10 +59,10 @@ class GatheringResponse {
     data class GatheringName(
         val gatheringId: Long,
         val gatheringName: String
+    )
 
     data class GatheringMembers(
         val gatheringId: Long,
         val memberIds: List<Long>,
-
     )
 }
