@@ -24,7 +24,7 @@ class MemberController(
         return ApiResponse.ok()
     }
 
-    @GetMapping()
+    @GetMapping("/me")
     override fun getMember(
         @Authenticated memberId: Long,
     ): ApiResponse<MemberResponse.Profile> {
