@@ -28,7 +28,6 @@ class GatheringGenerateService(
             memberId = command.memberId,
         )
 
-        // TODO 알림 등록하기
         return GatheringResponse.Generate(
             gathering.id,
         )
