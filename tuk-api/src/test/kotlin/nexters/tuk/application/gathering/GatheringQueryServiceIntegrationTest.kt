@@ -124,6 +124,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
+        assertThat(result.gatheringIntervalDays).isEqualTo(gathering.intervalDays)
         assertThat(result.gatheringName).isEqualTo("테스트 모임")
         assertThat(result.lastNotificationRelativeTime.value).isEqualTo("오늘") // 현재는 하드코딩
         assertThat(result.sentProposalCount).isEqualTo(2)
@@ -182,6 +183,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
+        assertThat(result.gatheringIntervalDays).isEqualTo(gathering.intervalDays)
         assertThat(result.gatheringName).isEqualTo("제안 없는 모임")
         assertThat(result.sentProposalCount).isEqualTo(0)
         assertThat(result.receivedProposalCount).isEqualTo(0)
@@ -203,6 +205,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
+        assertThat(result.gatheringIntervalDays).isEqualTo(gathering.intervalDays)
         assertThat(result.gatheringName).isEqualTo("혼자 모임")
         assertThat(result.sentProposalCount).isEqualTo(0)
         assertThat(result.receivedProposalCount).isEqualTo(0)
@@ -234,6 +237,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
         // then
         assertThat(result.gatheringId).isEqualTo(gathering.id)
+        assertThat(result.gatheringIntervalDays).isEqualTo(gathering.intervalDays)
         assertThat(result.sentProposalCount).isEqualTo(2) // 상태와 관계없이 보낸 초대장 수
         assertThat(result.receivedProposalCount).isEqualTo(1)
         assertThat(result.members).hasSize(2)

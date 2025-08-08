@@ -44,11 +44,12 @@ class GatheringQueryService(
             GatheringResponse.GatheringDetail.MemberOverview(it.memberId, it.memberName)
         }
 
-        val gatheringDetail = gatheringRepository.findByIdOrThrow(query.gatheringId)
+        val gathering = gatheringRepository.findByIdOrThrow(query.gatheringId)
 
         return GatheringResponse.GatheringDetail(
-            gatheringId = gatheringDetail.id,
-            gatheringName = gatheringDetail.name,
+            gatheringId = gathering.id,
+            gatheringIntervalDays = gathering.intervalDays,
+            gatheringName = gathering.name,
             lastNotificationRelativeTime = RelativeTime.fromDays(0),
             sentProposalCount = proposalStat.sentCount,
             receivedProposalCount = proposalStat.receivedCount,
