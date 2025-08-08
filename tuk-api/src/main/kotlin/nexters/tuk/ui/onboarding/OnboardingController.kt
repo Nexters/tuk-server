@@ -19,7 +19,7 @@ class OnboardingController(
         return ApiResponse.ok(response)
     }
 
-    @PatchMapping
+    @PutMapping
     override fun initInfo(
         @Authenticated memberId: Long,
         @RequestBody request: OnboardingDto.Request.Init
