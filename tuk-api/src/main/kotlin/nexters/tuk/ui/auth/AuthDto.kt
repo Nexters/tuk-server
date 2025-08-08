@@ -15,7 +15,7 @@ class AuthDto {
             fun toCommand(): AuthCommand.SocialLogin.Google {
                 return AuthCommand.SocialLogin.Google(
                     idToken = idToken,
-                    deviceId = deviceInfo.deviceId,
+                    deviceInfo = deviceInfo,
                 )
             }
         }
@@ -29,6 +29,7 @@ class AuthDto {
             fun toCommand(): AuthCommand.SocialLogin.Apple {
                 return AuthCommand.SocialLogin.Apple(
                     idToken = idToken,
+                    deviceInfo = deviceInfo,
                 )
             }
         }

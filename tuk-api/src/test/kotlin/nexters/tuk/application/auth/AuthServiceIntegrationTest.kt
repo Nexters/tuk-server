@@ -3,7 +3,9 @@ package nexters.tuk.application.auth
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import nexters.tuk.application.auth.dto.request.AuthCommand
+import nexters.tuk.application.device.DeviceService
 import nexters.tuk.application.member.SocialType
+import nexters.tuk.contract.device.TukClientInfo
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.auth.JwtRepository
@@ -25,6 +27,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
     private val memberRepository: MemberRepository,
     private val jwtRepository: JwtRepository,
     private val redisCleanUp: RedisCleanUp,
+    private val deviceService: DeviceService,
 ) {
 
     private val memberFixture = MemberFixtureHelper(memberRepository)
@@ -38,6 +41,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
     @MockkBean
     private lateinit var appleProvider: SocialUserProvider.Apple
 
+
     @AfterEach
     fun tearDown() {
         memberRepository.deleteAllInBatch()
@@ -47,7 +51,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
     @Test
     fun `Google 소셜 로그인 성공시 기존 회원 정보를 반환한다`() {
         // given
-        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "android",
+            appVersion = "1.0.0",
+            osVersion = "14.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Google("google-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
 
         // 기존 회원 생성 (이름 초기화 안됨)
@@ -75,12 +86,20 @@ class AuthServiceIntegrationTest @Autowired constructor(
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)
         assertThat(savedToken).isEqualTo(result.refreshToken)
+
     }
 
     @Test
     fun `Google 소셜 로그인시 신규 회원이면 회원가입 후 토큰을 발급한다`() {
         // given
-        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "android",
+            appVersion = "1.0.0",
+            osVersion = "14.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Google("google-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("google-new-123", SocialType.GOOGLE, "new@example.com")
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider
@@ -105,12 +124,20 @@ class AuthServiceIntegrationTest @Autowired constructor(
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(result.memberId)
         assertThat(savedToken).isEqualTo(result.refreshToken)
+
     }
 
     @Test
     fun `Apple 소셜 로그인 성공시 기존 회원 정보를 반환한다`() {
         // given
-        val command = AuthCommand.SocialLogin.Apple("apple-id-token")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "ios",
+            appVersion = "1.0.0",
+            osVersion = "17.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Apple("apple-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("apple-123", SocialType.APPLE, "test@icloud.com")
 
         // 기존 회원 생성 (Apple 타입, 이름 초기화 안됨)
@@ -139,6 +166,7 @@ class AuthServiceIntegrationTest @Autowired constructor(
         // Redis에 refresh token이 저장되었는지 확인
         val savedToken = jwtRepository.findRefreshTokenById(existingMember.id)
         assertThat(savedToken).isEqualTo(result.refreshToken)
+
     }
 
     @Test
@@ -151,7 +179,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
         )
 
         // 소셜 로그인을 통해 초기 토큰 발급
-        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "android",
+            appVersion = "1.0.0",
+            osVersion = "14.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Google("google-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider
@@ -211,7 +246,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
             email = "test@example.com"
         )
 
-        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "android",
+            appVersion = "1.0.0",
+            osVersion = "14.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Google("google-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider
@@ -250,7 +292,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
     @Test
     fun `첫 로그인 시 isFirstLogin이 true가 된다`() {
         // given
-        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "android",
+            appVersion = "1.0.0",
+            osVersion = "14.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Google("google-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("google-first-login", SocialType.GOOGLE, "firstlogin@example.com")
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider
@@ -283,7 +332,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
         member.updateProfile("홍길동")
         memberRepository.save(member)
 
-        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "android",
+            appVersion = "1.0.0",
+            osVersion = "14.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Google("google-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider
@@ -312,7 +368,14 @@ class AuthServiceIntegrationTest @Autowired constructor(
         )
         // member는 name이 null인 상태
 
-        val command = AuthCommand.SocialLogin.Google("google-id-token", "device-id")
+        val deviceInfo = TukClientInfo(
+            deviceId = "device-id",
+            deviceType = "android",
+            appVersion = "1.0.0",
+            osVersion = "14.0",
+            deviceToken = "device-token"
+        )
+        val command = AuthCommand.SocialLogin.Google("google-id-token", deviceInfo)
         val socialUserInfo = SocialUserInfo("google-123", SocialType.GOOGLE, "test@example.com")
 
         every { socialUserProviderFactory.getProvider(command) } returns googleProvider

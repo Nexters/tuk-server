@@ -2,9 +2,10 @@ package nexters.tuk.application.auth
 
 import nexters.tuk.application.auth.dto.request.AuthCommand
 import nexters.tuk.application.auth.dto.response.AuthResponse
+import nexters.tuk.application.device.DeviceService
+import nexters.tuk.application.device.dto.request.DeviceCommand
 import nexters.tuk.application.member.MemberService
 import nexters.tuk.application.member.dto.request.MemberCommand
-import nexters.tuk.application.onboarding.OnboardingService
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.auth.JwtRepository
@@ -17,7 +18,7 @@ class AuthService(
     private val jwtProvider: JwtProvider,
     private val jwtRepository: JwtRepository,
     private val memberService: MemberService,
-    private val onboardingService: OnboardingService,
+    private val deviceService: DeviceService,
 ) {
     @Transactional
     fun socialLogin(command: AuthCommand.SocialLogin): AuthResponse.Login {
@@ -28,6 +29,13 @@ class AuthService(
                 email = userInfo.email,
                 socialType = userInfo.socialType,
                 socialId = userInfo.socialId,
+            )
+        )
+
+        deviceService.updateDeviceToken(
+            memberId = member.memberId,
+            command = DeviceCommand.UpdateDeviceToken(
+                command.deviceInfo
             )
         )
 
