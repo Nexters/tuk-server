@@ -50,9 +50,19 @@ jobs:
 
       - name: Create directory and copy docker files to server
         run: |
+          # 기본 디렉토리 생성
           sshpass -p ${{ secrets.API_SERVER_PASSWORD }} ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }} "mkdir -p ${{ secrets.DOCKER_COMPOSE_PATH }}"
+          
+          # nginx 관련 디렉토리 생성
+          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }} "mkdir -p ${{ secrets.DOCKER_COMPOSE_PATH }}/nginx"
+          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }} "sudo mkdir -p /var/www/certbot"
+          
+          # Docker 파일들 복사
           sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker/docker-compose.prod.yml ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml
           sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./docker/init.sql ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/
+          
+          # nginx 설정 파일 복사
+          sshpass -p ${{ secrets.API_SERVER_PASSWORD }} scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ./nginx/nginx.conf ${{ secrets.API_SERVER_USERNAME }}@${{ secrets.API_SERVER_HOST }}:${{ secrets.DOCKER_COMPOSE_PATH }}/nginx/
         shell: bash
 
   deploy-to-server:
@@ -60,7 +70,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      ## docker compose up
+      ## SSL 인증서 설정 및 docker compose up
       - name: Deploy to api server
         uses: appleboy/ssh-action@master
         with:
@@ -70,6 +80,8 @@ jobs:
           password: ${{ secrets.API_SERVER_PASSWORD }}
           script: |
             cd ${{ secrets.DOCKER_COMPOSE_PATH }}
+            
+            # 기존 컨테이너 정리
             sudo docker rm -f $(sudo docker ps -qa) 2>/dev/null || true
             
             # Login to NCP Container Registry
@@ -89,4 +101,10 @@ jobs:
                  ENCODED_FIREBASE_ADMIN_SDK='${{ secrets.ENCODED_FIREBASE_ADMIN_SDK }}' \
                  docker-compose up -d
             
+            # 불필요한 Docker 이미지 정리
             sudo docker image prune -f
+            
+            if ! sudo crontab -l 2>/dev/null | grep -q "certbot renew"; then
+              echo "Setting up SSL auto-renewal..."
+              (sudo crontab -l 2>/dev/null; echo "0 2 * * * certbot renew --quiet && docker-compose -f ${{ secrets.DOCKER_COMPOSE_PATH }}/docker-compose.yml restart nginx") | sudo crontab -
+            fi
