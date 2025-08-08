@@ -18,4 +18,13 @@ interface MemberSpec {
         security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
     )
     fun getMember(memberId: Long): ApiResponse<MemberResponse.Profile>
+
+    @Operation(
+        summary = "회원 업데이트",
+        security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
+    )
+    fun updateMember(
+        memberId: Long,
+        request: MemberDto.Request.Update
+    ): ApiResponse<MemberResponse.Profile>
 }

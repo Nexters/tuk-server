@@ -31,7 +31,7 @@ class MemberController(
     }
 
     @PatchMapping
-    fun updateMember(
+    override fun updateMember(
         @Authenticated memberId: Long,
         @RequestBody request: MemberDto.Request.Update
     ): ApiResponse<MemberResponse.Profile> {
