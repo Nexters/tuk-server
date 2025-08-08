@@ -6,6 +6,7 @@ import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.gathering.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 class GatheringMemberService(
@@ -38,7 +39,7 @@ class GatheringMemberService(
                 GatheringMemberResponse.MemberGatherings(
                     id = memberGathering.gathering.id,
                     name = memberGathering.gathering.name,
-                    pushIntervalDays = memberGathering.gathering.intervalDays.toInt(),
+                    lastPushedAt = memberGathering.gathering.lastPushedAt ?: LocalDateTime.now(),
                 )
             }.sortedBy { it.name }
     }

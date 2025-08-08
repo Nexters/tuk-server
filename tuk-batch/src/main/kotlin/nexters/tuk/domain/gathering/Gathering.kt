@@ -21,7 +21,7 @@ class Gathering(
     @Column(name = "deleted_at", nullable = true)
     val deletedAt: LocalDateTime,
 ) {
-    @Column(name = "last_pushed_at", nullable = true, updatable = false)
+    @Column(name = "last_pushed_at", nullable = true)
     var lastPushedAt = lastPushedAt
         private set
 

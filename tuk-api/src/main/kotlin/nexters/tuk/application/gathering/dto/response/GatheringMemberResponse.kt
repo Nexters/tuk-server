@@ -1,6 +1,7 @@
 package nexters.tuk.application.gathering.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.time.LocalDateTime
 
 class GatheringMemberResponse {
     @Schema(name = "JoinGatheringResponse")
@@ -11,6 +12,6 @@ class GatheringMemberResponse {
     data class MemberGatherings(
         val id: Long,
         val name: String,
-        val pushIntervalDays: Int,
+        val lastPushedAt: LocalDateTime,
     )
 }
