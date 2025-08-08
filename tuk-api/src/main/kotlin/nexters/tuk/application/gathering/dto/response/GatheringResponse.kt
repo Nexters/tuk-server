@@ -42,7 +42,7 @@ class GatheringResponse {
         @Schema(description = "모임명")
         val gatheringName: String,
         @Schema(description = "상대 시간 타입 - \"오늘\", \"n일 전\", \"n주 전\", \"n개월 전\", \"n년 전\" ")
-        val lastNotificationRelativeTime: RelativeTime,
+        val lastPushRelativeTime: RelativeTime,
         @Schema(description = "보낸 제안 수")
         val sentProposalCount: Int,
         @Schema(description = "받은 제안 수")

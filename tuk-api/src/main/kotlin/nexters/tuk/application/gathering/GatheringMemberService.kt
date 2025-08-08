@@ -36,9 +36,9 @@ class GatheringMemberService(
         return gatheringMembers
             .map { memberGathering ->
                 GatheringMemberResponse.MemberGatherings(
-                    memberGathering.gathering.id,
-                    memberGathering.gathering.name,
-                    memberGathering.gathering.intervalDays.toInt(),
+                    id = memberGathering.gathering.id,
+                    name = memberGathering.gathering.name,
+                    pushIntervalDays = memberGathering.gathering.intervalDays.toInt(),
                 )
             }.sortedBy { it.name }
     }
