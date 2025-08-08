@@ -32,12 +32,13 @@ class AuthService(
             )
         )
 
-        deviceService.updateDeviceToken(
-            memberId = member.memberId,
-            command = DeviceCommand.UpdateDeviceToken(
-                command.deviceInfo
+        // FIXME 토큰 정책에 따라 예외를 터트릴지 말지 결정하기
+        command.deviceInfo.deviceToken?.let {
+            deviceService.updateDeviceToken(
+                memberId = member.memberId,
+                command = DeviceCommand.UpdateDeviceToken(command.deviceInfo)
             )
-        )
+        }
 
         val jwt = generateAndSaveTokens(member.memberId)
 
