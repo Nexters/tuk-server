@@ -27,9 +27,7 @@ CREATE TABLE IF NOT EXISTS gathering
     deleted_at     TIMESTAMP    NULL,
     last_pushed_at TIMESTAMP    NULL,
 
-    INDEX idx_deleted_at (deleted_at),
-
-    CONSTRAINT fk_gathering_member FOREIGN KEY (member_id) REFERENCES member (id)
+    INDEX idx_deleted_at (deleted_at)
 );
 
 CREATE TABLE IF NOT EXISTS gathering_member
@@ -42,8 +40,6 @@ CREATE TABLE IF NOT EXISTS gathering_member
     updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at   TIMESTAMP NULL,
 
-    CONSTRAINT fk_gathering_member_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering (id),
-    CONSTRAINT fk_gathering_member_member_id FOREIGN KEY (member_id) REFERENCES member (id),
     INDEX idx_gathering_member (gathering_id, member_id),
     INDEX idx_deleted_at (deleted_at)
 );
@@ -58,8 +54,6 @@ CREATE TABLE IF NOT EXISTS proposal
     updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at   TIMESTAMP    NULL,
 
-    CONSTRAINT fk_proposal_gathering_id FOREIGN KEY (gathering_id) REFERENCES gathering (id),
-    CONSTRAINT fk_proposal_member_id FOREIGN KEY (member_id) REFERENCES member (id),
     INDEX idx_gathering_member (gathering_id, member_id),
     INDEX idx_deleted_at (deleted_at)
 );
@@ -74,7 +68,6 @@ CREATE TABLE IF NOT EXISTS proposal_member
     updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at  TIMESTAMP NULL,
 
-    CONSTRAINT fk_proposal_member_proposal_id FOREIGN KEY (proposal_id) REFERENCES proposal (id),
     INDEX idx_proposal_member_id (proposal_id, member_id),
     INDEX idx_is_read_created_at (member_id, is_read ASC, created_at DESC),
     INDEX idx_deleted_at (deleted_at)
@@ -113,7 +106,6 @@ CREATE TABLE IF NOT EXISTS tag
     updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at  TIMESTAMP    NULL,
 
-    CONSTRAINT fk_tag_category FOREIGN KEY (category_id) REFERENCES category (id),
     INDEX idx_deleted_at (deleted_at)
 );
 
@@ -123,8 +115,6 @@ CREATE TABLE IF NOT EXISTS gathering_tag
     gathering_id BIGINT NOT NULL,
     tag_id       BIGINT NOT NULL,
 
-    CONSTRAINT fk_gathering_tag_gathering FOREIGN KEY (gathering_id) REFERENCES gathering (id),
-    CONSTRAINT fk_gathering_tag_tag FOREIGN KEY (tag_id) REFERENCES tag (id),
     UNIQUE KEY uk_gathering_tag (gathering_id, tag_id)
 );
 
