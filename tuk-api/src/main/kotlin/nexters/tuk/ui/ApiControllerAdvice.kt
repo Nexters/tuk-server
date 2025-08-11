@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import nexters.tuk.contract.ApiResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
-import nexters.tuk.infrastructure.slack.SlackAlertSender
-import nexters.tuk.infrastructure.slack.SlackErrorAlert
+import nexters.tuk.application.alert.ErrorAlert
+import nexters.tuk.application.alert.ErrorAlertSender
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -21,7 +21,7 @@ import java.time.ZonedDateTime
 
 @RestControllerAdvice
 class ApiControllerAdvice(
-    private val slackAlertSender: SlackAlertSender
+    private val errorAlertSender: ErrorAlertSender
 ) {
     private val log = LoggerFactory.getLogger(ApiControllerAdvice::class.java)
 
@@ -144,7 +144,7 @@ class ApiControllerAdvice(
     }
 
     private fun sendSlackAlert(request: HttpServletRequest, errorType: ErrorType, errorMessage: String? = null) {
-        slackAlertSender.sendAlert(SlackErrorAlert(errorType.status.value(), request.method, request.requestURI, ZonedDateTime.now(), errorMessage ?: errorType.message))
+        errorAlertSender.sendAlert(ErrorAlert(errorType.status.value(), request.method, request.requestURI, ZonedDateTime.now(), errorMessage ?: errorType.message))
     }
 
     private fun failureResponse(errorType: ErrorType, errorMessage: String? = null): ResponseEntity<ApiResponse<*>> =
