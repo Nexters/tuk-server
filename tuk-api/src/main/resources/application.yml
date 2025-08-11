@@ -51,6 +51,12 @@ jwt:
   refresh-token:
     expires-in-days: 90
 
+slack:
+  tokens:
+    error-alert: ${SLACK_ERROR_ALERT_TOKEN}
+  channels:
+    error-alert: C099EEB4SQ7
+
 ---
 spring:
   config:

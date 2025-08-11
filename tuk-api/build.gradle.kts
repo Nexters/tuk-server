@@ -59,6 +59,12 @@ dependencies {
     // firebase
     implementation("com.google.firebase:firebase-admin:${properties["firebaseVersion"]}")
 
+    // slack
+    implementation("com.slack.api:slack-api-client:${properties["slackApiVersion"]}")
+    
+    // kotlin logging
+    implementation("io.github.microutils:kotlin-logging-jvm:${properties["kotlinLoggingVersion"]}")
+
     // queryDsl
     implementation("com.querydsl:querydsl-core:${properties["queryDslVersion"]}")
     implementation("com.querydsl:querydsl-jpa:${properties["queryDslVersion"]}:jakarta")
