@@ -3,6 +3,7 @@ package nexters.tuk.infrastructure.slack
 import com.slack.api.methods.MethodsClient
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
@@ -13,7 +14,8 @@ class SlackAlertSender(
     @Value("\${slack.channels.error-alert}")
     private val alertChannel: String,
 ) {
-    
+
+    @Async
     fun sendAlert(slackErrorAlert: SlackErrorAlert) {
         alertChannel.takeIf { it.isNotBlank() }
             ?.let { channel ->

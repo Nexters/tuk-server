@@ -13,8 +13,7 @@ data class SlackErrorAlert(
     val httpMethod: String,
     val path: String,
     val occurredAt: ZonedDateTime,
-    val errorMessage: String,
-    val requestParamsJson: String
+    val errorMessage: String
 ) {
     private fun kstString(): String =
         occurredAt.withZoneSameInstant(ZoneId.of("Asia/Seoul"))
@@ -50,11 +49,6 @@ data class SlackErrorAlert(
         val errorMd = "❌ *에러 메시지*\n```$errorMessage```"
         blocks += Blocks.section { it.text(MarkdownTextObject(errorMd, false)) }
 
-        // 요청 파라미터(코드블록, 비어있지 않을 때만)
-        if (requestParamsJson.isNotBlank()) {
-            val paramsMd = "📦 *요청 파라미터*\n```$requestParamsJson```"
-            blocks += Blocks.section { it.text(MarkdownTextObject(paramsMd, false)) }
-        }
 
         return blocks
     }
