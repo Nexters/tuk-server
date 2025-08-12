@@ -2,7 +2,6 @@ package nexters.tuk.config
 
 import org.slf4j.LoggerFactory
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler
-import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.AsyncConfigurer

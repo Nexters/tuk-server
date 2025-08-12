@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import nexters.tuk.contract.ApiResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
-import nexters.tuk.application.alert.ErrorAlert
-import nexters.tuk.application.alert.ErrorAlertSender
+import nexters.tuk.application.alert.ApiErrorAlert
+import nexters.tuk.application.alert.ApiErrorAlertSender
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -21,22 +21,20 @@ import java.time.ZonedDateTime
 
 @RestControllerAdvice
 class ApiControllerAdvice(
-    private val errorAlertSender: ErrorAlertSender
+    private val errorAlertSender: ApiErrorAlertSender
 ) {
     private val log = LoggerFactory.getLogger(ApiControllerAdvice::class.java)
 
     @ExceptionHandler
     fun handle(e: BaseException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         log.warn("BaseException : {}", e.message, e)
-        sendSlackAlert(request, e.errorType, e.message)
-        return failureResponse(errorType = e.errorType, errorMessage = e.message)
+        return failureResponse(request, e.errorType, e.message)
     }
 
     @ExceptionHandler
     fun handle(e: IllegalArgumentException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         log.warn("BaseException : {}", e.message, e)
-        sendSlackAlert(request, ErrorType.BAD_REQUEST, e.message)
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = e.message)
+        return failureResponse(request, ErrorType.BAD_REQUEST, e.message)
     }
 
     @ExceptionHandler
@@ -44,8 +42,7 @@ class ApiControllerAdvice(
         val name = e.methodParameter?.parameter?.name
         val type = e.methodParameter?.parameter?.type?.simpleName
         val message = "필수 요청 파라미터 '$name' (타입: $type)가 누락되었습니다."
-        sendSlackAlert(request, ErrorType.BAD_REQUEST, message)
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = message)
+        return failureResponse(request, ErrorType.BAD_REQUEST, message)
     }
 
     @ExceptionHandler
@@ -83,8 +80,7 @@ class ApiControllerAdvice(
             else -> "요청 본문을 처리하는 중 오류가 발생했습니다. JSON 메세지 규격을 확인해주세요."
         }
 
-        sendSlackAlert(request, ErrorType.BAD_REQUEST, errorMessage)
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = errorMessage)
+        return failureResponse(request, ErrorType.BAD_REQUEST, errorMessage)
     }
 
     @ExceptionHandler
@@ -124,32 +120,27 @@ class ApiControllerAdvice(
             else -> "요청 본문을 처리하는 중 오류가 발생했습니다. JSON 메세지 규격을 확인해주세요."
         }
 
-        sendSlackAlert(request, ErrorType.BAD_REQUEST, errorMessage)
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = errorMessage)
+        return failureResponse(request, ErrorType.BAD_REQUEST, errorMessage)
     }
 
     @ExceptionHandler
     fun handleNotFound(e: NoResourceFoundException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         val message = "리소스를 찾을 수 없습니다: ${request.requestURI}"
-        sendSlackAlert(request, ErrorType.NOT_FOUND, message)
-        return failureResponse(errorType = ErrorType.NOT_FOUND)
+        return failureResponse(request, ErrorType.NOT_FOUND, message)
     }
 
     @ExceptionHandler
     fun handle(e: Throwable, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         log.error("Exception : {}", e.message, e)
         val message = e.message ?: "알 수 없는 서버 오류가 발생했습니다"
-        sendSlackAlert(request, ErrorType.INTERNAL_ERROR, message)
-        return failureResponse(errorType = ErrorType.INTERNAL_ERROR)
+        return failureResponse(request, ErrorType.INTERNAL_ERROR, message)
     }
 
-    private fun sendSlackAlert(request: HttpServletRequest, errorType: ErrorType, errorMessage: String? = null) {
-        errorAlertSender.sendAlert(ErrorAlert(errorType.status.value(), request.method, request.requestURI, ZonedDateTime.now(), errorMessage ?: errorType.message))
-    }
-
-    private fun failureResponse(errorType: ErrorType, errorMessage: String? = null): ResponseEntity<ApiResponse<*>> =
-        ResponseEntity(
+    private fun failureResponse(request: HttpServletRequest, errorType: ErrorType, errorMessage: String? = null): ResponseEntity<ApiResponse<*>> {
+        errorAlertSender.sendError(ApiErrorAlert(errorType.status.value(), request.method, request.requestURI, ZonedDateTime.now(), errorMessage ?: errorType.message))
+        return ResponseEntity(
             ApiResponse.fail(errorType = errorType, errorMessage = errorMessage ?: errorType.message),
             errorType.status,
         )
+    }
 }
