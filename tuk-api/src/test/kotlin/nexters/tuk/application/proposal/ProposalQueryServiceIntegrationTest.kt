@@ -69,7 +69,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member1.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -80,7 +80,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
-        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.pageNumber).isEqualTo(1)
         assertThat(result.content).hasSize(2)
 
         val gatheringNames = result.content.map { it.gatheringName }
@@ -97,7 +97,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -108,7 +108,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
-        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.pageNumber).isEqualTo(1)
         // unread count no longer available in SliceResponse
         assertThat(result.content).isEmpty()
     }
@@ -137,7 +137,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             ProposalQuery.MemberProposals(
                 memberId = member.id,
                 page = SliceRequest(
-                    pageNumber = 0,
+                    pageNumber = 1,
                     pageSize = 10
                 )
             )
@@ -147,7 +147,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             ProposalQuery.MemberProposals(
                 memberId = member.id,
                 page = SliceRequest(
-                    pageNumber = 1,
+                    pageNumber = 2,
                     pageSize = 10
                 )
             )
@@ -156,13 +156,13 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(firstPageResult.hasNext).isTrue() // 15개 > 10개이므로 다음 페이지 존재
         assertThat(firstPageResult.size).isEqualTo(10)
-        assertThat(firstPageResult.pageNumber).isEqualTo(0)
+        assertThat(firstPageResult.pageNumber).isEqualTo(1)
         // unread count no longer available in SliceResponse
         assertThat(firstPageResult.content).hasSize(10)
 
         assertThat(secondPageResult.hasNext).isFalse() // 5개 < 10개이므로 다음 페이지 없음
         assertThat(secondPageResult.size).isEqualTo(10)
-        assertThat(secondPageResult.pageNumber).isEqualTo(1)
+        assertThat(secondPageResult.pageNumber).isEqualTo(2)
         // unread count no longer available in SliceResponse
         assertThat(secondPageResult.content).hasSize(5)
     }
@@ -189,7 +189,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -225,7 +225,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val member1Query = ProposalQuery.MemberProposals(
             memberId = member1.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -234,7 +234,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val member2Query = ProposalQuery.MemberProposals(
             memberId = member2.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -280,7 +280,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -320,7 +320,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -360,7 +360,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -404,7 +404,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -435,7 +435,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         val query = ProposalQuery.MemberProposals(
             memberId = member.id,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -480,7 +480,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -491,7 +491,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
-        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.pageNumber).isEqualTo(1)
         assertThat(result.content).hasSize(2) // member1이 보낸 제안만 2개
 
         val purposes = result.content.map { it.purpose }
@@ -529,7 +529,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             gatheringId = gathering.id,
             type = ProposalDirection.RECEIVED,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -540,7 +540,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
-        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.pageNumber).isEqualTo(1)
         assertThat(result.content).hasSize(2) // member1이 받은 제안만 2개
 
         val purposes = result.content.map { it.purpose }
@@ -564,7 +564,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -575,7 +575,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(result.hasNext).isFalse()
         assertThat(result.size).isEqualTo(10)
-        assertThat(result.pageNumber).isEqualTo(0)
+        assertThat(result.pageNumber).isEqualTo(1)
         assertThat(result.content).isEmpty()
     }
 
@@ -607,7 +607,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
                 gatheringId = gathering.id,
                 type = ProposalDirection.SENT,
                 page = SliceRequest(
-                    pageNumber = 0,
+                    pageNumber = 1,
                     pageSize = 10
                 )
             )
@@ -619,7 +619,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
                 gatheringId = gathering.id,
                 type = ProposalDirection.SENT,
                 page = SliceRequest(
-                    pageNumber = 1,
+                    pageNumber = 2,
                     pageSize = 10
                 )
             )
@@ -628,12 +628,12 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
         // then
         assertThat(firstPageResult.hasNext).isTrue() // 15개 > 10개이므로 다음 페이지 존재
         assertThat(firstPageResult.size).isEqualTo(10)
-        assertThat(firstPageResult.pageNumber).isEqualTo(0)
+        assertThat(firstPageResult.pageNumber).isEqualTo(1)
         assertThat(firstPageResult.content).hasSize(10)
 
         assertThat(secondPageResult.hasNext).isFalse() // 5개 < 10개이므로 다음 페이지 없음
         assertThat(secondPageResult.size).isEqualTo(10)
-        assertThat(secondPageResult.pageNumber).isEqualTo(1)
+        assertThat(secondPageResult.pageNumber).isEqualTo(2)
         assertThat(secondPageResult.content).hasSize(5)
     }
 
@@ -666,7 +666,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             gatheringId = gathering1.id,
             type = ProposalDirection.SENT,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -710,7 +710,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )
@@ -741,7 +741,7 @@ class ProposalQueryServiceIntegrationTest @Autowired constructor(
             gatheringId = gathering.id,
             type = ProposalDirection.SENT,
             page = SliceRequest(
-                pageNumber = 0,
+                pageNumber = 1,
                 pageSize = 10
             )
         )

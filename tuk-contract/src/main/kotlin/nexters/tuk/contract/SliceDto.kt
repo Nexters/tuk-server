@@ -2,8 +2,8 @@ package nexters.tuk.contract
 
 class SliceDto {
     data class SliceRequest(
-        val pageNumber: Long,
-        val pageSize: Long,
+        val pageNumber: Long = 1,
+        val pageSize: Long = 10,
     )
 
     data class SliceResponse<T>(
