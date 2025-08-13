@@ -51,6 +51,13 @@ jwt:
   refresh-token:
     expires-in-days: 90
 
+slack:
+  tokens:
+    error-alert: ${SLACK_ERROR_ALERT_TOKEN}
+  channels:
+    error-alert: C099EEB4SQ7
+  enabled: true
+
 ---
 spring:
   config:
@@ -107,3 +114,9 @@ jwt:
 firebase:
   admin-sdk: ${ENCODED_FIREBASE_ADMIN_SDK}
   enabled: false
+
+slack:
+  tokens:
+    error-alert: ${SLACK_ERROR_ALERT_TOKEN:xoxb-myVeryLongSlackTokenThatIsAtLeast64CharactersLongForDevelopment}
+  channels:
+    error-alert: C099EEB4SQ7

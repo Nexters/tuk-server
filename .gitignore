@@ -41,3 +41,5 @@ out/
 
 *.env
 firebase-adminsdk.json
+
+.claude/*

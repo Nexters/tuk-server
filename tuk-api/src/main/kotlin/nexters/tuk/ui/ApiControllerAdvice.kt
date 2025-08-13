@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import nexters.tuk.contract.ApiResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
+import nexters.tuk.application.alert.ApiErrorAlert
+import nexters.tuk.application.alert.ApiErrorAlertSender
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -14,33 +16,37 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.MissingRequestValueException
 import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import jakarta.servlet.http.HttpServletRequest
+import java.time.ZonedDateTime
 
 @RestControllerAdvice
-class ApiControllerAdvice {
+class ApiControllerAdvice(
+    private val errorAlertSender: ApiErrorAlertSender
+) {
     private val log = LoggerFactory.getLogger(ApiControllerAdvice::class.java)
 
     @ExceptionHandler
-    fun handle(e: BaseException): ResponseEntity<ApiResponse<*>> {
+    fun handle(e: BaseException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         log.warn("BaseException : {}", e.message, e)
-        return failureResponse(errorType = e.errorType, errorMessage = e.message)
+        return failureResponse(request, e.errorType, e.message)
     }
 
     @ExceptionHandler
-    fun handle(e: IllegalArgumentException): ResponseEntity<ApiResponse<*>> {
+    fun handle(e: IllegalArgumentException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         log.warn("BaseException : {}", e.message, e)
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = e.message)
+        return failureResponse(request, ErrorType.BAD_REQUEST, e.message)
     }
 
     @ExceptionHandler
-    fun handle(e: MissingRequestValueException): ResponseEntity<ApiResponse<*>> {
+    fun handle(e: MissingRequestValueException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         val name = e.methodParameter?.parameter?.name
         val type = e.methodParameter?.parameter?.type?.simpleName
         val message = "필수 요청 파라미터 '$name' (타입: $type)가 누락되었습니다."
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = message)
+        return failureResponse(request, ErrorType.BAD_REQUEST, message)
     }
 
     @ExceptionHandler
-    fun handle(e: HttpMessageNotReadableException): ResponseEntity<ApiResponse<*>> {
+    fun handle(e: HttpMessageNotReadableException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         val errorMessage = when (val rootCause = e.rootCause) {
             is InvalidFormatException -> {
                 val fieldName = rootCause.path.joinToString(".") { it.fieldName ?: "?" }
@@ -74,11 +80,11 @@ class ApiControllerAdvice {
             else -> "요청 본문을 처리하는 중 오류가 발생했습니다. JSON 메세지 규격을 확인해주세요."
         }
 
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = errorMessage)
+        return failureResponse(request, ErrorType.BAD_REQUEST, errorMessage)
     }
 
     @ExceptionHandler
-    fun handleBadRequest(e: ServerWebInputException): ResponseEntity<ApiResponse<*>> {
+    fun handleBadRequest(e: ServerWebInputException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         val errorMessage = when (val rootCause = e.rootCause) {
             is InvalidFormatException -> {
                 val fieldName = rootCause.path.joinToString(".") { it.fieldName ?: "?" }
@@ -114,24 +120,27 @@ class ApiControllerAdvice {
             else -> "요청 본문을 처리하는 중 오류가 발생했습니다. JSON 메세지 규격을 확인해주세요."
         }
 
-        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = errorMessage)
+        return failureResponse(request, ErrorType.BAD_REQUEST, errorMessage)
     }
 
     @ExceptionHandler
-    fun handleNotFound(e: NoResourceFoundException): ResponseEntity<ApiResponse<*>> {
-        return failureResponse(errorType = ErrorType.NOT_FOUND)
+    fun handleNotFound(e: NoResourceFoundException, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
+        val message = "리소스를 찾을 수 없습니다: ${request.requestURI}"
+        return failureResponse(request, ErrorType.NOT_FOUND, message)
     }
 
     @ExceptionHandler
-    fun handle(e: Throwable): ResponseEntity<ApiResponse<*>> {
+    fun handle(e: Throwable, request: HttpServletRequest): ResponseEntity<ApiResponse<*>> {
         log.error("Exception : {}", e.message, e)
-        val errorType = ErrorType.INTERNAL_ERROR
-        return failureResponse(errorType = errorType)
+        val message = e.message ?: "알 수 없는 서버 오류가 발생했습니다"
+        return failureResponse(request, ErrorType.INTERNAL_ERROR, message)
     }
 
-    private fun failureResponse(errorType: ErrorType, errorMessage: String? = null): ResponseEntity<ApiResponse<*>> =
-        ResponseEntity(
+    private fun failureResponse(request: HttpServletRequest, errorType: ErrorType, errorMessage: String? = null): ResponseEntity<ApiResponse<*>> {
+        errorAlertSender.sendError(ApiErrorAlert(errorType.status.value(), request.method, request.requestURI, ZonedDateTime.now(), errorMessage ?: errorType.message))
+        return ResponseEntity(
             ApiResponse.fail(errorType = errorType, errorMessage = errorMessage ?: errorType.message),
             errorType.status,
         )
+    }
 }
