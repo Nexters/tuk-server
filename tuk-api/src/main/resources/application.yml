@@ -89,6 +89,12 @@ oauth:
     client-id: ${APPLE_CLIENT_ID}
     jwk-url: https://appleid.apple.com/auth/keys
     base-url: https://appleid.apple.com
+slack:
+  tokens:
+    error-alert: ${SLACK_ERROR_ALERT_TOKEN}
+  channels:
+    error-alert: C099EEB4SQ7
+  enabled: true
 
 ---
 spring:
