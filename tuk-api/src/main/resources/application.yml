@@ -29,6 +29,7 @@ firebase:
 springdoc:
   swagger-ui:
     path: /tuk-docs
+  use-fqn: true
 
 management:
   endpoints:
