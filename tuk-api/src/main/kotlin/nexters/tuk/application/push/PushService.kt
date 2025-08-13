@@ -46,7 +46,7 @@ class PushService(
                 message = PushCommand.MessagePayload(
                     title = pushMessage.getTitle(
                         memberNameMap[token.memberId]
-                            ?: throw IllegalArgumentException("Member name not found for ID: ${token.memberId}")
+                            ?: return@forEach
                     ),
                     body = pushMessage.body
                 )
