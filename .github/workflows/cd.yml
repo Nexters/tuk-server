@@ -103,7 +103,7 @@ jobs:
                  docker-compose up -d
             
             # 불필요한 Docker 이미지 정리
-            sudo docker image prune -a
+            sudo docker image prune -a -f
             
             if ! sudo crontab -l 2>/dev/null | grep -q "certbot renew"; then
               echo "Setting up SSL auto-renewal..."
