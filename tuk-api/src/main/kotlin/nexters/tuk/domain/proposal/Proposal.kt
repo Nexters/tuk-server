@@ -29,6 +29,7 @@ class Proposal private constructor(
     }
 
     fun registerGathering(gatheringId: Long) {
+        require(this.gatheringId == null) { "이미 모임이 등록된 초대장입니다." }
         this.gatheringId = gatheringId
     }
 }

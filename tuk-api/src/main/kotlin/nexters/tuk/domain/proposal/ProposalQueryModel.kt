@@ -13,8 +13,8 @@ class ProposalQueryModel {
 
     data class ProposalDetail(
         val id: Long,
-        val gatheringId: Long,
-        val gatheringName: String,
+        val gatheringId: Long?,
+        val gatheringName: String?,
         val purpose: String,
         val createdAt: LocalDateTime,
     )

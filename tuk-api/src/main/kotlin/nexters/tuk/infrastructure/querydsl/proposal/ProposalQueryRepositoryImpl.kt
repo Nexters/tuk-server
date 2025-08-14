@@ -124,7 +124,7 @@ class ProposalQueryRepositoryImpl(
                 qProposal.createdAt
             )
         ).from(qProposal)
-            .join(qGathering).on(qGathering.id.eq(qProposal.gatheringId))
+            .leftJoin(qGathering).on(qGathering.id.eq(qProposal.gatheringId))
             .where(
                 qProposal.id.eq(proposalId)
             )

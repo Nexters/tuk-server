@@ -43,7 +43,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(hostMember = host)
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = gathering.id,
+            gatheringId = null,
             purpose = ProposalPurposeInfo(
                 whereTag = "카페",
                 whenTag = "오후 3시",
@@ -60,7 +60,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val savedProposal = proposalRepository.findById(result.proposalId).orElse(null)
         assertThat(savedProposal).isNotNull
         assertThat(savedProposal.proposerId).isEqualTo(host.id)
-        assertThat(savedProposal.gatheringId).isEqualTo(gathering.id)
+        assertThat(savedProposal.gatheringId).isNull()
         assertThat(savedProposal.purpose).isEqualTo("카페\n오후 3시\n커피 모임")
     }
 
@@ -73,14 +73,23 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(hostMember = host)
 
         // host가 보낸 제안 2개
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "첫번째 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "두번째 제안"))
+        val hostProposal1 = Proposal.publish(host.id, "첫번째 제안")
+        hostProposal1.registerGathering(gathering.id)
+        proposalRepository.save(hostProposal1)
+        
+        val hostProposal2 = Proposal.publish(host.id, "두번째 제안")
+        hostProposal2.registerGathering(gathering.id)
+        proposalRepository.save(hostProposal2)
 
         // member1이 보낸 제안 1개
-        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "멤버1 제안"))
+        val member1Proposal = Proposal.publish(member1.id, "멤버1 제안")
+        member1Proposal.registerGathering(gathering.id)
+        proposalRepository.save(member1Proposal)
 
         // member2가 보낸 제안 1개
-        proposalRepository.save(Proposal.publish(gathering.id, member2.id, "멤버2 제안"))
+        val member2Proposal = Proposal.publish(member2.id, "멤버2 제안")
+        member2Proposal.registerGathering(gathering.id)
+        proposalRepository.save(member2Proposal)
 
         // when - host 관점에서 통계 조회
         val hostStat = proposalService.getGatheringProposalStat(gathering.id, host.id)
@@ -114,13 +123,26 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val gathering2 = gatheringFixture.createGathering(hostMember = host)
 
         // gathering1에 제안들
-        proposalRepository.save(Proposal.publish(gathering1.id, host.id, "gathering1 제안1"))
-        proposalRepository.save(Proposal.publish(gathering1.id, member.id, "gathering1 제안2"))
+        val g1Proposal1 = Proposal.publish(host.id, "gathering1 제안1")
+        g1Proposal1.registerGathering(gathering1.id)
+        proposalRepository.save(g1Proposal1)
+        
+        val g1Proposal2 = Proposal.publish(member.id, "gathering1 제안2")
+        g1Proposal2.registerGathering(gathering1.id)
+        proposalRepository.save(g1Proposal2)
 
         // gathering2에 제안들  
-        proposalRepository.save(Proposal.publish(gathering2.id, host.id, "gathering2 제안1"))
-        proposalRepository.save(Proposal.publish(gathering2.id, host.id, "gathering2 제안2"))
-        proposalRepository.save(Proposal.publish(gathering2.id, member.id, "gathering2 제안3"))
+        val g2Proposal1 = Proposal.publish(host.id, "gathering2 제안1")
+        g2Proposal1.registerGathering(gathering2.id)
+        proposalRepository.save(g2Proposal1)
+        
+        val g2Proposal2 = Proposal.publish(host.id, "gathering2 제안2")
+        g2Proposal2.registerGathering(gathering2.id)
+        proposalRepository.save(g2Proposal2)
+        
+        val g2Proposal3 = Proposal.publish(member.id, "gathering2 제안3")
+        g2Proposal3.registerGathering(gathering2.id)
+        proposalRepository.save(g2Proposal3)
 
         // when - gathering1에 대한 host의 통계
         val stat = proposalService.getGatheringProposalStat(gathering1.id, host.id)
@@ -137,8 +159,13 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(hostMember = host)
 
         // host 혼자만 제안을 보냄
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "혼자 제안1"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "혼자 제안2"))
+        val soloProposal1 = Proposal.publish(host.id, "혼자 제안1")
+        soloProposal1.registerGathering(gathering.id)
+        proposalRepository.save(soloProposal1)
+        
+        val soloProposal2 = Proposal.publish(host.id, "혼자 제안2")
+        soloProposal2.registerGathering(gathering.id)
+        proposalRepository.save(soloProposal2)
 
         // when
         val stat = proposalService.getGatheringProposalStat(gathering.id, host.id)
@@ -159,19 +186,36 @@ class ProposalServiceIntegrationTest @Autowired constructor(
 
         // 다양한 멤버들이 제안을 보냄
         // host: 3개
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "host 제안1"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "host 제안2"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "host 제안3"))
+        val hostP1 = Proposal.publish(host.id, "host 제안1")
+        hostP1.registerGathering(gathering.id)
+        proposalRepository.save(hostP1)
+        
+        val hostP2 = Proposal.publish(host.id, "host 제안2")
+        hostP2.registerGathering(gathering.id)
+        proposalRepository.save(hostP2)
+        
+        val hostP3 = Proposal.publish(host.id, "host 제안3")
+        hostP3.registerGathering(gathering.id)
+        proposalRepository.save(hostP3)
 
         // member1: 2개
-        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "member1 제안1"))
-        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "member1 제안2"))
+        val m1P1 = Proposal.publish(member1.id, "member1 제안1")
+        m1P1.registerGathering(gathering.id)
+        proposalRepository.save(m1P1)
+        
+        val m1P2 = Proposal.publish(member1.id, "member1 제안2")
+        m1P2.registerGathering(gathering.id)
+        proposalRepository.save(m1P2)
 
         // member2: 1개
-        proposalRepository.save(Proposal.publish(gathering.id, member2.id, "member2 제안1"))
+        val m2P1 = Proposal.publish(member2.id, "member2 제안1")
+        m2P1.registerGathering(gathering.id)
+        proposalRepository.save(m2P1)
 
         // member3: 1개
-        proposalRepository.save(Proposal.publish(gathering.id, member3.id, "member3 제안1"))
+        val m3P1 = Proposal.publish(member3.id, "member3 제안1")
+        m3P1.registerGathering(gathering.id)
+        proposalRepository.save(m3P1)
 
         // when - member1 관점에서 통계
         val member1Stat = proposalService.getGatheringProposalStat(gathering.id, member1.id)

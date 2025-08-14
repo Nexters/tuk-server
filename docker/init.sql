@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS gathering_member
 CREATE TABLE IF NOT EXISTS proposal
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    gathering_id BIGINT       NOT NULL,
+    gathering_id BIGINT,
     member_id    BIGINT       NOT NULL,
     purpose      VARCHAR(255) NOT NULL,
     created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
