@@ -18,7 +18,8 @@ class WebMvcConfig(
         registry.addMapping("/**")
             .allowedOrigins("http://localhost:3000", "https://tuk.kr", "https://www.tuk.kr")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            .allowedHeaders("*")
+            .allowedHeaders("Content-Type", "Authorization", "X-Requested-With", "Accept")
             .allowCredentials(true)
+            .maxAge(3600)
     }
 }
