@@ -1,5 +1,6 @@
 package nexters.tuk.job
 
+import nexters.tuk.application.GatheringService
 import nexters.tuk.contract.push.PushType
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.push.PushApiClient
@@ -16,6 +17,7 @@ import java.time.LocalDateTime
 @Component
 class GatheringPushCheckJob(
     private val gatheringRepository: GatheringRepository,
+    private val gatheringService: GatheringService,
     private val pushApiClient: PushApiClient,
 ) : AbstractJob<CronTrigger>(), TukJob {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -44,10 +46,10 @@ class GatheringPushCheckJob(
                         pushType = PushType.GATHERING_NOTIFICATION
                     )
                 )
+                gatheringService.updatePushStatus(gatheringId = gathering.id)
 
                 logger.info("[알림 전송 완료] 모임 ID: ${gathering.id})")
             }
-            gatheringRepository.findById(id = gathering.id)?.updatePushStatus()
         }
         logger.info("[GatheringPushCheckJob] 모임 푸시 알림 체크 완료")
     }
