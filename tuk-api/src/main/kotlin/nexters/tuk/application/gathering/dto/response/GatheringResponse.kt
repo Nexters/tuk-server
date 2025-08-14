@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import nexters.tuk.application.gathering.vo.RelativeTime
 
 class GatheringResponse {
-    @Schema(name = "GenerateResponse")
     data class Generate(
         @Schema(description = "생성된 모임 id")
         val gatheringId: Long,
@@ -16,7 +15,6 @@ class GatheringResponse {
         val intervalDays: Long,
     )
 
-    @Schema(name = "GatheringOverviewsResponse")
     data class GatheringOverviews(
         @Schema(description = "총 데이터 수")
         val totalCount: Int,
@@ -33,7 +31,6 @@ class GatheringResponse {
         )
     }
 
-    @Schema(name = "GatheringDetailResponse")
     data class GatheringDetail(
         @Schema(description = "모임 id")
         val gatheringId: Long,

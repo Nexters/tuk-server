@@ -38,13 +38,12 @@ class ProposalMemberServiceIntegrationTest @Autowired constructor(
         val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
         val member3 = memberFixture.createMember(socialId = "member3", email = "member3@test.com")
 
-        val proposal = proposalRepository.save(
-            Proposal.publish(
-                gatheringId = 1L,
-                proposerId = host.id,
-                purpose = "테스트 제안"
-            )
+        val proposal = Proposal.publish(
+            proposerId = host.id,
+            purpose = "테스트 제안"
         )
+        proposal.registerGathering(1L)
+        proposalRepository.save(proposal)
 
         val memberIds = listOf(member1.id, member2.id, member3.id)
 
@@ -77,13 +76,12 @@ class ProposalMemberServiceIntegrationTest @Autowired constructor(
         val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
         val member = memberFixture.createMember(socialId = "member", email = "member@test.com")
 
-        val proposal = proposalRepository.save(
-            Proposal.publish(
-                gatheringId = 1L,
-                proposerId = host.id,
-                purpose = "단일 멤버 제안"
-            )
+        val proposal = Proposal.publish(
+            proposerId = host.id,
+            purpose = "단일 멤버 제안"
         )
+        proposal.registerGathering(1L)
+        proposalRepository.save(proposal)
 
         val memberIds = listOf(member.id)
 
@@ -104,13 +102,12 @@ class ProposalMemberServiceIntegrationTest @Autowired constructor(
         // given
         val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
 
-        val proposal = proposalRepository.save(
-            Proposal.publish(
-                gatheringId = 1L,
-                proposerId = host.id,
-                purpose = "빈 멤버 목록 테스트"
-            )
+        val proposal = Proposal.publish(
+            proposerId = host.id,
+            purpose = "빈 멤버 목록 테스트"
         )
+        proposal.registerGathering(1L)
+        proposalRepository.save(proposal)
 
         val emptyMemberIds = emptyList<Long>()
 
@@ -146,13 +143,12 @@ class ProposalMemberServiceIntegrationTest @Autowired constructor(
         val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
         val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
 
-        val proposal = proposalRepository.save(
-            Proposal.publish(
-                gatheringId = 1L,
-                proposerId = host.id,
-                purpose = "중복 멤버 테스트"
-            )
+        val proposal = Proposal.publish(
+            proposerId = host.id,
+            purpose = "중복 멤버 테스트"
         )
+        proposal.registerGathering(1L)
+        proposalRepository.save(proposal)
 
         val memberIds = listOf(member1.id, member2.id, member1.id) // member1 중복
 
@@ -176,21 +172,19 @@ class ProposalMemberServiceIntegrationTest @Autowired constructor(
         val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
         val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
 
-        val proposal1 = proposalRepository.save(
-            Proposal.publish(
-                gatheringId = 1L,
-                proposerId = host.id,
-                purpose = "첫번째 제안"
-            )
+        val proposal1 = Proposal.publish(
+            proposerId = host.id,
+            purpose = "첫번째 제안"
         )
+        proposal1.registerGathering(1L)
+        proposalRepository.save(proposal1)
 
-        val proposal2 = proposalRepository.save(
-            Proposal.publish(
-                gatheringId = 2L,
-                proposerId = host.id,
-                purpose = "두번째 제안"
-            )
+        val proposal2 = Proposal.publish(
+            proposerId = host.id,
+            purpose = "두번째 제안"
         )
+        proposal2.registerGathering(2L)
+        proposalRepository.save(proposal2)
 
         // when
         val result1 = proposalMemberService.publishGatheringMembers(proposal1.id, listOf(member1.id))

@@ -15,7 +15,6 @@ class ProposalResponse {
         val proposalId: Long,
     )
 
-    @Schema(name = "ProposalOverviewResponse")
     data class ProposalOverview(
         val proposalId: Long,
         val gatheringName: String,
@@ -23,11 +22,10 @@ class ProposalResponse {
         val relativeTime: RelativeTime,
     )
 
-    @Schema(name = "ProposalDetailResponse")
     data class ProposalDetail(
         val proposalId: Long,
-        val gatheringId: Long,
-        val gatheringName: String,
+        val gatheringId: Long?,
+        val gatheringName: String?,
         val purpose: String,
         val relativeTime: RelativeTime,
     )

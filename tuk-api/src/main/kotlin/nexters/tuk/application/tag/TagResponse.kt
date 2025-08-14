@@ -1,9 +1,7 @@
 package nexters.tuk.application.tag
 
-import io.swagger.v3.oas.annotations.media.Schema
 
 class TagResponse {
-    @Schema(name = "categorizedTags")
     data class CategorizedTags(
         val categories: List<CategoryGroup>
     ) {

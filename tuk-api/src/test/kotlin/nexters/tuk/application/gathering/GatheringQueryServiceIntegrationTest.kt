@@ -113,9 +113,17 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
 
         // 제안 생성 (보낸 제안 2개, 받은 제안 1개)
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "모임 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "모임 제안"))
+        val proposal1 = Proposal.publish(host.id, "모임 제안")
+        proposal1.registerGathering(gathering.id)
+        proposalRepository.save(proposal1)
+        
+        val proposal2 = Proposal.publish(host.id, "모임 제안")
+        proposal2.registerGathering(gathering.id)
+        proposalRepository.save(proposal2)
+        
+        val proposal3 = Proposal.publish(member1.id, "모임 제안")
+        proposal3.registerGathering(gathering.id)
+        proposalRepository.save(proposal3)
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -228,9 +236,17 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
 
         // 다양한 상태의 제안 생성
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "첫번째 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, host.id, "두번째 제안"))
-        proposalRepository.save(Proposal.publish(gathering.id, member1.id, "역제안"))
+        val proposal1 = Proposal.publish(host.id, "첫번째 제안")
+        proposal1.registerGathering(gathering.id)
+        proposalRepository.save(proposal1)
+        
+        val proposal2 = Proposal.publish(host.id, "두번째 제안")
+        proposal2.registerGathering(gathering.id)
+        proposalRepository.save(proposal2)
+        
+        val proposal3 = Proposal.publish(member1.id, "역제안")
+        proposal3.registerGathering(gathering.id)
+        proposalRepository.save(proposal3)
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 

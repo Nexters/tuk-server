@@ -1,18 +1,17 @@
 package nexters.tuk.ui.gathering
 
-import nexters.tuk.application.proposal.dto.request.ProposalCommand
-import nexters.tuk.application.proposal.vo.ProposalPurposeInfo
+import nexters.tuk.application.gathering.dto.request.GatheringProposalCommand
 
 class GatheringProposalDto {
     class Request {
-        data class Publish(
-            val purpose: ProposalPurposeInfo,
+        data class AddProposal(
+            val proposalId: Long
         ) {
-            fun toCommand(memberId: Long, gatheringId: Long): ProposalCommand.Propose {
-                return ProposalCommand.Propose(
+            fun toCommand(memberId: Long, gatheringId: Long): GatheringProposalCommand.AddProposal {
+                return GatheringProposalCommand.AddProposal(
                     memberId = memberId,
                     gatheringId = gatheringId,
-                    purpose = purpose
+                    proposalId = proposalId
                 )
             }
         }

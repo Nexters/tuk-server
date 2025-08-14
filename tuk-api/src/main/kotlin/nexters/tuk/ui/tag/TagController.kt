@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("api/v1/tags")
+@RequestMapping("/api/v1/tags")
 class TagController(
     private val tagService: TagService
 ) : TagSpec {

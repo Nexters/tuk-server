@@ -7,7 +7,7 @@ import nexters.tuk.ui.resolver.Authenticated
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("api/v1/onboarding")
+@RequestMapping("/api/v1/onboarding")
 class OnboardingController(
     private val onboardingService: OnboardingService
 ) : OnboardingSpec {
