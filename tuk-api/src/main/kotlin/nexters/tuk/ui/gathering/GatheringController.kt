@@ -12,7 +12,7 @@ import nexters.tuk.ui.resolver.Authenticated
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("api/v1/gatherings")
+@RequestMapping("/api/v1/gatherings")
 class GatheringController(
     private val gatheringCommandService: GatheringCommandService,
     private val gatheringGenerateService: GatheringGenerateService,
