@@ -19,7 +19,6 @@ class MemberResponse {
         val memberName: String,
     )
 
-    @Schema(name = "OnboardingResponse")
     data class Onboarding(
         val memberId: Long,
         val name: String
