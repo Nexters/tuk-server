@@ -17,7 +17,7 @@ class CorsConfig {
             allowedOriginPatterns = listOf(
                 "http://localhost:3000",
                 "https://tuk.kr",
-                "https://www.tuk.kr"
+                "https://*.tuk.kr"
             )
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             allowedHeaders = listOf("Content-Type", "Authorization", "X-Requested-With", "Accept")
