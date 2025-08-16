@@ -42,7 +42,7 @@ class GatheringPushCheckJob(
             if (nextNotificationTime <= LocalDateTime.now()) {
                 pushApiClient.sendPushNotification(
                     PushDto.Push(
-                        recipients = gathering.memberIds.map { PushRecipient(it) },
+                        gatheringId = gathering.id,
                         pushType = PushType.GATHERING_NOTIFICATION
                     )
                 )
