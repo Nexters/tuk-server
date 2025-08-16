@@ -99,7 +99,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    fun `모임 상세 정보를 정상적으로 조회한다`() {
+    fun `호스트가 모임 상세를 조회할 때 모든 정보가 올바르게 설정된다`() {
         // given
         val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
         val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
@@ -130,7 +130,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         // when
         val result = gatheringQueryService.getGatheringDetail(query)
 
-        // then
+        // then - 기본 정보
         assertThat(result.gatheringId).isEqualTo(gathering.id)
         assertThat(result.gatheringIntervalDays).isEqualTo(gathering.intervalDays)
         assertThat(result.gatheringName).isEqualTo("테스트 모임")
@@ -138,9 +138,23 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.sentProposalCount).isEqualTo(2)
         assertThat(result.receivedProposalCount).isEqualTo(1)
         assertThat(result.members).hasSize(3)
+        assertThat(result.isHost).isTrue()
 
-        val memberNames = result.members.map { it.memberName }
-        assertThat(memberNames).containsExactlyInAnyOrder("테스트사용자", "테스트사용자", "테스트사용자")
+        // then - isMe와 isHost 검증
+        val hostMember = result.members.find { it.memberId == host.id }
+        assertThat(hostMember).isNotNull
+        assertThat(hostMember!!.isMe).isTrue()
+        assertThat(hostMember.isHost).isTrue()
+
+        val member1Info = result.members.find { it.memberId == member1.id }
+        assertThat(member1Info).isNotNull
+        assertThat(member1Info!!.isMe).isFalse()
+        assertThat(member1Info.isHost).isFalse()
+
+        val member2Info = result.members.find { it.memberId == member2.id }
+        assertThat(member2Info).isNotNull
+        assertThat(member2Info!!.isMe).isFalse()
+        assertThat(member2Info.isHost).isFalse()
     }
 
     @Test
@@ -200,7 +214,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
     }
 
     @Test
-    fun `혼자만 있는 모임의 상세 정보를 조회한다`() {
+    fun `혼자만 있는 모임에서 호스트의 모든 정보가 올바르게 설정된다`() {
         // given
         val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
 
@@ -212,7 +226,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         // when
         val result = gatheringQueryService.getGatheringDetail(query)
 
-        // then
+        // then - 기본 정보
         assertThat(result.gatheringId).isEqualTo(gathering.id)
         assertThat(result.gatheringIntervalDays).isEqualTo(gathering.intervalDays)
         assertThat(result.gatheringName).isEqualTo("혼자 모임")
@@ -220,8 +234,14 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(result.sentProposalCount).isEqualTo(0)
         assertThat(result.receivedProposalCount).isEqualTo(0)
         assertThat(result.members).hasSize(1)
-        assertThat(result.members.first().memberName).isEqualTo("테스트사용자")
-        assertThat(result.members.first().memberId).isEqualTo(host.id)
+        assertThat(result.isHost).isTrue()
+
+        // then - isMe와 isHost 검증
+        val hostMember = result.members.first()
+        assertThat(hostMember.memberId).isEqualTo(host.id)
+        assertThat(hostMember.memberName).isEqualTo("테스트사용자")
+        assertThat(hostMember.isMe).isTrue()
+        assertThat(hostMember.isHost).isTrue()
     }
 
     @Test
@@ -286,4 +306,43 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         val actualNames = result.gatheringOverviews.map { it.gatheringName }
         assertThat(actualNames).containsExactlyInAnyOrderElementsOf(expectedNames)
     }
+
+
+    @Test
+    fun `일반 멤버가 모임 상세를 조회할 때 isMe와 isHost가 올바르게 설정된다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
+        val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "테스트 모임")
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
+
+        val query = GatheringQuery.GatheringDetail(member1.id, gathering.id)
+
+        // when
+        val result = gatheringQueryService.getGatheringDetail(query)
+
+        // then
+        assertThat(result.isHost).isFalse()
+        assertThat(result.members).hasSize(3)
+
+        val hostMember = result.members.find { it.memberId == host.id }
+        assertThat(hostMember).isNotNull
+        assertThat(hostMember!!.isMe).isFalse()
+        assertThat(hostMember.isHost).isTrue()
+
+        val member1Info = result.members.find { it.memberId == member1.id }
+        assertThat(member1Info).isNotNull
+        assertThat(member1Info!!.isMe).isTrue()
+        assertThat(member1Info.isHost).isFalse()
+
+        val member2Info = result.members.find { it.memberId == member2.id }
+        assertThat(member2Info).isNotNull
+        assertThat(member2Info!!.isMe).isFalse()
+        assertThat(member2Info.isHost).isFalse()
+    }
+
 }

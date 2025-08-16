@@ -31,8 +31,9 @@ class GatheringDto {
             @Schema(description = "모임 주기 (일 단위)")
             val gatheringIntervalDays: Long,
         ) {
-            fun toCommand(gatheringId: Long): GatheringCommand.Update {
+            fun toCommand(gatheringId: Long, memberId: Long): GatheringCommand.Update {
                 return GatheringCommand.Update(
+                    memberId = memberId,
                     gatheringId = gatheringId,
                     gatheringIntervalDays = gatheringIntervalDays
                 )

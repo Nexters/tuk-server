@@ -39,7 +39,8 @@ class GatheringController(
         val response = gatheringService.updateGathering(
             GatheringCommand.Update(
                 gatheringId = gatheringId,
-                gatheringIntervalDays = request.gatheringIntervalDays
+                gatheringIntervalDays = request.gatheringIntervalDays,
+                memberId = memberId
             )
         )
 
@@ -88,5 +89,20 @@ class GatheringController(
         val response = gatheringQueryService.getGatheringName(gatheringId)
 
         return ApiResponse.ok(response)
+    }
+
+    @DeleteMapping("/{gatheringId}")
+    override fun deleteGathering(
+        @Authenticated memberId: Long,
+        @PathVariable("gatheringId") gatheringId: Long
+    ): ApiResponse<Unit> {
+        gatheringService.deleteGathering(
+            GatheringCommand.Delete(
+                memberId = memberId,
+                gatheringId = gatheringId
+            )
+        )
+
+        return ApiResponse.ok()
     }
 }
