@@ -40,11 +40,16 @@ class GatheringQueryService(
             proposalService.getGatheringProposalStat(query.gatheringId, query.memberId)
 
         val gatheringMemberIds = gatheringMemberService.getGatheringMemberIds(query.gatheringId)
-        val members = memberService.getMemberOverviews(gatheringMemberIds).map {
-            GatheringResponse.GatheringDetail.MemberOverview(it.memberId, it.memberName)
-        }
-
         val gathering = gatheringRepository.findByIdOrThrow(query.gatheringId)
+
+        val members = memberService.getMemberOverviews(gatheringMemberIds).map {
+            GatheringResponse.GatheringDetail.MemberOverview(
+                memberId = it.memberId,
+                memberName = it.memberName,
+                isMe = it.memberId == query.memberId,
+                isHost = gathering.isHost(it.memberId)
+            )
+        }
 
         return GatheringResponse.GatheringDetail(
             gatheringId = gathering.id,
@@ -53,7 +58,8 @@ class GatheringQueryService(
             lastPushRelativeTime = RelativeTime.from(gathering.lastPushedAt ?: gathering.createdAt),
             sentProposalCount = proposalStat.sentCount,
             receivedProposalCount = proposalStat.receivedCount,
-            members = members
+            members = members,
+            isHost = gathering.isHost(query.memberId)
         )
     }
 

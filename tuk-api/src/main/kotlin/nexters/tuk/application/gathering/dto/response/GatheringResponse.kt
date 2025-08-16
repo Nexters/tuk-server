@@ -32,26 +32,20 @@ class GatheringResponse {
     }
 
     data class GatheringDetail(
-        @Schema(description = "모임 id")
         val gatheringId: Long,
-        @Schema(description = "모임 주기")
         val gatheringIntervalDays: Long,
-        @Schema(description = "모임명")
         val gatheringName: String,
-        @Schema(description = "상대 시간 타입 - \"오늘\", \"n일 전\", \"n주 전\", \"n개월 전\", \"n년 전\" ")
         val lastPushRelativeTime: RelativeTime,
-        @Schema(description = "보낸 제안 수")
         val sentProposalCount: Int,
-        @Schema(description = "받은 제안 수")
         val receivedProposalCount: Int,
-        @Schema(description = "모임원")
         val members: List<MemberOverview>,
+        val isHost: Boolean
     ) {
         data class MemberOverview(
-            @Schema(description = "사용자 id")
             val memberId: Long,
-            @Schema(description = "사용자 명")
             val memberName: String,
+            val isMe: Boolean,
+            val isHost: Boolean,
         )
     }
 
