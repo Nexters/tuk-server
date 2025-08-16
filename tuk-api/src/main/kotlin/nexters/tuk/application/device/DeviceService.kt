@@ -17,8 +17,8 @@ class DeviceService(
         memberId: Long,
         command: DeviceCommand.UpdateDeviceToken,
     ): DeviceResponse.UpdateDeviceToken {
-        val deviceToken =
-            command.deviceInfo.deviceToken ?: throw IllegalArgumentException("디바이스 토큰은 필수 정보입니다.")
+        val deviceToken = command.deviceInfo.deviceToken
+        require(!deviceToken.isNullOrBlank()) { "디바이스 토큰은 필수 정보입니다." }
 
         val device = deviceRepository.findByDeviceIdAndMemberId(
             deviceId = command.deviceInfo.deviceId,

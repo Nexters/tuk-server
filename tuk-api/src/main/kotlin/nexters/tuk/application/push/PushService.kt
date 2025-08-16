@@ -39,8 +39,10 @@ class PushService(
         memberIds: List<Long>,
         pushMessage: PushMessage,
     ) {
+        logger.info("PushService.pushAll -> memberIds: $memberIds")
         val memberNameMap = memberService.getMembers(memberIds).associate { it.memberId to it.memberName }
         deviceService.getDeviceTokens(memberIds).forEach { token ->
+            if (token.deviceToken.isBlank()) return@forEach
             pushSender.send(
                 deviceTokens = listOf(DeviceToken(token.deviceToken)),
                 message = PushCommand.MessagePayload(
