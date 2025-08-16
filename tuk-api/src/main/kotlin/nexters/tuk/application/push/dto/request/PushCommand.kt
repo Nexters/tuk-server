@@ -29,6 +29,7 @@ class PushCommand {
             override val pushType: PushType = PushType.PROPOSAL,
             val gatheringId: Long,
             val proposalId: Long,
+            val proposerMemberId: Long,
         ) : Push
     }
 

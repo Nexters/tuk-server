@@ -30,6 +30,7 @@ class PushService(
             is PushCommand.Push.Proposal -> {
                 val pushMessage = PushMessage.random(command.proposalId)
                 val memberIds = gatheringMemberService.getGatheringMemberIds(gatheringId = command.gatheringId)
+                    .filter { memberId -> memberId != command.proposerMemberId }
                 pushAll(memberIds = memberIds, pushMessage = pushMessage)
                 logger.info("Sent proposal push. GatheringId: ${command.gatheringId}, Recipients: ${memberIds.size}, PushType: ${command.pushType}")
             }

@@ -39,6 +39,7 @@ class GatheringProposalService(
                 pushType = PushType.PROPOSAL,
                 gatheringId = command.gatheringId,
                 proposalId = command.proposalId,
+                proposerMemberId = command.memberId,
             )
         )
     }
