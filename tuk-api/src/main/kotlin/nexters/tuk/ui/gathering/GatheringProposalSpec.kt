@@ -21,14 +21,4 @@ interface GatheringProposalSpec {
         type: ProposalDirection,
         page: SliceRequest
     ): ApiResponse<SliceResponse<ProposalResponse.ProposalOverview>>
-
-    @Operation(
-        summary = "만남 초대장 모임 등록",
-        security = [SecurityRequirement(name = SwaggerConfig.SECURITY_SCHEME_NAME)]
-    )
-    fun addProposal(
-        memberId: Long,
-        gatheringId: Long,
-        request: GatheringProposalDto.Request.AddProposal
-    ): ApiResponse<Unit>
 }

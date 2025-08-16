@@ -6,12 +6,14 @@ import nexters.tuk.application.proposal.vo.ProposalPurposeInfo
 class ProposalDto {
     class Request {
         data class Publish(
+            val gatheringId: Long?,
             val purpose: ProposalPurposeInfo,
         ) {
             fun toCommand(memberId: Long): ProposalCommand.Propose {
                 return ProposalCommand.Propose(
                     memberId = memberId,
-                    purpose = purpose
+                    purpose = purpose,
+                    gatheringId = gatheringId
                 )
             }
         }

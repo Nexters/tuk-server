@@ -1,6 +1,5 @@
 package nexters.tuk.ui.gathering
 
-import nexters.tuk.application.gathering.GatheringProposalService
 import nexters.tuk.application.proposal.ProposalDirection
 import nexters.tuk.application.proposal.ProposalQueryService
 import nexters.tuk.application.proposal.dto.request.ProposalQuery
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/gatherings/{gatheringId}/proposals")
 class GatheringProposalController(
     private val proposalQueryService: ProposalQueryService,
-    private val gatheringProposalService: GatheringProposalService,
 ) : GatheringProposalSpec {
 
     @GetMapping("/{type}")
@@ -36,21 +34,5 @@ class GatheringProposalController(
         )
 
         return ApiResponse.ok(response)
-    }
-
-    @PostMapping
-    override fun addProposal(
-        @Authenticated memberId: Long,
-        @PathVariable("gatheringId") gatheringId: Long,
-        request: GatheringProposalDto.Request.AddProposal
-    ): ApiResponse<Unit> {
-        gatheringProposalService.addProposal(
-            request.toCommand(
-                memberId = memberId,
-                gatheringId = gatheringId
-            )
-        )
-
-        return ApiResponse.ok(Unit)
     }
 }

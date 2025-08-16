@@ -55,7 +55,7 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // 새로운 API에서는 gatheringId가 null
+            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(
                 whereTag = "카페",
                 whenTag = "오후 3시",
@@ -73,13 +73,13 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val savedProposal = proposalRepository.findById(result.proposalId).orElse(null)
         assertThat(savedProposal).isNotNull
         assertThat(savedProposal.proposerId).isEqualTo(host.id)
-        assertThat(savedProposal.gatheringId).isNull() // 새로운 API에서는 gatheringId가 null
+        assertThat(savedProposal.gatheringId).isNull() // gatheringId가 null로 설정됨
         assertThat(savedProposal.purpose).isEqualTo("카페\n오후 3시\n커피 모임")
 
-        // 새로운 API에서는 ProposalCreateService가 모임 멤버에게 자동으로 발송하지 않음
-        // ProposalMember는 GatheringProposalService.addProposal에서 생성됨
+        // gatheringId가 null이면 GatheringProposalService.addProposal이 호출되지 않음
+        // ProposalMember는 별도로 GatheringProposalService.addProposal을 호출해야 생성됨
         val proposalMembers = proposalMemberRepository.findAll()
-        assertThat(proposalMembers).hasSize(0) // 모임에 추가되기 전까지는 멤버가 없음
+        assertThat(proposalMembers).hasSize(0) // gatheringId가 null이므로 멤버가 없음
     }
 
 
@@ -95,7 +95,7 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // 새로운 API에서는 gatheringId가 null
+            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(
                 whereTag = "강남역 스타벅스 2층",
                 whenTag = "2024년 12월 25일 오후 2시 30분",
@@ -123,13 +123,13 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command1 = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // 새로운 API에서는 gatheringId가 null
+            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(whereTag = "카페", whenTag = "오후 3시", whatTag = "첫 번째 모임")
         )
 
         val command2 = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // 새로운 API에서는 gatheringId가 null
+            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(whereTag = "레스토랑", whenTag = "저녁 7시", whatTag = "두 번째 모임")
         )
 
@@ -144,7 +144,7 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
         val proposals = proposalRepository.findAll()
         assertThat(proposals).hasSize(2)
 
-        // 새로운 API에서는 ProposalCreateService가 자동으로 멤버에게 발송하지 않음
+        // gatheringId가 null이면 GatheringProposalService.addProposal이 호출되지 않음
         val proposalMembers = proposalMemberRepository.findAll()
         assertThat(proposalMembers).hasSize(0)
 
@@ -155,5 +155,90 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         assertThat(proposal1?.gatheringId).isNull()
         assertThat(proposal2?.gatheringId).isNull()
+    }
+
+    @Test
+    fun `gatheringId가 존재할 때 제안을 생성하고 모임에 자동으로 추가한다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
+        val member2 = memberFixture.createMember(socialId = "member2", email = "member2@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "테스트 모임")
+
+        // 모임 멤버 등록
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
+
+        val command = ProposalCommand.Propose(
+            memberId = host.id,
+            gatheringId = gathering.id, // gatheringId가 존재하는 경우
+            purpose = ProposalPurposeInfo(
+                whereTag = "카페",
+                whenTag = "오후 3시",
+                whatTag = "모임 제안"
+            )
+        )
+
+        // when
+        val result = proposalCreateService.propose(command)
+
+        // then
+        assertThat(result.proposalId).isNotNull()
+
+        // 제안이 생성되었는지 확인
+        val savedProposal = proposalRepository.findById(result.proposalId).orElse(null)
+        assertThat(savedProposal).isNotNull
+        assertThat(savedProposal.proposerId).isEqualTo(host.id)
+        assertThat(savedProposal.gatheringId).isEqualTo(gathering.id) // gatheringId가 설정되어야 함
+        assertThat(savedProposal.purpose).isEqualTo("카페\n오후 3시\n모임 제안")
+
+        // gatheringId가 존재할 때는 GatheringProposalService.addProposal이 호출되어 
+        // 모든 모임 멤버에게 제안이 발송되어야 함
+        val proposalMembers = proposalMemberRepository.findAll()
+        assertThat(proposalMembers).hasSize(3) // host, member1, member2
+
+        val proposalMemberIds = proposalMembers.map { it.memberId }
+        assertThat(proposalMemberIds).containsExactlyInAnyOrder(host.id, member1.id, member2.id)
+    }
+
+    @Test
+    fun `gatheringId가 null일 때 제안만 생성하고 모임에 추가하지 않는다`() {
+        // given
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val member1 = memberFixture.createMember(socialId = "member1", email = "member1@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "테스트 모임")
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
+
+        val command = ProposalCommand.Propose(
+            memberId = host.id,
+            gatheringId = null, // gatheringId가 null인 경우
+            purpose = ProposalPurposeInfo(
+                whereTag = "카페",
+                whenTag = "오후 3시",
+                whatTag = "개별 제안"
+            )
+        )
+
+        // when
+        val result = proposalCreateService.propose(command)
+
+        // then
+        assertThat(result.proposalId).isNotNull()
+
+        // 제안이 생성되었는지 확인
+        val savedProposal = proposalRepository.findById(result.proposalId).orElse(null)
+        assertThat(savedProposal).isNotNull
+        assertThat(savedProposal.proposerId).isEqualTo(host.id)
+        assertThat(savedProposal.gatheringId).isNull() // gatheringId가 null이어야 함
+        assertThat(savedProposal.purpose).isEqualTo("카페\n오후 3시\n개별 제안")
+
+        // gatheringId가 null일 때는 GatheringProposalService.addProposal이 호출되지 않아
+        // 제안 멤버가 생성되지 않아야 함
+        val proposalMembers = proposalMemberRepository.findAll()
+        assertThat(proposalMembers).hasSize(0)
     }
 }
