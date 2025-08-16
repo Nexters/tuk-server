@@ -28,8 +28,6 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     @Autowired
     private lateinit var gatheringService: GatheringService
 
-    @Autowired
-    private lateinit var gatheringCommandService: GatheringCommandService
     private val memberFixture = MemberFixtureHelper(memberRepository)
     private val gatheringFixture =
         GatheringFixtureHelper(gatheringRepository, gatheringMemberRepository)
