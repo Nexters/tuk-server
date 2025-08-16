@@ -47,12 +47,18 @@ enum class PushMessage(
     }
 
     companion object {
-        fun random(proposalId: Long? = null): PushData {
-            return if (proposalId != null) {
-                PushData(PROPOSAL, Meta(proposalId))
-            } else {
-                val randomMessage = entries.filter { it.pushType == PushType.GATHERING_NOTIFICATION }.random()
-                PushData(randomMessage, null)
+        fun random(pushType: PushType, proposalId: Long? = null): PushData {
+            return when (pushType) {
+                PushType.GATHERING_NOTIFICATION -> {
+                    val randomMessage = entries.filter { it.pushType == PushType.GATHERING_NOTIFICATION }.random()
+                    PushData(randomMessage, null)
+                }
+
+                PushType.PROPOSAL -> {
+                    require(proposalId != null) { "초대장 푸시는 proposalId가 필수입니다." }
+                    val randomMessage = entries.filter { it.pushType == PushType.PROPOSAL }.random()
+                    PushData(randomMessage, Meta(proposalId))
+                }
             }
         }
     }

@@ -21,14 +21,14 @@ class PushService(
     fun sendPush(command: PushCommand.Push) {
         when (command) {
             is PushCommand.Push.GatheringNotification -> {
-                val pushMessage = PushMessage.random()
+                val pushMessage = PushMessage.random(pushType = command.pushType)
                 val memberIds = gatheringMemberService.getGatheringMemberIds(gatheringId = command.gatheringId)
                 pushAll(memberIds = memberIds, pushMessage = pushMessage)
                 logger.info("Sent gathering notification push. Recipients: ${memberIds.size}, PushType: ${command.pushType}")
             }
 
             is PushCommand.Push.Proposal -> {
-                val pushMessage = PushMessage.random(command.proposalId)
+                val pushMessage = PushMessage.random(pushType = command.pushType, proposalId = command.proposalId)
                 val memberIds = gatheringMemberService.getGatheringMemberIds(gatheringId = command.gatheringId)
                     .filter { memberId -> memberId != command.proposerMemberId }
                 pushAll(memberIds = memberIds, pushMessage = pushMessage)
