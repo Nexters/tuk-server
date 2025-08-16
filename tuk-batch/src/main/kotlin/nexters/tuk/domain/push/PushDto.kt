@@ -4,11 +4,7 @@ import nexters.tuk.contract.push.PushType
 
 class PushDto {
     data class Push(
-        val recipients: List<PushRecipient>,
         val pushType: PushType = PushType.GATHERING_NOTIFICATION,
+        val gatheringId: Long,
     )
 }
-
-data class PushRecipient(
-    val memberId: Long,
-)

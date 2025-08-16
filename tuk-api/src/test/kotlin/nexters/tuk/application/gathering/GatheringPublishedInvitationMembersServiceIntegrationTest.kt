@@ -19,7 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired constructor(
-    private val gatheringGenerateService: GatheringGenerateService,
+    private val gatheringService: GatheringService,
     private val gatheringRepository: GatheringRepository,
     private val gatheringMemberRepository: GatheringMemberRepository,
     private val gatheringTagRepository: GatheringTagRepository,
@@ -62,7 +62,7 @@ class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired const
         )
 
         // when
-        val result = gatheringGenerateService.generateGathering(command)
+        val result = gatheringService.generateGathering(command)
 
         // then
         assertThat(result.gatheringId).isNotNull()
@@ -97,7 +97,7 @@ class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired const
         )
 
         // when
-        val result = gatheringGenerateService.generateGathering(command)
+        val result = gatheringService.generateGathering(command)
 
         // then
         assertThat(result.gatheringId).isNotNull()
@@ -131,7 +131,7 @@ class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired const
         )
 
         // when
-        val result = gatheringGenerateService.generateGathering(command)
+        val result = gatheringService.generateGathering(command)
 
         // then
         val savedGathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -155,7 +155,7 @@ class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired const
         )
 
         // when
-        val result = gatheringGenerateService.generateGathering(command)
+        val result = gatheringService.generateGathering(command)
 
         // then
         val savedGathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -177,7 +177,7 @@ class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired const
         )
 
         // when
-        val result = gatheringGenerateService.generateGathering(command)
+        val result = gatheringService.generateGathering(command)
 
         // then
         val savedGathering = gatheringRepository.findById(result.gatheringId).orElse(null)
@@ -196,7 +196,7 @@ class GatheringPublishedInvitationMembersServiceIntegrationTest @Autowired const
         )
 
         // when
-        val result = gatheringGenerateService.generateGathering(command)
+        val result = gatheringService.generateGathering(command)
 
         // then
         val savedGathering = gatheringRepository.findById(result.gatheringId).orElse(null)

@@ -200,9 +200,9 @@ class FcmPushSender : PushSender {
                 Notification.builder()
                     .setTitle(message.title)
                     .setBody(message.body)
-//                    .setImage(message.imageUrl) // TODO: 푸시 이미지 확인 필요
                     .build()
             )
+            .putData("deepLink", message.deepLink)
             .build()
     }
 
@@ -216,9 +216,9 @@ class FcmPushSender : PushSender {
                 Notification.builder()
                     .setTitle(message.title)
                     .setBody(message.body)
-//                    .setImage(message.imageUrl) // TODO: 푸시 이미지 확인 필요
                     .build()
             )
+            .putData("deepLink", message.deepLink)
             .build()
     }
 }

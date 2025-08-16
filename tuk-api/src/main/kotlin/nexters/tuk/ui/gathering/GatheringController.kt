@@ -1,7 +1,6 @@
 package nexters.tuk.ui.gathering
 
-import nexters.tuk.application.gathering.GatheringCommandService
-import nexters.tuk.application.gathering.GatheringGenerateService
+import nexters.tuk.application.gathering.GatheringService
 import nexters.tuk.application.gathering.GatheringMemberService
 import nexters.tuk.application.gathering.GatheringQueryService
 import nexters.tuk.application.gathering.dto.request.GatheringCommand
@@ -15,8 +14,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1/gatherings")
 class GatheringController(
-    private val gatheringCommandService: GatheringCommandService,
-    private val gatheringGenerateService: GatheringGenerateService,
+    private val gatheringService: GatheringService,
     private val gatheringQueryService: GatheringQueryService,
     private val gatheringMemberService: GatheringMemberService,
 ) : GatheringSpec {
@@ -27,7 +25,7 @@ class GatheringController(
         @RequestBody request: GatheringDto.Request.Generate,
     ): ApiResponse<GatheringResponse.Generate> {
 
-        val response = gatheringGenerateService.generateGathering(request.toCommand(memberId))
+        val response = gatheringService.generateGathering(request.toCommand(memberId))
 
         return ApiResponse.ok(response)
     }
@@ -38,9 +36,10 @@ class GatheringController(
         @PathVariable gatheringId: Long,
         @RequestBody request: GatheringDto.Request.Update,
     ): ApiResponse<GatheringResponse.Simple> {
-        val response = gatheringCommandService.updateGathering(
-            request.toCommand(
+        val response = gatheringService.updateGathering(
+            GatheringCommand.Update(
                 gatheringId = gatheringId,
+                gatheringIntervalDays = request.gatheringIntervalDays,
                 memberId = memberId
             )
         )
@@ -84,7 +83,7 @@ class GatheringController(
 
     @GetMapping("/{gatheringId}/name")
     override fun getGatheringName(
-        @PathVariable("gatheringId") gatheringId: Long
+        @PathVariable("gatheringId") gatheringId: Long,
     ): ApiResponse<GatheringResponse.GatheringName> {
 
         val response = gatheringQueryService.getGatheringName(gatheringId)

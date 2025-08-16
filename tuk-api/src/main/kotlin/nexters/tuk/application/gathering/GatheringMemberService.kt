@@ -59,4 +59,9 @@ class GatheringMemberService(
 
         return gatheringMembers.map { it.memberId }
     }
+
+    @Transactional
+    fun deleteGatheringMember(memberId: Long) {
+        gatheringMemberRepository.deleteAllByMemberId(memberId)
+    }
 }

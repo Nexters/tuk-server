@@ -5,7 +5,7 @@ import nexters.tuk.application.proposal.vo.ProposalPurposeInfo
 class ProposalCommand {
     data class Propose(
         val memberId: Long,
-        val gatheringId: Long?,
+        val gatheringId: Long? = null,
         val purpose: ProposalPurposeInfo,
     )
 }
