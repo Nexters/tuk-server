@@ -37,7 +37,8 @@ class GatheringProposalService(
         pushService.sendPush(
             PushCommand.Push.Proposal(
                 pushType = PushType.PROPOSAL,
-                gatheringId = command.gatheringId
+                gatheringId = command.gatheringId,
+                proposalId = command.proposalId,
             )
         )
     }

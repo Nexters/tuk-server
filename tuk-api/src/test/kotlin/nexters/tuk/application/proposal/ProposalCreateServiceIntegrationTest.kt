@@ -55,7 +55,6 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(
                 whereTag = "카페",
                 whenTag = "오후 3시",
@@ -95,7 +94,6 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(
                 whereTag = "강남역 스타벅스 2층",
                 whenTag = "2024년 12월 25일 오후 2시 30분",
@@ -123,13 +121,11 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command1 = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(whereTag = "카페", whenTag = "오후 3시", whatTag = "첫 번째 모임")
         )
 
         val command2 = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(whereTag = "레스토랑", whenTag = "저녁 7시", whatTag = "두 번째 모임")
         )
 

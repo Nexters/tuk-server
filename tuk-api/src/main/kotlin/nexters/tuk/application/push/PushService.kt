@@ -19,15 +19,16 @@ class PushService(
 
     @Transactional
     fun sendPush(command: PushCommand.Push) {
-        val pushMessage = PushMessage.random()
         when (command) {
             is PushCommand.Push.GatheringNotification -> {
-                val memberIds = command.recipients.map { it.memberId }
+                val pushMessage = PushMessage.random()
+                val memberIds = gatheringMemberService.getGatheringMemberIds(gatheringId = command.gatheringId)
                 pushAll(memberIds = memberIds, pushMessage = pushMessage)
-                logger.info("Sent gathering notification push. Recipients: ${command.recipients.size}, PushType: ${command.pushType}")
+                logger.info("Sent gathering notification push. Recipients: ${memberIds.size}, PushType: ${command.pushType}")
             }
 
             is PushCommand.Push.Proposal -> {
+                val pushMessage = PushMessage.random(command.proposalId)
                 val memberIds = gatheringMemberService.getGatheringMemberIds(gatheringId = command.gatheringId)
                 pushAll(memberIds = memberIds, pushMessage = pushMessage)
                 logger.info("Sent proposal push. GatheringId: ${command.gatheringId}, Recipients: ${memberIds.size}, PushType: ${command.pushType}")
@@ -37,7 +38,7 @@ class PushService(
 
     private fun pushAll(
         memberIds: List<Long>,
-        pushMessage: PushMessage,
+        pushMessage: PushData,
     ) {
         logger.info("PushService.pushAll -> memberIds: $memberIds")
         val memberNameMap = memberService.getMembers(memberIds).associate { it.memberId to it.memberName }
@@ -51,6 +52,7 @@ class PushService(
                             ?: return@forEach
                     ),
                     body = pushMessage.body,
+                    deepLink = pushMessage.deepLink,
                 )
             )
         }

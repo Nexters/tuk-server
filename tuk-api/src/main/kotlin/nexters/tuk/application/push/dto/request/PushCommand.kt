@@ -20,7 +20,7 @@ class PushCommand {
 
         @Schema(title = "모임 정기 푸시 (GATHERING_NOTIFICATION)")
         data class GatheringNotification(
-            val recipients: List<PushRecipient>,
+            val gatheringId: Long,
             override val pushType: PushType = PushType.GATHERING_NOTIFICATION,
         ) : Push
 
@@ -28,15 +28,13 @@ class PushCommand {
         data class Proposal(
             override val pushType: PushType = PushType.PROPOSAL,
             val gatheringId: Long,
+            val proposalId: Long,
         ) : Push
     }
 
     data class MessagePayload(
         val title: String,
         val body: String,
-    )
-
-    data class PushRecipient(
-        val memberId: Long,
+        val deepLink: String,
     )
 }
