@@ -1,5 +1,6 @@
 package nexters.tuk.application.proposal
 
+import nexters.tuk.application.gathering.GatheringMemberService
 import nexters.tuk.application.gathering.vo.RelativeTime
 import nexters.tuk.application.proposal.dto.request.ProposalQuery
 import nexters.tuk.application.proposal.dto.response.ProposalResponse
@@ -19,6 +20,7 @@ enum class ProposalDirection {
 @Service
 class ProposalQueryService(
     private val proposalQueryRepository: ProposalQueryRepository,
+    private val gatheringMemberService: GatheringMemberService,
 ) {
     @Transactional(readOnly = true)
     fun getMemberProposals(query: ProposalQuery.MemberProposals): SliceResponse<ProposalResponse.ProposalOverview> {
@@ -27,7 +29,7 @@ class ProposalQueryService(
             pageNumber = query.page.pageNumber - 1,
             pageSize = query.page.pageSize
         )
-        
+
         val memberProposals = proposalQueryRepository.findMemberProposals(
             memberId = query.memberId,
             page = repositoryPage
@@ -47,12 +49,16 @@ class ProposalQueryService(
 
     @Transactional(readOnly = true)
     fun getGatheringProposals(query: ProposalQuery.GatheringProposals): SliceResponse<ProposalResponse.ProposalOverview> {
-        // 1-based pageNumber를 0-based로 변환
+        gatheringMemberService.verifyGatheringAccess(
+            gatheringId = query.gatheringId,
+            memberId = query.memberId
+        )
+
         val repositoryPage = SliceRequest(
             pageNumber = query.page.pageNumber - 1,
             pageSize = query.page.pageSize
         )
-        
+
         val gatheringProposals = proposalQueryRepository.findGatheringProposals(
             query.memberId,
             query.gatheringId,
