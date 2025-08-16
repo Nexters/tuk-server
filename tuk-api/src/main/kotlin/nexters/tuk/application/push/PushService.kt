@@ -50,7 +50,7 @@ class PushService(
                         memberNameMap[token.memberId]
                             ?: return@forEach
                     ),
-                    body = pushMessage.body
+                    body = pushMessage.body,
                 )
             )
         }

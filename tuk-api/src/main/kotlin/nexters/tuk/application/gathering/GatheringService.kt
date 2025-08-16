@@ -4,11 +4,12 @@ import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.domain.gathering.Gathering
 import nexters.tuk.domain.gathering.GatheringRepository
+import nexters.tuk.domain.gathering.findByIdOrThrow
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class GatheringGenerateService(
+class GatheringService(
     private val gatheringRepository: GatheringRepository,
     private val gatheringMemberService: GatheringMemberService,
     private val gatheringTagService: GatheringTagService,
@@ -30,6 +31,18 @@ class GatheringGenerateService(
 
         return GatheringResponse.Generate(
             gathering.id,
+        )
+    }
+
+    @Transactional
+    fun updateGathering(command: GatheringCommand.Update): GatheringResponse.Simple {
+        val gathering = gatheringRepository.findByIdOrThrow(command.gatheringId)
+        gathering.update(command)
+
+        return GatheringResponse.Simple(
+            gatheringId = gathering.id,
+            gatheringName = gathering.name,
+            intervalDays = gathering.intervalDays,
         )
     }
 }

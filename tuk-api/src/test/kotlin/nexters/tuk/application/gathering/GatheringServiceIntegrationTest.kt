@@ -1,14 +1,18 @@
 package nexters.tuk.application.gathering
 
+import nexters.tuk.application.gathering.dto.request.GatheringCommand
 import nexters.tuk.contract.BaseException
+import nexters.tuk.domain.gathering.Gathering
 import nexters.tuk.domain.gathering.GatheringMemberRepository
 import nexters.tuk.domain.gathering.GatheringRepository
+import nexters.tuk.domain.gathering.findByIdOrThrow
 import nexters.tuk.domain.member.MemberRepository
 import nexters.tuk.fixtures.GatheringFixtureHelper
 import nexters.tuk.fixtures.MemberFixtureHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -21,6 +25,11 @@ class GatheringServiceIntegrationTest @Autowired constructor(
     private val memberRepository: MemberRepository,
 ) {
 
+    @Autowired
+    private lateinit var gatheringService: GatheringService
+
+    @Autowired
+    private lateinit var gatheringCommandService: GatheringCommandService
     private val memberFixture = MemberFixtureHelper(memberRepository)
     private val gatheringFixture =
         GatheringFixtureHelper(gatheringRepository, gatheringMemberRepository)
@@ -190,4 +199,32 @@ class GatheringServiceIntegrationTest @Autowired constructor(
         assertThat(result3.gatheringName).isEqualTo("세 번째 모임")
     }
 
+    @Test
+    fun `모임 주기를 변경 가능하다`() {
+        // given
+        val gathering = gatheringRepository.save(
+            Gathering.generate(
+                hostId = 1L,
+                name = "모임",
+                intervalDays = 10
+            )
+        )
+
+        // when
+        val actual = gatheringService.updateGathering(
+            GatheringCommand.Update(
+                gatheringId = gathering.id,
+                gatheringIntervalDays = 30
+            )
+        )
+
+        // then
+        assertAll(
+            { assertThat(actual).isNotNull },
+            {
+                assertThat(gatheringRepository.findByIdOrThrow(gatheringId = gathering.id).intervalDays)
+                    .isEqualTo(30)
+            },
+        )
+    }
 }
