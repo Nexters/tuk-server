@@ -6,6 +6,8 @@ import nexters.tuk.domain.gathering.GatheringMember
 import nexters.tuk.domain.gathering.GatheringMemberRepository
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.proposal.Proposal
+import nexters.tuk.domain.proposal.ProposalMember
+import nexters.tuk.domain.proposal.ProposalMemberRepository
 import nexters.tuk.domain.proposal.ProposalRepository
 import nexters.tuk.domain.member.MemberRepository
 import nexters.tuk.fixtures.GatheringFixtureHelper
@@ -24,6 +26,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
     private val gatheringMemberRepository: GatheringMemberRepository,
     private val memberRepository: MemberRepository,
     private val proposalRepository: ProposalRepository,
+    private val proposalMemberRepository: ProposalMemberRepository,
 ) {
 
     private val memberFixture = MemberFixtureHelper(memberRepository)
@@ -31,6 +34,7 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
 
     @AfterEach
     fun tearDown() {
+        proposalMemberRepository.deleteAllInBatch()
         proposalRepository.deleteAllInBatch()
         gatheringMemberRepository.deleteAllInBatch()
         gatheringRepository.deleteAllInBatch()
@@ -113,17 +117,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member2.id))
 
         // 제안 생성 (보낸 제안 2개, 받은 제안 1개)
-        val proposal1 = Proposal.publish(host.id, "모임 제안")
-        proposal1.registerGathering(gathering.id)
-        proposalRepository.save(proposal1)
-        
-        val proposal2 = Proposal.publish(host.id, "모임 제안")
-        proposal2.registerGathering(gathering.id)
-        proposalRepository.save(proposal2)
-        
-        val proposal3 = Proposal.publish(member1.id, "모임 제안")
-        proposal3.registerGathering(gathering.id)
-        proposalRepository.save(proposal3)
+        val proposal1 = createProposalWithMembers(host.id, gathering.id, "모임 제안1", listOf(host.id, member1.id, member2.id))
+        val proposal2 = createProposalWithMembers(host.id, gathering.id, "모임 제안2", listOf(host.id, member1.id, member2.id))
+        val proposal3 = createProposalWithMembers(member1.id, gathering.id, "모임 제안3", listOf(host.id, member1.id, member2.id))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -256,17 +252,9 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         gatheringMemberRepository.save(GatheringMember.registerMember(gathering, member1.id))
 
         // 다양한 상태의 제안 생성
-        val proposal1 = Proposal.publish(host.id, "첫번째 제안")
-        proposal1.registerGathering(gathering.id)
-        proposalRepository.save(proposal1)
-        
-        val proposal2 = Proposal.publish(host.id, "두번째 제안")
-        proposal2.registerGathering(gathering.id)
-        proposalRepository.save(proposal2)
-        
-        val proposal3 = Proposal.publish(member1.id, "역제안")
-        proposal3.registerGathering(gathering.id)
-        proposalRepository.save(proposal3)
+        val proposal1 = createProposalWithMembers(host.id, gathering.id, "첫번째 제안", listOf(host.id, member1.id))
+        val proposal2 = createProposalWithMembers(host.id, gathering.id, "두번째 제안", listOf(host.id, member1.id))
+        val proposal3 = createProposalWithMembers(member1.id, gathering.id, "역제안", listOf(host.id, member1.id))
 
         val query = GatheringQuery.GatheringDetail(host.id, gathering.id)
 
@@ -343,6 +331,67 @@ class GatheringQueryServiceIntegrationTest @Autowired constructor(
         assertThat(member2Info).isNotNull
         assertThat(member2Info!!.isMe).isFalse()
         assertThat(member2Info.isHost).isFalse()
+    }
+
+    @Test
+    fun `나중에 모임에 추가된 멤버의 통계가 올바르게 반영된다`() {
+        // given - 기존 멤버들과 초대장들이 있는 상황
+        val host = memberFixture.createMember(socialId = "host", email = "host@test.com")
+        val existingMember = memberFixture.createMember(socialId = "existing", email = "existing@test.com")
+        val newMember = memberFixture.createMember(socialId = "new", email = "new@test.com")
+
+        val gathering = gatheringFixture.createGathering(host, "테스트 모임")
+        
+        // 기존 멤버들만 모임에 추가
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, host.id))
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, existingMember.id))
+
+        // 기존 멤버들 간의 초대장 생성
+        createProposalWithMembers(host.id, gathering.id, "기존 제안1", listOf(host.id, existingMember.id))
+        createProposalWithMembers(existingMember.id, gathering.id, "기존 제안2", listOf(host.id, existingMember.id))
+
+        // 새로운 멤버를 모임에 추가
+        gatheringMemberRepository.save(GatheringMember.registerMember(gathering, newMember.id))
+
+        // 새로운 멤버가 포함된 초대장 생성
+        createProposalWithMembers(host.id, gathering.id, "새 멤버 포함 제안", listOf(host.id, existingMember.id, newMember.id))
+        createProposalWithMembers(newMember.id, gathering.id, "새 멤버의 제안", listOf(host.id, existingMember.id, newMember.id))
+
+        // when - 새로운 멤버의 모임 상세 조회
+        val newMemberQuery = GatheringQuery.GatheringDetail(newMember.id, gathering.id)
+        val result = gatheringQueryService.getGatheringDetail(newMemberQuery)
+
+        // then - 새로운 멤버의 통계는 자신이 참여한 초대장만 반영되어야 함
+        assertThat(result.sentProposalCount).isEqualTo(1) // 자신이 보낸 초대장 1개
+        assertThat(result.receivedProposalCount).isEqualTo(1) // 자신이 받은 초대장 1개 (host가 새로 보낸 것)
+        assertThat(result.members).hasSize(3) // host, existingMember, newMember
+        assertThat(result.isHost).isFalse()
+
+        // 기존 멤버들의 통계도 확인
+        val hostQuery = GatheringQuery.GatheringDetail(host.id, gathering.id)
+        val hostResult = gatheringQueryService.getGatheringDetail(hostQuery)
+        
+        assertThat(hostResult.sentProposalCount).isEqualTo(2) // 기존 1개 + 새로운 1개
+        assertThat(hostResult.receivedProposalCount).isEqualTo(2) // existingMember가 보낸 1개 + newMember가 보낸 1개
+    }
+
+    private fun createProposalWithMembers(
+        proposerId: Long,
+        gatheringId: Long,
+        purpose: String,
+        memberIds: List<Long>
+    ): Proposal {
+        val proposal = Proposal.publish(proposerId, purpose)
+        proposal.registerGathering(gatheringId)
+        proposalRepository.save(proposal)
+
+        // 모든 멤버에게 ProposalMember 생성
+        memberIds.forEach { memberId ->
+            val proposalMember = ProposalMember.publish(proposal, memberId)
+            proposalMemberRepository.save(proposalMember)
+        }
+
+        return proposal
     }
 
 }
