@@ -5,7 +5,6 @@ import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.gathering.Gathering
-import nexters.tuk.domain.gathering.Gathering
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.gathering.findByIdOrThrow
 import org.springframework.stereotype.Service

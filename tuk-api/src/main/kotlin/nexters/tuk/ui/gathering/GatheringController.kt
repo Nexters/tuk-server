@@ -92,11 +92,11 @@ class GatheringController(
     }
 
     @DeleteMapping("/{gatheringId}")
-    fun deleteGathering(
+    override fun deleteGathering(
         @Authenticated memberId: Long,
         @PathVariable("gatheringId") gatheringId: Long
     ): ApiResponse<Unit> {
-        gatheringCommandService.deleteGathering(
+        gatheringService.deleteGathering(
             GatheringCommand.Delete(
                 memberId = memberId,
                 gatheringId = gatheringId

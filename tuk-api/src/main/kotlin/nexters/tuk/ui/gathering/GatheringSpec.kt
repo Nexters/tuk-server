@@ -61,4 +61,9 @@ interface GatheringSpec {
     fun getGatheringName(
         gatheringId: Long
     ): ApiResponse<GatheringResponse.GatheringName>
+
+    @Operation(
+        summary = "모임 삭제",
+    )
+    fun deleteGathering(memberId: Long, gatheringId: Long): ApiResponse<Unit>
 }
