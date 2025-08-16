@@ -43,6 +43,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(hostMember = host)
         val command = ProposalCommand.Propose(
             memberId = host.id,
+            gatheringId = gathering.id,
             purpose = ProposalPurposeInfo(
                 whereTag = "카페",
                 whenTag = "오후 3시",
