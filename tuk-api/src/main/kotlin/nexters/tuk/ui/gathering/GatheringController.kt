@@ -1,6 +1,5 @@
 package nexters.tuk.ui.gathering
 
-import nexters.tuk.application.gathering.GatheringCommandService
 import nexters.tuk.application.gathering.GatheringService
 import nexters.tuk.application.gathering.GatheringMemberService
 import nexters.tuk.application.gathering.GatheringQueryService

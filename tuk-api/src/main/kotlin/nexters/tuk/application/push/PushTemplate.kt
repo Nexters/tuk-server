@@ -75,8 +75,9 @@ data class PushData(
     val body: String
         get() = message.body
 
-    val deepLink: String
-        get() = message.deepLink.link
+    fun deepLink(proposalId: Long?): String {
+        return message.deepLink.link.format(proposalId)
+    }
 }
 
 data class Meta(

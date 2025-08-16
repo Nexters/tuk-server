@@ -53,7 +53,7 @@ class PushService(
                             ?: return@forEach
                     ),
                     body = pushMessage.body,
-                    deepLink = pushMessage.deepLink,
+                    deepLink = pushMessage.deepLink(pushMessage.meta?.proposalId),
                 )
             )
         }
