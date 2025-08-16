@@ -1,5 +1,8 @@
 SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE proposal_member;
+TRUNCATE TABLE proposal;
 TRUNCATE TABLE gathering_member;
+TRUNCATE TABLE gathering_tag;
 TRUNCATE TABLE gathering;
 TRUNCATE TABLE device;
 TRUNCATE TABLE member;

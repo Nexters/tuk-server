@@ -15,7 +15,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.jdbc.Sql
 
+@Sql("/truncate.sql")
 @SpringBootTest
 class ProposalCreateServiceIntegrationTest @Autowired constructor(
     private val proposalCreateService: ProposalCreateService,
@@ -29,15 +31,6 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
     private val memberFixture = MemberFixtureHelper(memberRepository)
     private val gatheringFixture =
         GatheringFixtureHelper(gatheringRepository, gatheringMemberRepository)
-
-    @AfterEach
-    fun tearDown() {
-        proposalMemberRepository.deleteAllInBatch()
-        proposalRepository.deleteAllInBatch()
-        gatheringMemberRepository.deleteAllInBatch()
-        gatheringRepository.deleteAllInBatch()
-        memberRepository.deleteAllInBatch()
-    }
 
     @Test
     fun `제안을 성공적으로 발행한다`() {
@@ -55,7 +48,6 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(
                 whereTag = "카페",
                 whenTag = "오후 3시",
@@ -95,7 +87,6 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(
                 whereTag = "강남역 스타벅스 2층",
                 whenTag = "2024년 12월 25일 오후 2시 30분",
@@ -123,13 +114,11 @@ class ProposalCreateServiceIntegrationTest @Autowired constructor(
 
         val command1 = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(whereTag = "카페", whenTag = "오후 3시", whatTag = "첫 번째 모임")
         )
 
         val command2 = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null, // gatheringId가 null이면 모임에 자동으로 추가되지 않음
             purpose = ProposalPurposeInfo(whereTag = "레스토랑", whenTag = "저녁 7시", whatTag = "두 번째 모임")
         )
 

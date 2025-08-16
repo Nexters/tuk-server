@@ -2,17 +2,20 @@ package nexters.tuk.application.member
 
 import nexters.tuk.application.member.dto.request.MemberCommand
 import nexters.tuk.application.member.dto.response.MemberResponse
+import nexters.tuk.application.member.event.MemberEvent
 import nexters.tuk.contract.ApiResponse
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
 import nexters.tuk.domain.member.Member
 import nexters.tuk.domain.member.MemberRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class MemberService(
     private val memberRepository: MemberRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     @Transactional
     fun login(command: MemberCommand.Login): MemberResponse.Login {
@@ -48,6 +51,7 @@ class MemberService(
     @Transactional
     fun deleteMember(memberId: Long) {
         memberRepository.leave(memberId)
+        applicationEventPublisher.publishEvent(MemberEvent.MemberDeleted(memberId))
     }
 
     @Transactional(readOnly = true)

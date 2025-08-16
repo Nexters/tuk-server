@@ -43,7 +43,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val gathering = gatheringFixture.createGathering(hostMember = host)
         val command = ProposalCommand.Propose(
             memberId = host.id,
-            gatheringId = null,
+            gatheringId = gathering.id,
             purpose = ProposalPurposeInfo(
                 whereTag = "카페",
                 whenTag = "오후 3시",
@@ -76,7 +76,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val hostProposal1 = Proposal.publish(host.id, "첫번째 제안")
         hostProposal1.registerGathering(gathering.id)
         proposalRepository.save(hostProposal1)
-        
+
         val hostProposal2 = Proposal.publish(host.id, "두번째 제안")
         hostProposal2.registerGathering(gathering.id)
         proposalRepository.save(hostProposal2)
@@ -126,7 +126,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val g1Proposal1 = Proposal.publish(host.id, "gathering1 제안1")
         g1Proposal1.registerGathering(gathering1.id)
         proposalRepository.save(g1Proposal1)
-        
+
         val g1Proposal2 = Proposal.publish(member.id, "gathering1 제안2")
         g1Proposal2.registerGathering(gathering1.id)
         proposalRepository.save(g1Proposal2)
@@ -135,11 +135,11 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val g2Proposal1 = Proposal.publish(host.id, "gathering2 제안1")
         g2Proposal1.registerGathering(gathering2.id)
         proposalRepository.save(g2Proposal1)
-        
+
         val g2Proposal2 = Proposal.publish(host.id, "gathering2 제안2")
         g2Proposal2.registerGathering(gathering2.id)
         proposalRepository.save(g2Proposal2)
-        
+
         val g2Proposal3 = Proposal.publish(member.id, "gathering2 제안3")
         g2Proposal3.registerGathering(gathering2.id)
         proposalRepository.save(g2Proposal3)
@@ -162,7 +162,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val soloProposal1 = Proposal.publish(host.id, "혼자 제안1")
         soloProposal1.registerGathering(gathering.id)
         proposalRepository.save(soloProposal1)
-        
+
         val soloProposal2 = Proposal.publish(host.id, "혼자 제안2")
         soloProposal2.registerGathering(gathering.id)
         proposalRepository.save(soloProposal2)
@@ -189,11 +189,11 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val hostP1 = Proposal.publish(host.id, "host 제안1")
         hostP1.registerGathering(gathering.id)
         proposalRepository.save(hostP1)
-        
+
         val hostP2 = Proposal.publish(host.id, "host 제안2")
         hostP2.registerGathering(gathering.id)
         proposalRepository.save(hostP2)
-        
+
         val hostP3 = Proposal.publish(host.id, "host 제안3")
         hostP3.registerGathering(gathering.id)
         proposalRepository.save(hostP3)
@@ -202,7 +202,7 @@ class ProposalServiceIntegrationTest @Autowired constructor(
         val m1P1 = Proposal.publish(member1.id, "member1 제안1")
         m1P1.registerGathering(gathering.id)
         proposalRepository.save(m1P1)
-        
+
         val m1P2 = Proposal.publish(member1.id, "member1 제안2")
         m1P2.registerGathering(gathering.id)
         proposalRepository.save(m1P2)
