@@ -1,7 +1,5 @@
 package nexters.tuk.application.gathering.dto.request
 
-import io.swagger.v3.oas.annotations.media.Schema
-
 
 class GatheringCommand {
     data class Generate(
@@ -11,7 +9,7 @@ class GatheringCommand {
         val tags: List<Long>,
     )
 
-    data class JoinGathering(
+    data class Delete(
         val memberId: Long,
         val gatheringId: Long,
     )
