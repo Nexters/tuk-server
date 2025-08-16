@@ -4,9 +4,9 @@ import nexters.tuk.application.gathering.dto.request.GatheringQuery
 import nexters.tuk.application.gathering.dto.response.GatheringResponse
 import nexters.tuk.application.gathering.vo.RelativeTime
 import nexters.tuk.application.member.MemberService
-import nexters.tuk.application.proposal.ProposalService
 import nexters.tuk.contract.BaseException
 import nexters.tuk.contract.ErrorType
+import nexters.tuk.domain.gathering.GatheringQueryRepository
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.gathering.findByIdOrThrow
 import org.springframework.stereotype.Service
@@ -15,8 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class GatheringQueryService(
     private val gatheringRepository: GatheringRepository,
+    private val gatheringQueryRepository: GatheringQueryRepository,
     private val gatheringMemberService: GatheringMemberService,
-    private val proposalService: ProposalService,
     private val memberService: MemberService,
 ) {
     @Transactional(readOnly = true)
@@ -37,7 +37,7 @@ class GatheringQueryService(
         gatheringMemberService.verifyGatheringAccess(query.gatheringId, query.memberId)
 
         val proposalStat =
-            proposalService.getGatheringProposalStat(query.gatheringId, query.memberId)
+            gatheringQueryRepository.findGatheringMemberProposalState(query.gatheringId, query.memberId)
 
         val gatheringMemberIds = gatheringMemberService.getGatheringMemberIds(query.gatheringId)
         val gathering = gatheringRepository.findByIdOrThrow(query.gatheringId)
