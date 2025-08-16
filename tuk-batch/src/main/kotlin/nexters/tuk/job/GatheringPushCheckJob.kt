@@ -5,7 +5,6 @@ import nexters.tuk.contract.push.PushType
 import nexters.tuk.domain.gathering.GatheringRepository
 import nexters.tuk.domain.push.PushApiClient
 import nexters.tuk.domain.push.PushDto
-import nexters.tuk.domain.push.PushRecipient
 import org.quartz.CronScheduleBuilder
 import org.quartz.CronTrigger
 import org.quartz.JobExecutionContext
