@@ -35,6 +35,7 @@ class GatheringCommandServiceIntegrationTest @Autowired constructor(
         // when
         val actual = gatheringCommandService.updateGathering(
             GatheringCommand.Update(
+                memberId = 1L,
                 gatheringId = gathering.id,
                 gatheringIntervalDays = 30
             )
@@ -48,6 +49,31 @@ class GatheringCommandServiceIntegrationTest @Autowired constructor(
                     .isEqualTo(30)
             },
         )
+    }
+
+    @Test
+    fun `호스트가 아닌 사용자는 모임을 수정할 수 없다`() {
+        // given
+        val gathering = gatheringRepository.save(
+            Gathering.generate(
+                hostId = 1L,
+                name = "모임",
+                intervalDays = 10
+            )
+        )
+
+        // when & then
+        val exception = assertThrows<BaseException> {
+            gatheringCommandService.updateGathering(
+                GatheringCommand.Update(
+                    memberId = 2L, // 호스트가 아닌 다른 사용자
+                    gatheringId = gathering.id,
+                    gatheringIntervalDays = 30
+                )
+            )
+        }
+
+        assertThat(exception.message).isEqualTo("수정 권한이 없습니다.")
     }
 
     @Test

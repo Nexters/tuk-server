@@ -15,6 +15,7 @@ class GatheringCommand {
     )
 
     data class Update(
+        val memberId: Long,
         val gatheringId: Long,
         val gatheringIntervalDays: Long,
     )

@@ -38,7 +38,12 @@ class GatheringController(
         @PathVariable gatheringId: Long,
         @RequestBody request: GatheringDto.Request.Update,
     ): ApiResponse<GatheringResponse.Simple> {
-        val response = gatheringCommandService.updateGathering(request.toCommand(gatheringId))
+        val response = gatheringCommandService.updateGathering(
+            request.toCommand(
+                gatheringId = gatheringId,
+                memberId = memberId
+            )
+        )
 
         return ApiResponse.ok(response)
     }
