@@ -68,4 +68,9 @@ class GatheringService(
 
         gathering.delete()
     }
+
+    @Transactional
+    fun updatePushStatus(gatheringId: Long) {
+        gatheringRepository.findByIdOrThrow(gatheringId).updatePushStatus()
+    }
 }

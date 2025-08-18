@@ -15,6 +15,7 @@ class GatheringProposalService(
     private val gatheringMemberService: GatheringMemberService,
     private val proposalMemberService: ProposalMemberService,
     private val pushService: PushService,
+    private val gatheringService: GatheringService
 ) {
     @Transactional
     fun addProposal(command: GatheringProposalCommand.AddProposal) {
@@ -42,5 +43,6 @@ class GatheringProposalService(
                 proposerMemberId = command.memberId,
             )
         )
+        gatheringService.updatePushStatus(command.gatheringId)
     }
 }
