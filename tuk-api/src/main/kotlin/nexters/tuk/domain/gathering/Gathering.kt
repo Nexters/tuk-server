@@ -22,7 +22,7 @@ class Gathering private constructor(
 
     lastPushedAt: LocalDateTime?,
 ) : BaseEntity() {
-    @Column(name = "last_pushed_at", nullable = true, updatable = false)
+    @Column(name = "last_pushed_at", nullable = true)
     var lastPushedAt = lastPushedAt
         private set
 
