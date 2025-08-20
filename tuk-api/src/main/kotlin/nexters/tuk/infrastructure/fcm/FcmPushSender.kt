@@ -1,12 +1,6 @@
 package nexters.tuk.infrastructure.fcm
 
-import com.google.firebase.messaging.BatchResponse
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.FirebaseMessagingException
-import com.google.firebase.messaging.Message
-import com.google.firebase.messaging.MessagingErrorCode
-import com.google.firebase.messaging.MulticastMessage
-import com.google.firebase.messaging.Notification
+import com.google.firebase.messaging.*
 import nexters.tuk.application.push.DeviceToken
 import nexters.tuk.application.push.PushSender
 import nexters.tuk.application.push.dto.request.PushCommand
@@ -171,7 +165,11 @@ class FcmPushSender : PushSender {
                 }
 
                 logger.error(
-                    "Token failed: ${tokens[index]}, error: ${error?.message}, retryable: ${isRetryableError(error)}"
+                    "Token failed: ${tokens[index]}, error: ${error?.message}, retryable: ${
+                        isRetryableError(
+                            error
+                        )
+                    }"
                 )
             }
         }
@@ -203,6 +201,8 @@ class FcmPushSender : PushSender {
                     .build()
             )
             .putData("deepLink", message.deepLink)
+            .putData("title", message.title)
+            .putData("body", message.body)
             .build()
     }
 
@@ -219,6 +219,8 @@ class FcmPushSender : PushSender {
                     .build()
             )
             .putData("deepLink", message.deepLink)
+            .putData("title", message.title)
+            .putData("body", message.body)
             .build()
     }
 }
