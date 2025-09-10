@@ -32,6 +32,10 @@ springdoc:
   use-fqn: true
 
 management:
+  server:
+    address : 127.0.0.1
+    port: 8081
+    ssl: false
   endpoints:
     web:
       exposure:
@@ -96,6 +100,12 @@ slack:
   channels:
     error-alert: C099EEB4SQ7
   enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
 
 ---
 spring:
