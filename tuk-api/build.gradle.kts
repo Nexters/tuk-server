@@ -46,6 +46,9 @@ dependencies {
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${properties["swaggerVersion"]}")
 
+    // prometheus
+    implementation("io.micrometer:micrometer-registry-prometheus:${properties["prometheusRegistryVersion"]}")
+
     // google oauth
     implementation("com.google.api-client:google-api-client:${properties["googleApiClientVersion"]}")
 
@@ -61,7 +64,7 @@ dependencies {
 
     // slack
     implementation("com.slack.api:slack-api-client:${properties["slackApiVersion"]}")
-    
+
     // kotlin logging
     implementation("io.github.microutils:kotlin-logging-jvm:${properties["kotlinLoggingVersion"]}")
 

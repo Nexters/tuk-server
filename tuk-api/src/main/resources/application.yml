@@ -32,10 +32,12 @@ springdoc:
   use-fqn: true
 
 management:
+  server:
+    port: 8081
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, prometheus
 
 oauth:
   google:
@@ -96,6 +98,12 @@ slack:
   channels:
     error-alert: C099EEB4SQ7
   enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
 
 ---
 spring:
